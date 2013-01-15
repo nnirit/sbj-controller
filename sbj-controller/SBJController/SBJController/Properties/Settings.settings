@@ -5,5 +5,14 @@
     <Setting Name="SamplesLogBookPath" Type="System.String" Scope="User">
       <Value Profile="(Default)">c:\Sbj\DOCS\Measurements and Samples2.xlsx</Value>
     </Setting>
+    <Setting Name="SourceMeterAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">GPIB0::12::INSTR</Value>
+    </Setting>
+    <Setting Name="AmplifierAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">GPIB0::22::INSTR</Value>
+    </Setting>
+    <Setting Name="TaborAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">GPIB1::4::INSTR</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
