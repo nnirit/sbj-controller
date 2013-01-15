@@ -1,5 +1,6 @@
 ﻿using System;
 using NationalInstruments.VisaNS;
+using SBJController.Properties;
 
 namespace SBJController
 {
@@ -10,7 +11,6 @@ namespace SBJController
     {
         #region Members
         private int m_gainPower;
-        private const string c_resourceName = "GPIB0::22::INSTR";
         private const string c_changeGainCommand = "R{0}X";
         #endregion
 
@@ -29,7 +29,7 @@ namespace SBJController
         /// <summary>
         /// Default constructor
         /// </summary>
-        public Amplifier() : base (c_resourceName)
+        public Amplifier() : base (Settings.Default.AmplifierAddress)
         {
         }
         #endregion
@@ -38,9 +38,9 @@ namespace SBJController
         /// <summary>
         /// 
         /// </summary>
-        public void Connect()
+        new public void Connect()
         {
-            base.Connect(c_resourceName);
+            base.Connect();
         }
         /// <summary>
         /// Set gain power to new value
