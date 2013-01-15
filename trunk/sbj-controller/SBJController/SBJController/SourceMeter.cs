@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NationalInstruments.VisaNS;
+using SBJController.Properties;
 
 namespace SBJController
 {
     public class SourceMeter : VisaInstrument
     {
         private double m_bias;
-        private const string c_resourceName = "GPIB0::20::INSTR";
         private const string c_resetCommand = "*RST";
         private const string c_selectVoltageSource = ":SOUR:FUNC VOLT";
         private const string c_setBiasCommand = ":SOUR:VOLT:LEV {0}";
@@ -26,13 +26,14 @@ namespace SBJController
             set { m_bias = value; }
         }
 
-        public SourceMeter(): base(c_resourceName)
+        public SourceMeter()
+            : base(Settings.Default.SourceMeterAddress)
         {
         }
 
-        public void Connect()
+        new public void Connect()
         {
-            base.Connect(c_resourceName);
+            base.Connect();
             ResourceManager manager = ResourceManager.GetLocalManager();            
             this.SelectVoltageSource();            
             this.SetCurrentMeasurementAutoRange();

@@ -150,7 +150,7 @@ namespace SBJController
         }
 
         #region Native Dll
-        [DllImport("IODrive2007.dll")]
+        [DllImport("IODrive2007.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern void DigitalOut(byte data);
         #endregion
 

@@ -23,12 +23,12 @@ namespace SBJController
             ResourceName = resourceName;
         }
 
-        internal void Connect(string resourceName)
+        internal void Connect()
         {
             try
             {
                 ResourceManager manager = ResourceManager.GetLocalManager();
-                m_session = (MessageBasedSession)manager.Open(resourceName);
+                m_session = (MessageBasedSession)manager.Open(ResourceName);
             }
             catch (ArgumentException ex)
             {

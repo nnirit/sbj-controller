@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NationalInstruments.NI4882;
 using NationalInstruments.VisaNS;
+using SBJController.Properties;
 
 namespace SBJController
 {
@@ -17,15 +18,14 @@ namespace SBJController
         private const string c_turnOffCommand = "OUTPut 0";
         private const string c_turnOnCommand = "OUTPut 1";
         private const string c_localCommand = "SYSTem: LOCal"; 
-        private const string c_resourceName = "GPIB1::4::INSTR";
         
-        public Tabor() : base (c_resourceName)
+        public Tabor() : base (Settings.Default.TaborAddress)
         {
         }
 
-        public void Connect()
+        new public void Connect()
         {
-            base.Connect(c_resourceName);
+            base.Connect();
         }
 
         public void SetDCMode()
