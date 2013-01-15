@@ -489,7 +489,7 @@
             this.TopTabPage.Location = new System.Drawing.Point(4, 22);
             this.TopTabPage.Name = "TopTabPage";
             this.TopTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.TopTabPage.Size = new System.Drawing.Size(228, 157);
+            this.TopTabPage.Size = new System.Drawing.Size(233, 157);
             this.TopTabPage.TabIndex = 1;
             this.TopTabPage.Text = "Top";
             this.TopTabPage.UseVisualStyleBackColor = true;
@@ -501,7 +501,7 @@
             this.topPropertyGrid.Location = new System.Drawing.Point(3, 3);
             this.topPropertyGrid.Name = "topPropertyGrid";
             this.topPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.topPropertyGrid.Size = new System.Drawing.Size(222, 151);
+            this.topPropertyGrid.Size = new System.Drawing.Size(227, 151);
             this.topPropertyGrid.TabIndex = 0;
             // 
             // settingsGroupBox
@@ -803,7 +803,7 @@
             this.laserSettingsTabPage.Location = new System.Drawing.Point(4, 22);
             this.laserSettingsTabPage.Name = "laserSettingsTabPage";
             this.laserSettingsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.laserSettingsTabPage.Size = new System.Drawing.Size(507, 202);
+            this.laserSettingsTabPage.Size = new System.Drawing.Size(520, 202);
             this.laserSettingsTabPage.TabIndex = 1;
             this.laserSettingsTabPage.Text = "Laser";
             this.laserSettingsTabPage.UseVisualStyleBackColor = true;
@@ -821,7 +821,7 @@
             this.laserSettingsPanel.Location = new System.Drawing.Point(3, 3);
             this.laserSettingsPanel.MinimumSize = new System.Drawing.Size(0, 89);
             this.laserSettingsPanel.Name = "laserSettingsPanel";
-            this.laserSettingsPanel.Size = new System.Drawing.Size(501, 196);
+            this.laserSettingsPanel.Size = new System.Drawing.Size(514, 196);
             this.laserSettingsPanel.TabIndex = 5;
             // 
             // laserModeComboBox
@@ -875,6 +875,7 @@
             // 
             // amplitudeNumericUpDown
             // 
+            this.amplitudeNumericUpDown.DecimalPlaces = 3;
             this.amplitudeNumericUpDown.Enabled = false;
             this.amplitudeNumericUpDown.Increment = new decimal(new int[] {
             1,
@@ -882,6 +883,11 @@
             0,
             65536});
             this.amplitudeNumericUpDown.Location = new System.Drawing.Point(147, 40);
+            this.amplitudeNumericUpDown.Maximum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
             this.amplitudeNumericUpDown.Name = "amplitudeNumericUpDown";
             this.amplitudeNumericUpDown.Size = new System.Drawing.Size(75, 20);
             this.amplitudeNumericUpDown.TabIndex = 3;
@@ -909,7 +915,7 @@
             this.LockInSettingsTabPage.Location = new System.Drawing.Point(4, 22);
             this.LockInSettingsTabPage.Name = "LockInSettingsTabPage";
             this.LockInSettingsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.LockInSettingsTabPage.Size = new System.Drawing.Size(507, 202);
+            this.LockInSettingsTabPage.Size = new System.Drawing.Size(520, 202);
             this.LockInSettingsTabPage.TabIndex = 2;
             this.LockInSettingsTabPage.Text = "LockIn";
             this.LockInSettingsTabPage.UseVisualStyleBackColor = true;
@@ -923,7 +929,7 @@
             this.lockInPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lockInPanel.Location = new System.Drawing.Point(3, 3);
             this.lockInPanel.Name = "lockInPanel";
-            this.lockInPanel.Size = new System.Drawing.Size(501, 196);
+            this.lockInPanel.Size = new System.Drawing.Size(514, 196);
             this.lockInPanel.TabIndex = 0;
             // 
             // samplePhaseCheckBox
@@ -977,7 +983,7 @@
             this.stepperTabPage.Location = new System.Drawing.Point(4, 22);
             this.stepperTabPage.Name = "stepperTabPage";
             this.stepperTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.stepperTabPage.Size = new System.Drawing.Size(781, 813);
+            this.stepperTabPage.Size = new System.Drawing.Size(799, 813);
             this.stepperTabPage.TabIndex = 1;
             this.stepperTabPage.Text = "Stepper";
             this.stepperTabPage.UseVisualStyleBackColor = true;

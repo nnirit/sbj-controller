@@ -402,7 +402,7 @@ namespace SBJController
 
         private void amplitudeNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            int amplitude = (int)this.amplitudeNumericUpDown.Value;
+            double amplitude = (double)this.amplitudeNumericUpDown.Value;
             m_sbjController.Tabor.SetDcModeAmplitude(amplitude);
         }
         #endregion
