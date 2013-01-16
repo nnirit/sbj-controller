@@ -24,4 +24,12 @@ namespace SBJController
         FULL = 2
     }
 
+    public enum DAQDeviceType
+    {
+        PCI4461 = 1,
+        PCI4474 = 2,
+        PCI4472 = 3
+    }
+
+
 }
