@@ -1,5 +1,7 @@
 ﻿using NationalInstruments.DAQmx;
 using System.Text;
+using SBJController.Properties;
+using System;
 
 namespace SBJController
 {
@@ -11,9 +13,7 @@ namespace SBJController
         #region Members
         private const string c_refTriggeredTask = "RefTriggeredTask";
         private const string c_startTriggeredTask = "StartTriggeredTask";
-        private const string c_physicalChannelName1 = "Dev1/ai0";
-        private const string c_physicalChannelName2 = "Dev1/ai1";
-        private const string c_physicalChannelName3 = "Dev1/ai2";
+        private DAQDeviceType m_daqDeviceType;
 
         #endregion 
 
@@ -23,6 +23,14 @@ namespace SBJController
         /// </summary>
         public DataAcquisitionController()
         {
+            //
+            // convert the DAQDeviceType given by the settings to its enum representation.
+            //
+            if (!Enum.TryParse(Settings.Default.DAQDeviceType, out m_daqDeviceType))
+            {
+                throw new SBJException(string.Format("The DAQDeviceType {0} is invalid.\n Please change to one of the following: {1}",
+                    Settings.Default.DAQDeviceType));
+            }
         }
         #endregion 
 
@@ -42,8 +50,8 @@ namespace SBJController
             //
             // Define a voltage channel
             //
-            AIChannel anaglogChannel = analogInputTask.AIChannels.CreateVoltageChannel(c_physicalChannelName1, string.Empty, 
-                                                            AITerminalConfiguration.Differential, 
+            AIChannel anaglogChannel = analogInputTask.AIChannels.CreateVoltageChannel(Settings.Default.DAQPhysicalChannelName1, string.Empty,
+                                                            GetAITerminalConfiguration(), 
                                                             -10, 10, AIVoltageUnits.Volts);
             //
             // Configure sampling rate
@@ -80,7 +88,7 @@ namespace SBJController
             // Construct the the physical channel name according to the desired inputs.
             // First channel is always monitor.
             //
-            StringBuilder physicalChannelName = new StringBuilder(c_physicalChannelName1);
+            StringBuilder physicalChannelName = new StringBuilder(Settings.Default.DAQPhysicalChannelName1);
 
             //
             // If we also have lock in signal than add a channel
@@ -88,7 +96,7 @@ namespace SBJController
             if (properties.SampleLockInSignal)
             {
                 physicalChannelName.Append(":");
-                physicalChannelName.Append(c_physicalChannelName2);
+                physicalChannelName.Append(Settings.Default.DAQPhysicalChannelName2);
             }
 
             //
@@ -97,14 +105,14 @@ namespace SBJController
             if (properties.SampleLockInPhaseSignal)
             {
                 physicalChannelName.Append(":");
-                physicalChannelName.Append(c_physicalChannelName3);
+                physicalChannelName.Append(Settings.Default.DAQPhysicalChannelName3);
             }
-
+            
             //
             // Define a voltage channel
             //
             AIChannel anaglogChannel = analogInputTask.AIChannels.CreateVoltageChannel(physicalChannelName.ToString(), string.Empty,
-                                                            AITerminalConfiguration.Differential,
+                                                            GetAITerminalConfiguration(),
                                                             -10, 10, AIVoltageUnits.Volts);
             //
             // Configure sampling rate
@@ -142,8 +150,8 @@ namespace SBJController
         {
             Task analogInputTask = new Task();
 
-            analogInputTask.AIChannels.CreateVoltageChannel(c_physicalChannelName1, string.Empty,
-                                                             AITerminalConfiguration.Differential,
+            analogInputTask.AIChannels.CreateVoltageChannel(Settings.Default.DAQPhysicalChannelName1, string.Empty,
+                                                             GetAITerminalConfiguration(),
                                                              -10, 0, AIVoltageUnits.Volts);
 
             analogInputTask.Timing.ConfigureSampleClock(string.Empty, properties.SampleRate,
@@ -156,6 +164,23 @@ namespace SBJController
             return analogInputTask;
         }
         #endregion
+
+        #region Private Methods
+        /// <summary>
+        /// choosing configuration for a voltage channel.
+        /// NI447x support only pseudodifferential, NI446x support both differnetial and pseudo.
+        /// </summary>
+        /// <returns>the suitable AITerminalConfiguration</returns>
+        private AITerminalConfiguration GetAITerminalConfiguration()
+        {
+            AITerminalConfiguration terminalConfiguration =
+                (m_daqDeviceType == DAQDeviceType.PCI4461) ? AITerminalConfiguration.Differential : AITerminalConfiguration.Pseudodifferential;
+            
+            return terminalConfiguration;
+        }
+
+        #endregion
+
     }
 
     #region TaskProperties Class
