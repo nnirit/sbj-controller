@@ -568,7 +568,7 @@ namespace SBJController
             //
             // Try and open excel file
             //
-            ApplicationClass xlsLogBook = new ApplicationClass();
+            Application xlsLogBook = new Application();
             if (xlsLogBook == null)
             {
                 throw new SBJException("Excel is not installed on current machine.");
@@ -656,7 +656,7 @@ namespace SBJController
         /// </summary>
         public void OpenSamplesLog()
         {
-            ApplicationClass xlsLogBook = new ApplicationClass();
+            Application xlsLogBook = new Application();
             if (xlsLogBook == null)
             {
                 throw new SBJException("Excel is not installed on current machine.");
@@ -707,7 +707,7 @@ namespace SBJController
         #endregion
 
         #region Native Dll
-        [DllImport("IODrive2007.dll")]
+        [DllImport("IODrive2007.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern double AnalogIn(byte channel);
         #endregion       
     }
