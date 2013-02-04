@@ -79,7 +79,7 @@ namespace SBJController
             {
                 while ((!worker.CancellationPending) && (m_electroMagnet.Direction != StepperDirection.STATIC))
                 {
-                    if (m_electroMagnet.MoveSingleStep() == -1)
+                    if (!m_electroMagnet.MoveSingleStep())
                     {
                         break;
                     }
@@ -149,7 +149,7 @@ namespace SBJController
             {
                 while ((!worker.CancellationPending) && (i < totalNumberOfSteps) && (m_electroMagnet.Direction != StepperDirection.STATIC))
                 {
-                    if (m_electroMagnet.MoveSingleStep() == -1)
+                    if (!m_electroMagnet.MoveSingleStep())
                     {
                         break;
                     }
