@@ -94,7 +94,30 @@
             this.sampleLockInSignalCheckBox = new System.Windows.Forms.CheckBox();
             this.sensitivityNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
             this.sensitivityLabel = new System.Windows.Forms.Label();
-            this.stepperTabPage = new System.Windows.Forms.TabPage();
+            this.ElectroMagnetTabPage = new System.Windows.Forms.TabPage();
+            this.electroMagnetSettingsPanel = new System.Windows.Forms.Panel();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.emHoldOnMinVoltageNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.emHoldOnMinVoltageLabel = new System.Windows.Forms.Label();
+            this.emHoldOnMinConductanceLabel = new System.Windows.Forms.Label();
+            this.emHoldOnMinConductanceNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.emHoldOnMaxVoltageNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.emHoldOnMaxVoltageLabel = new System.Windows.Forms.Label();
+            this.emHoldOnMaxConductanceLabel = new System.Windows.Forms.Label();
+            this.emHoldOnMaxConductanceNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.emHoldOnToConductanceRangeCheckBox = new System.Windows.Forms.CheckBox();
+            this.emSkipFirstCycleByStepperMotorCheckBox = new System.Windows.Forms.CheckBox();
+            this.emShortCircuitDelayTimeLabel = new System.Windows.Forms.Label();
+            this.emShortCircuitDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.emSlowDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.emSlowDelayTimeLabel = new System.Windows.Forms.Label();
+            this.emFastDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.enableElectroMagnetCheckBox = new System.Windows.Forms.CheckBox();
+            this.emFastDelayTimeLabel = new System.Windows.Forms.Label();
+            this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
+            this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
+            this.electroMagnetUserControl1 = new ElectroMagnetUserControl();
+            this.stepperMotorGroupBox = new System.Windows.Forms.GroupBox();
             this.stepperMotorUserControl2 = new StepperMotorUserControl();
             this.aquireDataBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.stepperUpBackgroundWorker = new System.ComponentModel.BackgroundWorker();
@@ -128,7 +151,19 @@
             this.LockInSettingsTabPage.SuspendLayout();
             this.lockInPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sensitivityNumericEdit)).BeginInit();
-            this.stepperTabPage.SuspendLayout();
+            this.ElectroMagnetTabPage.SuspendLayout();
+            this.electroMagnetSettingsPanel.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.emHoldOnMinVoltageNumericEdit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emHoldOnMinConductanceNumericEdit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emHoldOnMaxVoltageNumericEdit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emHoldOnMaxConductanceNumericEdit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emShortCircuitDelayTimeNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emSlowDelayTimeNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emFastDelayTimeNumericUpDown)).BeginInit();
+            this.controlPanelsTabPage.SuspendLayout();
+            this.electroMagnetGroupBox.SuspendLayout();
+            this.stepperMotorGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // obtainShortCircuitBackgroundWorker
@@ -141,14 +176,15 @@
             // controllerTabControl
             // 
             this.controllerTabControl.Controls.Add(this.dataAquisitionTabPage);
-            this.controllerTabControl.Controls.Add(this.stepperTabPage);
+            this.controllerTabControl.Controls.Add(this.controlPanelsTabPage);
             this.controllerTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.controllerTabControl.Location = new System.Drawing.Point(0, 0);
             this.controllerTabControl.Name = "controllerTabControl";
             this.controllerTabControl.SelectedIndex = 0;
-            this.controllerTabControl.Size = new System.Drawing.Size(807, 839);
+            this.controllerTabControl.Size = new System.Drawing.Size(749, 825);
             this.controllerTabControl.TabIndex = 2;
             this.controllerTabControl.Tag = "";
+            this.controllerTabControl.Deselected += new System.Windows.Forms.TabControlEventHandler(this.controllerTabControl_Deselected);
             // 
             // dataAquisitionTabPage
             // 
@@ -160,7 +196,7 @@
             this.dataAquisitionTabPage.Location = new System.Drawing.Point(4, 22);
             this.dataAquisitionTabPage.Name = "dataAquisitionTabPage";
             this.dataAquisitionTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.dataAquisitionTabPage.Size = new System.Drawing.Size(799, 813);
+            this.dataAquisitionTabPage.Size = new System.Drawing.Size(741, 799);
             this.dataAquisitionTabPage.TabIndex = 0;
             this.dataAquisitionTabPage.Text = "DAQ";
             this.dataAquisitionTabPage.UseVisualStyleBackColor = true;
@@ -183,10 +219,10 @@
             this.operateGroupBox.Controls.Add(this.fileNumberNumericUpDown);
             this.operateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.operateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.operateGroupBox.Location = new System.Drawing.Point(3, 626);
+            this.operateGroupBox.Location = new System.Drawing.Point(3, 612);
             this.operateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.operateGroupBox.Name = "operateGroupBox";
-            this.operateGroupBox.Size = new System.Drawing.Size(793, 184);
+            this.operateGroupBox.Size = new System.Drawing.Size(735, 184);
             this.operateGroupBox.TabIndex = 23;
             this.operateGroupBox.TabStop = false;
             this.operateGroupBox.Text = "Operate";
@@ -308,6 +344,7 @@
             this.pathTextBox.Size = new System.Drawing.Size(400, 20);
             this.pathTextBox.TabIndex = 9;
             this.pathTextBox.Text = "C:\\sbj\\Measurements";
+            this.pathTextBox.TextChanged += new System.EventHandler(this.pathTextBox_TextChanged);
             // 
             // browseButton
             // 
@@ -368,13 +405,13 @@
             this.traceWaveformGraph.CaptionBackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.traceWaveformGraph.CaptionFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.traceWaveformGraph.CaptionForeColor = System.Drawing.SystemColors.ControlText;
-            this.traceWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY)
-                        | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint)
-                        | NationalInstruments.UI.GraphInteractionModes.PanX)
-                        | NationalInstruments.UI.GraphInteractionModes.PanY)
-                        | NationalInstruments.UI.GraphInteractionModes.DragCursor)
-                        | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption)
-                        | NationalInstruments.UI.GraphInteractionModes.EditRange)));
+            this.traceWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY) 
+            | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint) 
+            | NationalInstruments.UI.GraphInteractionModes.PanX) 
+            | NationalInstruments.UI.GraphInteractionModes.PanY) 
+            | NationalInstruments.UI.GraphInteractionModes.DragCursor) 
+            | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption) 
+            | NationalInstruments.UI.GraphInteractionModes.EditRange)));
             this.traceWaveformGraph.Location = new System.Drawing.Point(153, 16);
             this.traceWaveformGraph.Name = "traceWaveformGraph";
             this.traceWaveformGraph.PlotAreaColor = System.Drawing.Color.LightGray;
@@ -391,6 +428,7 @@
             // waveformPlot1
             // 
             this.waveformPlot1.LineColor = System.Drawing.Color.Red;
+            this.waveformPlot1.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
             this.waveformPlot1.ToolTipsEnabled = true;
             this.waveformPlot1.XAxis = this.xAxis1;
             this.waveformPlot1.YAxis = this.yAxis1;
@@ -398,7 +436,7 @@
             // xAxis1
             // 
             this.xAxis1.Caption = "Time [sec E-4]";
-            this.xAxis1.Range = new NationalInstruments.UI.Range(0, 10000);
+            this.xAxis1.Range = new NationalInstruments.UI.Range(0D, 10000D);
             // 
             // yAxis1
             // 
@@ -409,20 +447,20 @@
             this.yAxis2.Caption = "LockIn Signal";
             this.yAxis2.CaptionPosition = NationalInstruments.UI.YAxisPosition.Right;
             this.yAxis2.Position = NationalInstruments.UI.YAxisPosition.Right;
-            this.yAxis2.Range = new NationalInstruments.UI.Range(-10, 10);
+            this.yAxis2.Range = new NationalInstruments.UI.Range(-10D, 10D);
             // 
             // samplePropertiesGroupBox
             // 
-            this.samplePropertiesGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.samplePropertiesGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.samplePropertiesGroupBox.AutoSize = true;
             this.samplePropertiesGroupBox.Controls.Add(this.openLogBookButton);
             this.samplePropertiesGroupBox.Controls.Add(this.saveSamplesParamsButton);
             this.samplePropertiesGroupBox.Controls.Add(this.samplePropertiesTabControl);
             this.samplePropertiesGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.samplePropertiesGroupBox.Location = new System.Drawing.Point(546, 366);
+            this.samplePropertiesGroupBox.Location = new System.Drawing.Point(546, 364);
             this.samplePropertiesGroupBox.Name = "samplePropertiesGroupBox";
-            this.samplePropertiesGroupBox.Size = new System.Drawing.Size(247, 247);
+            this.samplePropertiesGroupBox.Size = new System.Drawing.Size(183, 247);
             this.samplePropertiesGroupBox.TabIndex = 20;
             this.samplePropertiesGroupBox.TabStop = false;
             this.samplePropertiesGroupBox.Text = "Sample Properties";
@@ -458,7 +496,7 @@
             this.samplePropertiesTabControl.MinimumSize = new System.Drawing.Size(150, 0);
             this.samplePropertiesTabControl.Name = "samplePropertiesTabControl";
             this.samplePropertiesTabControl.SelectedIndex = 0;
-            this.samplePropertiesTabControl.Size = new System.Drawing.Size(241, 183);
+            this.samplePropertiesTabControl.Size = new System.Drawing.Size(177, 183);
             this.samplePropertiesTabControl.TabIndex = 0;
             // 
             // bottomTabPage
@@ -467,7 +505,7 @@
             this.bottomTabPage.Location = new System.Drawing.Point(4, 22);
             this.bottomTabPage.Name = "bottomTabPage";
             this.bottomTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.bottomTabPage.Size = new System.Drawing.Size(233, 157);
+            this.bottomTabPage.Size = new System.Drawing.Size(169, 157);
             this.bottomTabPage.TabIndex = 0;
             this.bottomTabPage.Text = "Bottom";
             this.bottomTabPage.UseVisualStyleBackColor = true;
@@ -480,7 +518,7 @@
             this.bottomPropertyGrid.MinimumSize = new System.Drawing.Size(150, 0);
             this.bottomPropertyGrid.Name = "bottomPropertyGrid";
             this.bottomPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.bottomPropertyGrid.Size = new System.Drawing.Size(227, 151);
+            this.bottomPropertyGrid.Size = new System.Drawing.Size(163, 151);
             this.bottomPropertyGrid.TabIndex = 1;
             // 
             // TopTabPage
@@ -489,7 +527,7 @@
             this.TopTabPage.Location = new System.Drawing.Point(4, 22);
             this.TopTabPage.Name = "TopTabPage";
             this.TopTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.TopTabPage.Size = new System.Drawing.Size(233, 157);
+            this.TopTabPage.Size = new System.Drawing.Size(169, 157);
             this.TopTabPage.TabIndex = 1;
             this.TopTabPage.Text = "Top";
             this.TopTabPage.UseVisualStyleBackColor = true;
@@ -501,7 +539,7 @@
             this.topPropertyGrid.Location = new System.Drawing.Point(3, 3);
             this.topPropertyGrid.Name = "topPropertyGrid";
             this.topPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.topPropertyGrid.Size = new System.Drawing.Size(227, 151);
+            this.topPropertyGrid.Size = new System.Drawing.Size(163, 151);
             this.topPropertyGrid.TabIndex = 0;
             // 
             // settingsGroupBox
@@ -509,7 +547,7 @@
             this.settingsGroupBox.AutoSize = true;
             this.settingsGroupBox.Controls.Add(this.SettingsTabControl);
             this.settingsGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.settingsGroupBox.Location = new System.Drawing.Point(6, 366);
+            this.settingsGroupBox.Location = new System.Drawing.Point(6, 364);
             this.settingsGroupBox.MinimumSize = new System.Drawing.Size(521, 200);
             this.settingsGroupBox.Name = "settingsGroupBox";
             this.settingsGroupBox.Size = new System.Drawing.Size(534, 247);
@@ -522,13 +560,13 @@
             this.SettingsTabControl.Controls.Add(this.generalSettingsTabPage);
             this.SettingsTabControl.Controls.Add(this.laserSettingsTabPage);
             this.SettingsTabControl.Controls.Add(this.LockInSettingsTabPage);
+            this.SettingsTabControl.Controls.Add(this.ElectroMagnetTabPage);
             this.SettingsTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SettingsTabControl.Location = new System.Drawing.Point(3, 16);
             this.SettingsTabControl.Name = "SettingsTabControl";
             this.SettingsTabControl.SelectedIndex = 0;
             this.SettingsTabControl.Size = new System.Drawing.Size(528, 228);
             this.SettingsTabControl.TabIndex = 17;
-            this.SettingsTabControl.SelectedIndexChanged += new System.EventHandler(this.LockInSettingsTabControl_SelectedIndexChanged);
             // 
             // generalSettingsTabPage
             // 
@@ -540,7 +578,6 @@
             this.generalSettingsTabPage.TabIndex = 0;
             this.generalSettingsTabPage.Text = "General";
             this.generalSettingsTabPage.UseVisualStyleBackColor = true;
-            this.generalSettingsTabPage.Click += new System.EventHandler(this.generalSettingsTabPage_Click);
             // 
             // generalSettingsPanel
             // 
@@ -568,7 +605,6 @@
             this.generalSettingsPanel.Name = "generalSettingsPanel";
             this.generalSettingsPanel.Size = new System.Drawing.Size(514, 196);
             this.generalSettingsPanel.TabIndex = 16;
-            this.generalSettingsPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
             // 
             // gainComboBox
             // 
@@ -598,6 +634,11 @@
             0,
             0});
             this.stepperWaitTime2NumericUpDown.Location = new System.Drawing.Point(431, 99);
+            this.stepperWaitTime2NumericUpDown.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
             this.stepperWaitTime2NumericUpDown.Name = "stepperWaitTime2NumericUpDown";
             this.stepperWaitTime2NumericUpDown.Size = new System.Drawing.Size(75, 20);
             this.stepperWaitTime2NumericUpDown.TabIndex = 17;
@@ -621,7 +662,7 @@
             // 
             this.pretriggerSamplesNumericUpDown.Location = new System.Drawing.Point(147, 127);
             this.pretriggerSamplesNumericUpDown.Maximum = new decimal(new int[] {
-            10000,
+            10000000,
             0,
             0,
             0});
@@ -665,7 +706,7 @@
             // 
             this.totalSamplesNumericUpDown.Location = new System.Drawing.Point(431, 37);
             this.totalSamplesNumericUpDown.Maximum = new decimal(new int[] {
-            100000,
+            10000000,
             0,
             0,
             0});
@@ -677,6 +718,7 @@
             0,
             0,
             0});
+            this.totalSamplesNumericUpDown.ValueChanged += new System.EventHandler(this.totalSamplesNumericUpDown_ValueChanged);
             // 
             // totalSamplesLabel
             // 
@@ -696,7 +738,7 @@
             this.triggerVoltageNumericEdit.Name = "triggerVoltageNumericEdit";
             this.triggerVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.triggerVoltageNumericEdit.TabIndex = 11;
-            this.triggerVoltageNumericEdit.Value = -0.01;
+            this.triggerVoltageNumericEdit.Value = -0.01D;
             // 
             // triggerVoltageLabel
             // 
@@ -715,7 +757,7 @@
             this.triggerConductanceNumericEdit.Name = "triggerConductanceNumericEdit";
             this.triggerConductanceNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.triggerConductanceNumericEdit.TabIndex = 9;
-            this.triggerConductanceNumericEdit.Value = 0.0129;
+            this.triggerConductanceNumericEdit.Value = 0.0129D;
             this.triggerConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.triggerConductanceNumericEdit_AfterChangeValue_1);
             // 
             // triggerConductanceLabel
@@ -777,14 +819,14 @@
             // 
             // biasNumericEdit
             // 
-            this.biasNumericEdit.CoercionInterval = 0.01;
+            this.biasNumericEdit.CoercionInterval = 0.01D;
             this.biasNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(3);
             this.biasNumericEdit.Location = new System.Drawing.Point(147, 5);
             this.biasNumericEdit.Name = "biasNumericEdit";
-            this.biasNumericEdit.Range = new NationalInstruments.UI.Range(-2, 2);
+            this.biasNumericEdit.Range = new NationalInstruments.UI.Range(-2D, 2D);
             this.biasNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.biasNumericEdit.TabIndex = 1;
-            this.biasNumericEdit.Value = 0.1;
+            this.biasNumericEdit.Value = 0.1D;
             this.biasNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.biasNumericEdit_AfterChangeValue);
             // 
             // biasLabel
@@ -953,18 +995,17 @@
             this.sampleLockInSignalCheckBox.TabIndex = 4;
             this.sampleLockInSignalCheckBox.Text = "Sample LockIn Signal";
             this.sampleLockInSignalCheckBox.UseVisualStyleBackColor = true;
-            this.sampleLockInSignalCheckBox.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // sensitivityNumericEdit
             // 
-            this.sensitivityNumericEdit.CoercionInterval = 0.01;
+            this.sensitivityNumericEdit.CoercionInterval = 0.01D;
             this.sensitivityNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2, true);
             this.sensitivityNumericEdit.Location = new System.Drawing.Point(90, 53);
             this.sensitivityNumericEdit.Name = "sensitivityNumericEdit";
-            this.sensitivityNumericEdit.Range = new NationalInstruments.UI.Range(2E-09, 1);
+            this.sensitivityNumericEdit.Range = new NationalInstruments.UI.Range(2E-09D, 1D);
             this.sensitivityNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.sensitivityNumericEdit.TabIndex = 3;
-            this.sensitivityNumericEdit.Value = 0.5;
+            this.sensitivityNumericEdit.Value = 0.5D;
             // 
             // sensitivityLabel
             // 
@@ -976,21 +1017,327 @@
             this.sensitivityLabel.TabIndex = 2;
             this.sensitivityLabel.Text = "Sensitivity [V]";
             // 
-            // stepperTabPage
+            // ElectroMagnetTabPage
             // 
-            this.stepperTabPage.AutoScroll = true;
-            this.stepperTabPage.Controls.Add(this.stepperMotorUserControl2);
-            this.stepperTabPage.Location = new System.Drawing.Point(4, 22);
-            this.stepperTabPage.Name = "stepperTabPage";
-            this.stepperTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.stepperTabPage.Size = new System.Drawing.Size(799, 813);
-            this.stepperTabPage.TabIndex = 1;
-            this.stepperTabPage.Text = "Stepper";
-            this.stepperTabPage.UseVisualStyleBackColor = true;
+            this.ElectroMagnetTabPage.Controls.Add(this.electroMagnetSettingsPanel);
+            this.ElectroMagnetTabPage.Location = new System.Drawing.Point(4, 22);
+            this.ElectroMagnetTabPage.Name = "ElectroMagnetTabPage";
+            this.ElectroMagnetTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.ElectroMagnetTabPage.Size = new System.Drawing.Size(520, 202);
+            this.ElectroMagnetTabPage.TabIndex = 3;
+            this.ElectroMagnetTabPage.Text = "ElectroMagnet";
+            this.ElectroMagnetTabPage.UseVisualStyleBackColor = true;
+            // 
+            // electroMagnetSettingsPanel
+            // 
+            this.electroMagnetSettingsPanel.Controls.Add(this.groupBox1);
+            this.electroMagnetSettingsPanel.Controls.Add(this.emSkipFirstCycleByStepperMotorCheckBox);
+            this.electroMagnetSettingsPanel.Controls.Add(this.emShortCircuitDelayTimeLabel);
+            this.electroMagnetSettingsPanel.Controls.Add(this.emShortCircuitDelayTimeNumericUpDown);
+            this.electroMagnetSettingsPanel.Controls.Add(this.emSlowDelayTimeNumericUpDown);
+            this.electroMagnetSettingsPanel.Controls.Add(this.emSlowDelayTimeLabel);
+            this.electroMagnetSettingsPanel.Controls.Add(this.emFastDelayTimeNumericUpDown);
+            this.electroMagnetSettingsPanel.Controls.Add(this.enableElectroMagnetCheckBox);
+            this.electroMagnetSettingsPanel.Controls.Add(this.emFastDelayTimeLabel);
+            this.electroMagnetSettingsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.electroMagnetSettingsPanel.Location = new System.Drawing.Point(3, 3);
+            this.electroMagnetSettingsPanel.Name = "electroMagnetSettingsPanel";
+            this.electroMagnetSettingsPanel.Size = new System.Drawing.Size(514, 196);
+            this.electroMagnetSettingsPanel.TabIndex = 3;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.emHoldOnMinVoltageNumericEdit);
+            this.groupBox1.Controls.Add(this.emHoldOnMinVoltageLabel);
+            this.groupBox1.Controls.Add(this.emHoldOnMinConductanceLabel);
+            this.groupBox1.Controls.Add(this.emHoldOnMinConductanceNumericEdit);
+            this.groupBox1.Controls.Add(this.emHoldOnMaxVoltageNumericEdit);
+            this.groupBox1.Controls.Add(this.emHoldOnMaxVoltageLabel);
+            this.groupBox1.Controls.Add(this.emHoldOnMaxConductanceLabel);
+            this.groupBox1.Controls.Add(this.emHoldOnMaxConductanceNumericEdit);
+            this.groupBox1.Controls.Add(this.emHoldOnToConductanceRangeCheckBox);
+            this.groupBox1.Location = new System.Drawing.Point(269, 8);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(233, 172);
+            this.groupBox1.TabIndex = 18;
+            this.groupBox1.TabStop = false;
+            // 
+            // emHoldOnMinVoltageNumericEdit
+            // 
+            this.emHoldOnMinVoltageNumericEdit.BackColor = System.Drawing.SystemColors.Control;
+            this.emHoldOnMinVoltageNumericEdit.CoercionInterval = 0.001D;
+            this.emHoldOnMinVoltageNumericEdit.Enabled = false;
+            this.emHoldOnMinVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
+            this.emHoldOnMinVoltageNumericEdit.InteractionMode = NationalInstruments.UI.NumericEditInteractionModes.Indicator;
+            this.emHoldOnMinVoltageNumericEdit.Location = new System.Drawing.Point(145, 138);
+            this.emHoldOnMinVoltageNumericEdit.Name = "emHoldOnMinVoltageNumericEdit";
+            this.emHoldOnMinVoltageNumericEdit.Size = new System.Drawing.Size(77, 20);
+            this.emHoldOnMinVoltageNumericEdit.TabIndex = 17;
+            // 
+            // emHoldOnMinVoltageLabel
+            // 
+            this.emHoldOnMinVoltageLabel.AutoSize = true;
+            this.emHoldOnMinVoltageLabel.Enabled = false;
+            this.emHoldOnMinVoltageLabel.ForeColor = System.Drawing.Color.Black;
+            this.emHoldOnMinVoltageLabel.Location = new System.Drawing.Point(9, 141);
+            this.emHoldOnMinVoltageLabel.Name = "emHoldOnMinVoltageLabel";
+            this.emHoldOnMinVoltageLabel.Size = new System.Drawing.Size(82, 13);
+            this.emHoldOnMinVoltageLabel.TabIndex = 16;
+            this.emHoldOnMinVoltageLabel.Text = "Max Voltage [V]";
+            // 
+            // emHoldOnMinConductanceLabel
+            // 
+            this.emHoldOnMinConductanceLabel.AutoSize = true;
+            this.emHoldOnMinConductanceLabel.Enabled = false;
+            this.emHoldOnMinConductanceLabel.ForeColor = System.Drawing.Color.Black;
+            this.emHoldOnMinConductanceLabel.Location = new System.Drawing.Point(9, 111);
+            this.emHoldOnMinConductanceLabel.Name = "emHoldOnMinConductanceLabel";
+            this.emHoldOnMinConductanceLabel.Size = new System.Drawing.Size(117, 13);
+            this.emHoldOnMinConductanceLabel.TabIndex = 15;
+            this.emHoldOnMinConductanceLabel.Text = "Max Conductance [G0]";
+            // 
+            // emHoldOnMinConductanceNumericEdit
+            // 
+            this.emHoldOnMinConductanceNumericEdit.CoercionInterval = 0.1D;
+            this.emHoldOnMinConductanceNumericEdit.Enabled = false;
+            this.emHoldOnMinConductanceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
+            this.emHoldOnMinConductanceNumericEdit.Location = new System.Drawing.Point(145, 109);
+            this.emHoldOnMinConductanceNumericEdit.Name = "emHoldOnMinConductanceNumericEdit";
+            this.emHoldOnMinConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0D, 20D);
+            this.emHoldOnMinConductanceNumericEdit.Size = new System.Drawing.Size(77, 20);
+            this.emHoldOnMinConductanceNumericEdit.TabIndex = 14;
+            this.emHoldOnMinConductanceNumericEdit.Value = 0.7D;
+            this.emHoldOnMinConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.emHoldOnMinConductanceNumericEdit_AfterChangeValue);
+            // 
+            // emHoldOnMaxVoltageNumericEdit
+            // 
+            this.emHoldOnMaxVoltageNumericEdit.BackColor = System.Drawing.SystemColors.Control;
+            this.emHoldOnMaxVoltageNumericEdit.CoercionInterval = 0.001D;
+            this.emHoldOnMaxVoltageNumericEdit.Enabled = false;
+            this.emHoldOnMaxVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
+            this.emHoldOnMaxVoltageNumericEdit.InteractionMode = NationalInstruments.UI.NumericEditInteractionModes.Indicator;
+            this.emHoldOnMaxVoltageNumericEdit.Location = new System.Drawing.Point(145, 78);
+            this.emHoldOnMaxVoltageNumericEdit.Name = "emHoldOnMaxVoltageNumericEdit";
+            this.emHoldOnMaxVoltageNumericEdit.Size = new System.Drawing.Size(77, 20);
+            this.emHoldOnMaxVoltageNumericEdit.TabIndex = 12;
+            // 
+            // emHoldOnMaxVoltageLabel
+            // 
+            this.emHoldOnMaxVoltageLabel.AutoSize = true;
+            this.emHoldOnMaxVoltageLabel.Enabled = false;
+            this.emHoldOnMaxVoltageLabel.ForeColor = System.Drawing.Color.Black;
+            this.emHoldOnMaxVoltageLabel.Location = new System.Drawing.Point(9, 81);
+            this.emHoldOnMaxVoltageLabel.Name = "emHoldOnMaxVoltageLabel";
+            this.emHoldOnMaxVoltageLabel.Size = new System.Drawing.Size(82, 13);
+            this.emHoldOnMaxVoltageLabel.TabIndex = 11;
+            this.emHoldOnMaxVoltageLabel.Text = "Max Voltage [V]";
+            // 
+            // emHoldOnMaxConductanceLabel
+            // 
+            this.emHoldOnMaxConductanceLabel.AutoSize = true;
+            this.emHoldOnMaxConductanceLabel.Enabled = false;
+            this.emHoldOnMaxConductanceLabel.ForeColor = System.Drawing.Color.Black;
+            this.emHoldOnMaxConductanceLabel.Location = new System.Drawing.Point(9, 51);
+            this.emHoldOnMaxConductanceLabel.Name = "emHoldOnMaxConductanceLabel";
+            this.emHoldOnMaxConductanceLabel.Size = new System.Drawing.Size(117, 13);
+            this.emHoldOnMaxConductanceLabel.TabIndex = 10;
+            this.emHoldOnMaxConductanceLabel.Text = "Max Conductance [G0]";
+            // 
+            // emHoldOnMaxConductanceNumericEdit
+            // 
+            this.emHoldOnMaxConductanceNumericEdit.CoercionInterval = 0.1D;
+            this.emHoldOnMaxConductanceNumericEdit.Enabled = false;
+            this.emHoldOnMaxConductanceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
+            this.emHoldOnMaxConductanceNumericEdit.Location = new System.Drawing.Point(145, 49);
+            this.emHoldOnMaxConductanceNumericEdit.Name = "emHoldOnMaxConductanceNumericEdit";
+            this.emHoldOnMaxConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0D, 20D);
+            this.emHoldOnMaxConductanceNumericEdit.Size = new System.Drawing.Size(77, 20);
+            this.emHoldOnMaxConductanceNumericEdit.TabIndex = 9;
+            this.emHoldOnMaxConductanceNumericEdit.Value = 1.3D;
+            this.emHoldOnMaxConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.emHoldOnMaxConductanceNumericEdit_AfterChangeValue);
+            // 
+            // emHoldOnToConductanceRangeCheckBox
+            // 
+            this.emHoldOnToConductanceRangeCheckBox.AutoSize = true;
+            this.emHoldOnToConductanceRangeCheckBox.Enabled = false;
+            this.emHoldOnToConductanceRangeCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.emHoldOnToConductanceRangeCheckBox.Location = new System.Drawing.Point(12, 19);
+            this.emHoldOnToConductanceRangeCheckBox.Name = "emHoldOnToConductanceRangeCheckBox";
+            this.emHoldOnToConductanceRangeCheckBox.Size = new System.Drawing.Size(179, 17);
+            this.emHoldOnToConductanceRangeCheckBox.TabIndex = 8;
+            this.emHoldOnToConductanceRangeCheckBox.Text = "Hold On to Conductance Range";
+            this.emHoldOnToConductanceRangeCheckBox.UseVisualStyleBackColor = true;
+            this.emHoldOnToConductanceRangeCheckBox.CheckedChanged += new System.EventHandler(this.holdOnToConductanceRangeCheckBox_CheckedChanged);
+            // 
+            // emSkipFirstCycleByStepperMotorCheckBox
+            // 
+            this.emSkipFirstCycleByStepperMotorCheckBox.AutoSize = true;
+            this.emSkipFirstCycleByStepperMotorCheckBox.Enabled = false;
+            this.emSkipFirstCycleByStepperMotorCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.emSkipFirstCycleByStepperMotorCheckBox.Location = new System.Drawing.Point(8, 164);
+            this.emSkipFirstCycleByStepperMotorCheckBox.Name = "emSkipFirstCycleByStepperMotorCheckBox";
+            this.emSkipFirstCycleByStepperMotorCheckBox.Size = new System.Drawing.Size(182, 17);
+            this.emSkipFirstCycleByStepperMotorCheckBox.TabIndex = 13;
+            this.emSkipFirstCycleByStepperMotorCheckBox.Text = "Skip First Cycle by Stepper Motor";
+            this.emSkipFirstCycleByStepperMotorCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // emShortCircuitDelayTimeLabel
+            // 
+            this.emShortCircuitDelayTimeLabel.AutoSize = true;
+            this.emShortCircuitDelayTimeLabel.Enabled = false;
+            this.emShortCircuitDelayTimeLabel.ForeColor = System.Drawing.Color.Black;
+            this.emShortCircuitDelayTimeLabel.Location = new System.Drawing.Point(11, 41);
+            this.emShortCircuitDelayTimeLabel.Name = "emShortCircuitDelayTimeLabel";
+            this.emShortCircuitDelayTimeLabel.Size = new System.Drawing.Size(142, 13);
+            this.emShortCircuitDelayTimeLabel.TabIndex = 7;
+            this.emShortCircuitDelayTimeLabel.Text = "Short Circuit Delay Time [ms]";
+            // 
+            // emShortCircuitDelayTimeNumericUpDown
+            // 
+            this.emShortCircuitDelayTimeNumericUpDown.Enabled = false;
+            this.emShortCircuitDelayTimeNumericUpDown.Location = new System.Drawing.Point(162, 38);
+            this.emShortCircuitDelayTimeNumericUpDown.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.emShortCircuitDelayTimeNumericUpDown.Minimum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            this.emShortCircuitDelayTimeNumericUpDown.Name = "emShortCircuitDelayTimeNumericUpDown";
+            this.emShortCircuitDelayTimeNumericUpDown.Size = new System.Drawing.Size(87, 20);
+            this.emShortCircuitDelayTimeNumericUpDown.TabIndex = 6;
+            this.emShortCircuitDelayTimeNumericUpDown.Value = new decimal(new int[] {
+            70,
+            0,
+            0,
+            0});
+            // 
+            // emSlowDelayTimeNumericUpDown
+            // 
+            this.emSlowDelayTimeNumericUpDown.Enabled = false;
+            this.emSlowDelayTimeNumericUpDown.Location = new System.Drawing.Point(162, 101);
+            this.emSlowDelayTimeNumericUpDown.Maximum = new decimal(new int[] {
+            276447232,
+            23283,
+            0,
+            0});
+            this.emSlowDelayTimeNumericUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.emSlowDelayTimeNumericUpDown.Name = "emSlowDelayTimeNumericUpDown";
+            this.emSlowDelayTimeNumericUpDown.Size = new System.Drawing.Size(87, 20);
+            this.emSlowDelayTimeNumericUpDown.TabIndex = 5;
+            this.emSlowDelayTimeNumericUpDown.Value = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            // 
+            // emSlowDelayTimeLabel
+            // 
+            this.emSlowDelayTimeLabel.AutoSize = true;
+            this.emSlowDelayTimeLabel.Enabled = false;
+            this.emSlowDelayTimeLabel.ForeColor = System.Drawing.Color.Black;
+            this.emSlowDelayTimeLabel.Location = new System.Drawing.Point(11, 103);
+            this.emSlowDelayTimeLabel.Name = "emSlowDelayTimeLabel";
+            this.emSlowDelayTimeLabel.Size = new System.Drawing.Size(108, 13);
+            this.emSlowDelayTimeLabel.TabIndex = 4;
+            this.emSlowDelayTimeLabel.Text = "Slow Delay Time [ms]";
+            // 
+            // emFastDelayTimeNumericUpDown
+            // 
+            this.emFastDelayTimeNumericUpDown.Enabled = false;
+            this.emFastDelayTimeNumericUpDown.Location = new System.Drawing.Point(162, 70);
+            this.emFastDelayTimeNumericUpDown.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.emFastDelayTimeNumericUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.emFastDelayTimeNumericUpDown.Name = "emFastDelayTimeNumericUpDown";
+            this.emFastDelayTimeNumericUpDown.Size = new System.Drawing.Size(87, 20);
+            this.emFastDelayTimeNumericUpDown.TabIndex = 3;
+            this.emFastDelayTimeNumericUpDown.Value = new decimal(new int[] {
+            80,
+            0,
+            0,
+            0});
+            // 
+            // enableElectroMagnetCheckBox
+            // 
+            this.enableElectroMagnetCheckBox.AutoSize = true;
+            this.enableElectroMagnetCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.enableElectroMagnetCheckBox.Location = new System.Drawing.Point(7, 6);
+            this.enableElectroMagnetCheckBox.Name = "enableElectroMagnetCheckBox";
+            this.enableElectroMagnetCheckBox.Size = new System.Drawing.Size(131, 17);
+            this.enableElectroMagnetCheckBox.TabIndex = 0;
+            this.enableElectroMagnetCheckBox.Text = "Enable ElectroMagnet";
+            this.enableElectroMagnetCheckBox.UseVisualStyleBackColor = true;
+            this.enableElectroMagnetCheckBox.CheckedChanged += new System.EventHandler(this.enableElectroMagnetCheckBox_CheckedChanged);
+            // 
+            // emFastDelayTimeLabel
+            // 
+            this.emFastDelayTimeLabel.AutoSize = true;
+            this.emFastDelayTimeLabel.Enabled = false;
+            this.emFastDelayTimeLabel.ForeColor = System.Drawing.Color.Black;
+            this.emFastDelayTimeLabel.Location = new System.Drawing.Point(11, 72);
+            this.emFastDelayTimeLabel.Name = "emFastDelayTimeLabel";
+            this.emFastDelayTimeLabel.Size = new System.Drawing.Size(105, 13);
+            this.emFastDelayTimeLabel.TabIndex = 2;
+            this.emFastDelayTimeLabel.Text = "Fast Delay Time [ms]";
+            // 
+            // controlPanelsTabPage
+            // 
+            this.controlPanelsTabPage.AutoScroll = true;
+            this.controlPanelsTabPage.Controls.Add(this.electroMagnetGroupBox);
+            this.controlPanelsTabPage.Controls.Add(this.stepperMotorGroupBox);
+            this.controlPanelsTabPage.Location = new System.Drawing.Point(4, 22);
+            this.controlPanelsTabPage.Name = "controlPanelsTabPage";
+            this.controlPanelsTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.controlPanelsTabPage.Size = new System.Drawing.Size(741, 799);
+            this.controlPanelsTabPage.TabIndex = 1;
+            this.controlPanelsTabPage.Text = "Control Panels";
+            this.controlPanelsTabPage.UseVisualStyleBackColor = true;
+            // 
+            // electroMagnetGroupBox
+            // 
+            this.electroMagnetGroupBox.Controls.Add(this.electroMagnetUserControl1);
+            this.electroMagnetGroupBox.Location = new System.Drawing.Point(13, 183);
+            this.electroMagnetGroupBox.Name = "electroMagnetGroupBox";
+            this.electroMagnetGroupBox.Size = new System.Drawing.Size(281, 278);
+            this.electroMagnetGroupBox.TabIndex = 2;
+            this.electroMagnetGroupBox.TabStop = false;
+            this.electroMagnetGroupBox.Text = "ElectroMagnet";
+            // 
+            // electroMagnetUserControl1
+            // 
+            this.electroMagnetUserControl1.Location = new System.Drawing.Point(6, 12);
+            this.electroMagnetUserControl1.Name = "electroMagnetUserControl1";
+            this.electroMagnetUserControl1.Size = new System.Drawing.Size(272, 265);
+            this.electroMagnetUserControl1.TabIndex = 0;
+            // 
+            // stepperMotorGroupBox
+            // 
+            this.stepperMotorGroupBox.Controls.Add(this.stepperMotorUserControl2);
+            this.stepperMotorGroupBox.Location = new System.Drawing.Point(12, 6);
+            this.stepperMotorGroupBox.Name = "stepperMotorGroupBox";
+            this.stepperMotorGroupBox.Size = new System.Drawing.Size(282, 170);
+            this.stepperMotorGroupBox.TabIndex = 1;
+            this.stepperMotorGroupBox.TabStop = false;
+            this.stepperMotorGroupBox.Text = "Stepper Motor";
             // 
             // stepperMotorUserControl2
             // 
-            this.stepperMotorUserControl2.Location = new System.Drawing.Point(6, 6);
+            this.stepperMotorUserControl2.Location = new System.Drawing.Point(6, 19);
             this.stepperMotorUserControl2.Name = "stepperMotorUserControl2";
             this.stepperMotorUserControl2.Size = new System.Drawing.Size(266, 134);
             this.stepperMotorUserControl2.TabIndex = 0;
@@ -1014,12 +1361,12 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(807, 839);
+            this.ClientSize = new System.Drawing.Size(749, 825);
             this.Controls.Add(this.controllerTabControl);
             this.Name = "SBJControllerMainForm";
             this.Text = "SBJControllerMainForm";
-            this.Shown += new System.EventHandler(this.SBJControllerMainForm_Shown);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.SBJControllerMainForm_FormClosed);
+            this.Shown += new System.EventHandler(this.SBJControllerMainForm_Shown);
             this.controllerTabControl.ResumeLayout(false);
             this.dataAquisitionTabPage.ResumeLayout(false);
             this.dataAquisitionTabPage.PerformLayout();
@@ -1055,7 +1402,21 @@
             this.lockInPanel.ResumeLayout(false);
             this.lockInPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sensitivityNumericEdit)).EndInit();
-            this.stepperTabPage.ResumeLayout(false);
+            this.ElectroMagnetTabPage.ResumeLayout(false);
+            this.electroMagnetSettingsPanel.ResumeLayout(false);
+            this.electroMagnetSettingsPanel.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.emHoldOnMinVoltageNumericEdit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emHoldOnMinConductanceNumericEdit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emHoldOnMaxVoltageNumericEdit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emHoldOnMaxConductanceNumericEdit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emShortCircuitDelayTimeNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emSlowDelayTimeNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.emFastDelayTimeNumericUpDown)).EndInit();
+            this.controlPanelsTabPage.ResumeLayout(false);
+            this.electroMagnetGroupBox.ResumeLayout(false);
+            this.stepperMotorGroupBox.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -1065,7 +1426,7 @@
         private System.ComponentModel.BackgroundWorker obtainShortCircuitBackgroundWorker;
         private System.Windows.Forms.TabControl controllerTabControl;
         private System.Windows.Forms.TabPage dataAquisitionTabPage;
-        private System.Windows.Forms.TabPage stepperTabPage;
+        private System.Windows.Forms.TabPage controlPanelsTabPage;
         private System.ComponentModel.BackgroundWorker aquireDataBackgroundWorker;
         private System.ComponentModel.BackgroundWorker stepperUpBackgroundWorker;
         private System.Windows.Forms.GroupBox operateGroupBox;
@@ -1132,6 +1493,29 @@
         private System.Windows.Forms.Label sensitivityLabel;
         private System.Windows.Forms.CheckBox sampleLockInSignalCheckBox;
         private System.Windows.Forms.CheckBox samplePhaseCheckBox;
+        private System.Windows.Forms.TabPage ElectroMagnetTabPage;
+        private System.Windows.Forms.CheckBox enableElectroMagnetCheckBox;
+        private System.Windows.Forms.GroupBox stepperMotorGroupBox;
+        private System.Windows.Forms.GroupBox electroMagnetGroupBox;
+        private ElectroMagnetUserControl electroMagnetUserControl1;
+        private System.Windows.Forms.Panel electroMagnetSettingsPanel;
+        private System.Windows.Forms.Label emFastDelayTimeLabel;
+        private System.Windows.Forms.NumericUpDown emFastDelayTimeNumericUpDown;
+        private System.Windows.Forms.Label emSlowDelayTimeLabel;
+        private System.Windows.Forms.NumericUpDown emSlowDelayTimeNumericUpDown;
+        private System.Windows.Forms.Label emShortCircuitDelayTimeLabel;
+        private System.Windows.Forms.NumericUpDown emShortCircuitDelayTimeNumericUpDown;
+        private System.Windows.Forms.Label emHoldOnMaxConductanceLabel;
+        private NationalInstruments.UI.WindowsForms.NumericEdit emHoldOnMaxConductanceNumericEdit;
+        private System.Windows.Forms.CheckBox emHoldOnToConductanceRangeCheckBox;
+        private NationalInstruments.UI.WindowsForms.NumericEdit emHoldOnMaxVoltageNumericEdit;
+        private System.Windows.Forms.Label emHoldOnMaxVoltageLabel;
+        private System.Windows.Forms.CheckBox emSkipFirstCycleByStepperMotorCheckBox;
+        private NationalInstruments.UI.WindowsForms.NumericEdit emHoldOnMinVoltageNumericEdit;
+        private System.Windows.Forms.Label emHoldOnMinVoltageLabel;
+        private System.Windows.Forms.Label emHoldOnMinConductanceLabel;
+        private NationalInstruments.UI.WindowsForms.NumericEdit emHoldOnMinConductanceNumericEdit;
+        private System.Windows.Forms.GroupBox groupBox1;
                          
     }
 }

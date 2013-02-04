@@ -15,6 +15,16 @@ namespace SBJController
         public int PretriggerSamples { get; set; }
         public int StepperWaitTime1 { get; set; }
         public int StepperWaitTime2 { get; set; }
+        public bool IsEMEnable { get; set; }
+        public int EMShortCircuitDelayTime { get; set; }
+        public int EMFastDelayTime { get; set; }
+        public int EMSlowDelayTime { get; set; }
+        public bool IsEMHoldOnEnable { get; set; }
+        public double EMHoldOnMaxConductance { get; set; }
+        public double EMHoldOnMaxVoltage { get; set; }
+        public double EMHoldOnMinConductance { get; set; }
+        public double EMHoldOnMinVoltage { get; set; }
+        public bool IsEMSkipFirstCycleEnable { get; set; }
         public bool IsLaserOn { get; set; }
         public string LaserMode { get; set; }
         public int LaserAmplitude { get; set; }
@@ -34,6 +44,9 @@ namespace SBJController
                                      double triggerConductance, int sampleRate,
                                      int totalSamples, int pretriggerSamples,
                                      int stepperWaitTime1, int stepperWaitTime2,
+                                     bool isEMEnable, int emShortCircuitDelayTime, int emFastDelayTime, int emSlowDelayTime, 
+                                     bool isEMHoldOnEnable, double emHoldOnMaxConductance, double emHoldOnMaxVoltage,
+                                     double emHoldOnMinConductance, double emHoldOnMinVoltage, bool isEMSkipFirstCycleEnable, 
                                      bool isLaserOn, string laserMode,int laserAmplitude,
                                      int laserFrequency, bool isLockInSignalEnable, bool isLockInPhaseSignalEnable, double lockInSensitivity,
                                      bool isFileSavingRequired, string path, int currentFileNumber, 
@@ -49,6 +62,16 @@ namespace SBJController
             PretriggerSamples = pretriggerSamples;
             StepperWaitTime1 = stepperWaitTime1;
             StepperWaitTime2 = stepperWaitTime2;
+            IsEMEnable = isEMEnable;
+            EMShortCircuitDelayTime = emShortCircuitDelayTime;
+            EMFastDelayTime = emFastDelayTime;
+            EMSlowDelayTime = emSlowDelayTime;
+            IsEMHoldOnEnable = isEMHoldOnEnable;
+            EMHoldOnMaxConductance = emHoldOnMaxConductance;
+            EMHoldOnMaxVoltage = emHoldOnMaxVoltage;
+            EMHoldOnMinConductance = emHoldOnMinConductance;
+            EMHoldOnMinVoltage = emHoldOnMinVoltage;
+            IsEMSkipFirstCycleEnable = isEMSkipFirstCycleEnable;
             IsLaserOn = isLaserOn;
             LaserMode = laserMode;
             LaserAmplitude = laserAmplitude;

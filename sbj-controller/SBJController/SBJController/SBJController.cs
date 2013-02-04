@@ -18,6 +18,7 @@ namespace SBJController
     {
         #region Private Members
         private StepperMotor m_stepperMotor;
+        private ElectroMagnet m_electroMagnet;
         private Amplifier m_amplifier;
         private SourceMeter m_sourceMeter;
         private Tabor m_taborLaserController;
@@ -29,6 +30,7 @@ namespace SBJController
         private const string c_lockInSignalFileName = "LockInSignal_";
         private const string c_lockInPhaseFileName = "LockInPhase_";
         private delegate void OpenJunctionMethodDelegate(SBJControllerSettings settings);
+        private delegate bool EMOpenJunctionMethodDelegate(SBJControllerSettings settings);
         public delegate void DataAquiredEventHandler(object sender, DataAquiredEventArgs e);
         public event DataAquiredEventHandler DataAquired;
         #endregion
@@ -70,6 +72,7 @@ namespace SBJController
         public SBJController()
         {
             m_stepperMotor = new StepperMotor();
+            m_electroMagnet = new ElectroMagnet();
             m_amplifier = new Amplifier();
             m_sourceMeter = new SourceMeter();
             m_daqController = new DataAcquisitionController();
@@ -100,7 +103,7 @@ namespace SBJController
             AsyncCallback callback = new AsyncCallback(EndOpenJunction);
             IAsyncResult asyncResult = openJunctionDelegate.BeginInvoke(settings, callback, openJunctionDelegate);
         }
-
+    
         /// <summary>
         /// End junction openning
         /// </summary>
@@ -290,6 +293,346 @@ namespace SBJController
                 }
             }
         }
+
+        #region ElectroMagnet
+
+        /// <summary>
+        /// Open the junction asynchronously by the ElectroMagnet
+        /// </summary>
+        /// <param name="settings"></param>       
+        private void EMBeginOpenJunction(SBJControllerSettings settings)
+        {
+            EMOpenJunctionMethodDelegate emOpenJunctionDelegate = new EMOpenJunctionMethodDelegate(EMTryOpenJunction);
+            AsyncCallback callback = new AsyncCallback(EMEndOpenJunction);
+            IAsyncResult asyncResult = emOpenJunctionDelegate.BeginInvoke(settings, callback, emOpenJunctionDelegate);       
+        }
+
+        /// <summary>
+        /// Try open junction by the EM, by calling EMOpenJunction.
+        /// if min voltage exceeded without the junction being opened, do a few steps by the stepper motor, then retry EM (recursion).
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        private bool EMTryOpenJunction(SBJControllerSettings settings)
+        {
+            //
+            // if the EM reached voltage 0 without opening the junction, 
+            // return to higher voltage on EM, do some steps by the stepper motor and retry opening by EM.
+            //
+            if (!EMOpenJunction(settings))
+            {
+                m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, 6.5);
+                m_stepperMotor.Direction = StepperDirection.UP;
+                m_stepperMotor.SteppingMode = StepperSteppingMode.FULL;
+                m_stepperMotor.Delay = m_stepperMotor.MinDelay;
+                m_stepperMotor.MoveMultipleSteps(100);
+                m_stepperMotor.Shutdown();
+                return EMTryOpenJunction(settings);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Open the junction by the ElectroMagnet.
+        /// If min voltage exceeded without the junction being opened, return false. 
+        /// </summary>
+        /// <param name="settings">The settings to be used to open the junction</param>
+        private bool EMOpenJunction(SBJControllerSettings settings)
+        {
+            //
+            // Set the direction of the movement and stepping mode
+            // And configure the first setpper delay (shorter) - faster movement
+            //
+            m_electroMagnet.Direction = StepperDirection.UP;
+            m_electroMagnet.Delay = settings.EMFastDelayTime;
+
+            //
+            // Read the initial voltgae before we've done anything
+            //
+            double initialVoltage = AnalogIn(0);
+            bool isDelayedChanged = false;
+            m_quitJunctionOpenningOperation = false;
+
+            //
+            // Until we've not been signaled from outer thread to stop we'll continue moving up.
+            //
+            while (!m_quitJunctionOpenningOperation)
+            {
+                if (!m_electroMagnet.MoveSingleStep())
+                {
+                    //
+                    // if min Votlage on EM was exceeded return false.
+                    //
+                    return false;
+                }
+                double currentVoltage = AnalogIn(0);
+
+                //
+                // If voltgae had been changed in 0.0001% then switch to slow mode
+                // Note that voltage can be negative so we must take the absoulute value
+                //
+                if (!isDelayedChanged && (Math.Abs(currentVoltage) < Math.Abs(initialVoltage) * 0.9999))
+                {
+                    m_electroMagnet.Delay = settings.EMSlowDelayTime;
+                    isDelayedChanged = true;
+                }
+
+                //
+                // If hold-on trigger was exceeded, wait 10 ms and check if still true.
+                //
+                if (settings.IsEMHoldOnEnable && Math.Abs(currentVoltage) < Math.Abs(settings.EMHoldOnMaxVoltage * 1.1))
+                {
+                    Thread.Sleep(10);
+                    if (Math.Abs(currentVoltage) < Math.Abs(settings.EMHoldOnMaxVoltage * 1.1))
+                    {
+                        //
+                        // trigger was truely exceeded. try to hold on to a certain junction voltage.
+                        //
+                        if (!StabilizeJunction(currentVoltage, settings.EMHoldOnMaxVoltage, settings.EMHoldOnMinVoltage))
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
+                }
+                Thread.Sleep(m_electroMagnet.Delay);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// A feedback loop that stabilizes the junction's voltage between maxVoltage and minVoltage.
+        /// </summary>
+        /// <param name="currentVoltage"></param>
+        /// <param name="triggerVoltage"></param>
+        /// <returns>false if min or max voltage was exceeded, true if the process has been stopped from another thread.</returns>
+        private bool StabilizeJunction(double currentVoltage, double maxVoltage, double minVoltage)
+        {
+            double deviation = 0;
+            double oldDev1=0, oldDev2=0, oldDev3=0, oldDev4=0, oldDev5=0;
+            double diff = 0;
+            
+            //
+            // The moment we entered this function, try to stop the junction from closing by opening a little.
+            //
+            m_electroMagnet.Direction = StepperDirection.UP;
+            m_electroMagnet.Delay = 5;
+            m_electroMagnet.MoveMultipleSteps(5);
+
+            //
+            // this loop runs until the thread is stopped from the background, 
+            // or until one of the limits of the EM voltage is exceeded.
+            //
+            while (!m_quitJunctionOpenningOperation)
+            {
+                currentVoltage = AnalogIn(0);
+                if (currentVoltage > 10)
+                {
+                    currentVoltage = 10;
+                }
+                if (currentVoltage < -10)
+                {
+                    currentVoltage = -10;
+                }
+                //
+                // save older deviations
+                //
+                oldDev5 = oldDev4;
+                oldDev4 = oldDev3;
+                oldDev3 = oldDev2;
+                oldDev2 = oldDev1;
+                oldDev1 = deviation;
+                deviation = 0;
+                
+                //
+                // if voltage at the junction is too low, move the electrodes one step closer
+                //
+                if (Math.Abs(currentVoltage) < Math.Abs(minVoltage))
+                {
+                    //
+                    // calculate the deviation from target voltage. deviation is negative. 
+                    //
+                    deviation = Math.Abs(currentVoltage) - Math.Abs(minVoltage);
+
+                    //
+                    // calculate the derivative in order to know the slop of the trace. we average on 3 dots. 
+                    //
+                    diff = 0.333 * (oldDev2 + oldDev1 + deviation - oldDev5 - oldDev4 - oldDev3);
+
+                    m_electroMagnet.Direction = StepperDirection.DOWN;
+                    if (!m_electroMagnet.MoveSingleStep())
+                    {
+                        //
+                        // if max Votlage on EM was exceeded return false.
+                        //
+                        return false;
+                    }
+                }
+
+                //
+                // if voltage at the junction is too high, open the junction one step
+                //
+                if (Math.Abs(currentVoltage) > Math.Abs(maxVoltage))
+                {
+                    //
+                    // calculate the deviation from target voltage
+                    //
+                    deviation = Math.Abs(currentVoltage) - Math.Abs(maxVoltage);
+
+                    //
+                    // calculate the derivative in order to know the slop of the trace.
+                    // if it's negative its good since we want the voltage to go down. 
+                    // so we take the minus of diff.
+                    //
+                    diff = -0.333 * (oldDev2 + oldDev1 + deviation - oldDev5 - oldDev4 - oldDev3);
+
+                    m_electroMagnet.Direction = StepperDirection.UP;
+                    if (!m_electroMagnet.MoveSingleStep())
+                    {
+                        //
+                        // if min Votlage on EM was exceeded return false.
+                        //
+                        return false;
+                    }
+                }
+                             
+                //
+                // deviation is between 0-10. that means: time delay between 13-55 ms. 
+                // the larger the deviation, the faster we move (=> shorter time delay) 
+                // the values of diff can change between (+10) - (-10). if it's positive we're good and want to step slower. if negative - we want to step faster.
+                //
+                Thread.Sleep((int)(diff + 5 + 100/(Math.Abs(deviation) + 2)));              
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// End junction openning by EM
+        /// </summary>
+        /// <param name="asyncResult"></param>
+        private void EMEndOpenJunction(IAsyncResult asyncResult)
+        {
+            EMOpenJunctionMethodDelegate emOpenJunctionDelegate = (EMOpenJunctionMethodDelegate)asyncResult.AsyncState;
+            emOpenJunctionDelegate.EndInvoke(asyncResult);
+        }
+
+        /// <summary>
+        /// Try obtain short circuit by ElectroMagnet, by calling EMShortCircuit.
+        /// If max EM voltage was exceeded without getting a short circuit, use the stepper motor and retry by recurcion. 
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool EMTryObtainShortCircuit(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            switch (EMShortCircuit(settings.EMShortCircuitDelayTime, settings.ShortCircuitVoltage, worker, e))
+            {
+                case 0:
+                    //
+                    // short contact succeeded. 
+                    //
+                    return false;
+
+                case 1:
+                    //
+                    // the proccess was cancelled by the user.
+                    //
+                    return true;
+
+                case 2:
+                    //
+                    // we've reached the max voltage on the EM without getting to contact.
+                    // return voltage to zero and get the electrodes closer by the stepper motor, 
+                    // then start over again. 
+                    //
+                    m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, 6.5);
+                    m_stepperMotor.Direction = StepperDirection.DOWN;
+                    m_stepperMotor.SteppingMode = StepperSteppingMode.FULL;
+                    m_stepperMotor.Delay = m_stepperMotor.MinDelay;
+                    m_stepperMotor.MoveMultipleSteps(100);
+                    m_stepperMotor.Shutdown();
+                    return EMTryObtainShortCircuit(settings, worker, e);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Try and obtain short circut by the ElectroMagnet
+        /// </summary>
+        /// <param name="shortCircuitVoltage">The voltage indicator for short circuit</param>        
+        /// <returns>2 whether max EM voltage was exceeded. 1 whether the operation was cancelled. 0 otherwise</returns>
+        private int EMShortCircuit(int shortCircuitDelayTime, double shortCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            double voltageAfterStepping;
+            bool isPermanentShortCircuit = false;
+            bool isTempShortCircuit = false;
+
+            //
+            // Get current voltage
+            //
+            double currentVoltage = Math.Abs(AnalogIn(0));
+
+            //
+            // Set EM direction and delay
+            // 
+            m_electroMagnet.Direction = StepperDirection.DOWN;
+            m_electroMagnet.Delay = shortCircuitDelayTime;
+
+            //
+            // Reach to contact
+            //
+            while (!isPermanentShortCircuit)
+            {
+                //
+                // If the backgroundworker requested cancellation - exit
+                //
+                if (worker != null && worker.CancellationPending)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                //
+                // Move down 10 steps and check the voltage afterwords.
+                // if the EM exceeded max voltage return 2.
+                //
+                if (!m_electroMagnet.MoveMultipleSteps(10))
+                {
+                    return 2;
+                }
+                voltageAfterStepping = Math.Abs(AnalogIn(0));
+
+                //
+                // If we reach contact both current voltage and voltgae after stepping
+                // should be smaller than the short circuit threshold (since voltage is negative)
+                //
+                isTempShortCircuit = (currentVoltage > Math.Abs(shortCircuitVoltage)) &&
+                                     (voltageAfterStepping > shortCircuitVoltage);
+
+                //
+                // If we think we've reached short circuit than wait
+                // for 10msec and than check again to verify this is permanent.
+                //
+                if (isTempShortCircuit)
+                {
+                    Thread.Sleep(10);
+                    currentVoltage = Math.Abs(AnalogIn(0));
+                    isPermanentShortCircuit = currentVoltage > Math.Abs(shortCircuitVoltage);
+                }
+                else
+                {
+                    currentVoltage = voltageAfterStepping;
+                }
+            }
+            return (e.Cancel ? 1 : 0);
+        }
+  
+        #endregion
+        
         #endregion
 
         #region Public Methods
@@ -369,7 +712,7 @@ namespace SBJController
         public bool AquireData(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             bool isCancelled = false;
-            int finalFileNumber;
+            int finalFileNumber = settings.CurrentFileNumber;
             double[,] dataAquired;
 
             //
@@ -381,6 +724,14 @@ namespace SBJController
             // Save this run settings if desired
             //
             SaveSettingsIfNeeded(settings);
+
+            //
+            //apply initial voltage on the EM
+            //
+            if (settings.IsEMEnable)
+            {
+                m_electroMagnet.SetVoltage(6.5);
+            }
 
             TryObtainShortCircuit(settings.ShortCircuitVoltage, worker, e);
             double currentVoltage = AnalogIn(0);
@@ -404,8 +755,6 @@ namespace SBJController
                                                                                  triggerSlope);
            
             m_task = m_daqController.CreateMultipleChannelsTriggeredTask(taskProperties);
-            
-         
 
 
             //
@@ -420,6 +769,16 @@ namespace SBJController
                 {
                     e.Cancel = true;
                     break;
+                }
+
+                //
+                // if EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
+                // move on to the next cycle.
+                //
+                if (settings.IsEMEnable && settings.IsEMSkipFirstCycleEnable && i==0)
+                {
+                    m_stepperMotor.Shutdown();
+                    continue;
                 }
 
                 //
@@ -439,9 +798,11 @@ namespace SBJController
 
                 //
                 // Reach to contact before we start openning the junction
+                // If EM is enabled and we're after the first cycle, use the EM.
                 // If user asked to stop than exit
                 //
-                isCancelled = TryObtainShortCircuit(settings.ShortCircuitVoltage, worker, e);
+                isCancelled = (settings.IsEMEnable && i > 0) ? 
+                    EMTryObtainShortCircuit(settings, worker, e) : TryObtainShortCircuit(settings.ShortCircuitVoltage, worker, e);
                 if (isCancelled)
                 {
                     break;
@@ -461,8 +822,16 @@ namespace SBJController
 
                 //
                 // Start openning the junction.
+                // If EM is enabled and we're after the first cycle, use the EM.
                 //
-                BeginOpenJunction(settings);
+                if (settings.IsEMEnable && i > 0)
+                {
+                    EMBeginOpenJunction(settings);
+                }
+                else
+                {
+                    BeginOpenJunction(settings);
+                }
 
                 //
                 // Start the task and wait for the data
@@ -510,9 +879,22 @@ namespace SBJController
                 m_task.Stop();
 
                 //
+                // if EM is enabled, the first trace was done by the stepper motor and we want to ignore it.
+                //
+                if (settings.IsEMEnable && i == 0)
+                {
+                    //
+                    // from now on we use the EM, so we don't want the stepper motor to stay on.
+                    //
+                    m_stepperMotor.Shutdown();
+                    continue;
+                }
+
+                // 
+                // Increase file number by one
                 // Save data if needed
                 //
-                finalFileNumber = settings.CurrentFileNumber + i + 1;
+                finalFileNumber++;
                 if (settings.IsFileSavingRequired)
                 {
                     finalFileNumber = SaveData(settings.Path, dataAquired, finalFileNumber);
@@ -534,13 +916,16 @@ namespace SBJController
             {
                 m_taborLaserController.TurnOff();
             }
+            if (settings.IsEMEnable)
+            {
+                m_electroMagnet.Shutdown();
+            }
             m_task.Dispose();
             m_stepperMotor.Shutdown();
 
             return (isCancelled || e.Cancel);
         }
-
-        
+      
         /// <summary>
         /// Move the stepper up
         /// </summary>
@@ -568,7 +953,7 @@ namespace SBJController
             //
             // Try and open excel file
             //
-            Application xlsLogBook = new Application();
+            Microsoft.Office.Interop.Excel.Application xlsLogBook = new Microsoft.Office.Interop.Excel.Application();
             if (xlsLogBook == null)
             {
                 throw new SBJException("Excel is not installed on current machine.");
@@ -656,7 +1041,7 @@ namespace SBJController
         /// </summary>
         public void OpenSamplesLog()
         {
-            Application xlsLogBook = new Application();
+            Microsoft.Office.Interop.Excel.Application xlsLogBook = new Microsoft.Office.Interop.Excel.Application();
             if (xlsLogBook == null)
             {
                 throw new SBJException("Excel is not installed on current machine.");
@@ -693,11 +1078,17 @@ namespace SBJController
             m_amplifier.ChangeGain(gain);
         }
 
+        public void ControllerTabControlDeselected()
+        {
+            m_electroMagnet.Shutdown();
+        }
+
         internal void ShutDown()
         {
             m_stepperMotor.Shutdown();
             m_sourceMeter.Shutdown();
             m_amplifier.Shutdown();
+            m_electroMagnet.Shutdown();
             m_taborLaserController.Shutdown();
             if (m_task != null)
             {

@@ -85,31 +85,32 @@ namespace SBJController
         /// <summary>
         /// Calculate and applies next step voltage.
         /// </summary>
-        /// <returns>returns 0 if next step voltage was applied, 
-        /// returns -1 if max voltage was exceeded and last voltage remained. </returns>
-        public int MoveSingleStep()
+        /// <returns>returns true if next step voltage was applied, 
+        /// returns false if max voltage was exceeded and last voltage remained. </returns>
+        public bool MoveSingleStep()
         {
             double oldVoltage = m_currentEMVoltage;
             
             //
-            //Calculate next voltage to apply.
+            //Calculate next voltage to apply. 
+            //the higher the voltage, the more we push the junction (up the voltage->down direction)
             //            
-            m_currentEMVoltage += s_voltInterval*(int)m_direction;            
+            m_currentEMVoltage -= s_voltInterval*(int)m_direction;            
             
             //
-            // if exceedes max or min voltage, pause stepper and return -1.
-            // else: move and return 0. 
+            // if exceedes max or min voltage, pause stepper and return false.
+            // else: move and return true. 
             //
             if ( (Math.Abs(m_currentEMVoltage) > s_maxEMVoltage) || (m_currentEMVoltage < s_minEMVoltage) )
             {
-                Direction = StepperDirection.STATIC;
+                m_direction = StepperDirection.STATIC;
                 m_currentEMVoltage = oldVoltage;
-                return -1;
+                return false;
             }
             else
             {
                 AnalogOut(s_analogOutChannel, m_currentEMVoltage);
-                return 0;
+                return true;
             }
         }
 
@@ -117,22 +118,21 @@ namespace SBJController
         /// Move Multiple Steps
         /// </summary>
         /// <param name="numberOfSteps"></param>
-        /// <returns>return 0 if done successfully, -1 if exceeded max EM voltage</returns>
-        public int MoveMultipleSteps(int numberOfSteps)
+        /// <returns>return true if done successfully, false if exceeded max EM voltage</returns>
+        public bool MoveMultipleSteps(int numberOfSteps)
         {
             for (int i = 1; i < numberOfSteps; i++)
             {
                 //
-                //if EM voltage exceeded max value return -1
+                //if EM voltage exceeded max value return false
                 //
-                if (MoveSingleStep() == -1)
+                if (!MoveSingleStep())
                 {
-                    return -1;
+                    return false;
                 }
                 Thread.Sleep(m_delay);
-            }
-            
-            return 0;
+            }            
+            return true;
         }
 
         public void SetVoltage(double voltage)
@@ -145,6 +145,57 @@ namespace SBJController
         {
             m_direction = StepperDirection.STATIC;
             this.SetVoltage(0);
+        }
+
+        /// <summary>
+        /// Reach target voltage on EM.
+        /// </summary>
+        /// <param name="targetVoltage"></param>
+        public void ReachEMVoltageGradually(int delayTime, double targetVoltage)
+        {
+            //
+            // if the current voltage is different than the target
+            //
+            if (m_currentEMVoltage != targetVoltage)
+            {
+                //
+                // choose direction of motion according to where is the current voltage relative to the target
+                // notice: increase in voltage causes DOWN direction motion
+                //
+                m_direction = ((m_currentEMVoltage - targetVoltage) > 0) ? StepperDirection.UP : StepperDirection.DOWN;
+                
+                //
+                // move until the difference between the current voltage and the target is below zero
+                //
+                if ((m_currentEMVoltage - targetVoltage) > 0)
+                {
+                    while ((m_currentEMVoltage - targetVoltage) > 0)
+                    {
+                        //
+                        //if EM voltage exceeded max value - break. 
+                        //
+                        if (!MoveSingleStep())
+                        {
+                            return;
+                        }
+                        Thread.Sleep(delayTime);
+                    }
+                }
+                else
+                {
+                    while ((m_currentEMVoltage - targetVoltage) < 0)
+                    {
+                        //
+                        //if EM voltage exceeded max value - break.  
+                        //
+                        if (!MoveSingleStep())
+                        {
+                            return;
+                        }
+                        Thread.Sleep(delayTime);
+                    }
+                }
+            }
         }
 
         #region Native Dll

@@ -133,6 +133,7 @@ namespace SBJController
                     generalSettingsPanel.Enabled = false;
                     laserSettingsPanel.Enabled = false;
                     lockInPanel.Enabled = false;
+                    electroMagnetSettingsPanel.Enabled = false;
                     aquireDataBackgroundWorker.RunWorkerAsync();
                 }
                 else
@@ -175,6 +176,7 @@ namespace SBJController
             generalSettingsPanel.Enabled = true;
             laserSettingsPanel.Enabled = true;
             lockInPanel.Enabled = true;
+            electroMagnetSettingsPanel.Enabled = true;
         }
 
         /// <summary>
@@ -243,6 +245,58 @@ namespace SBJController
         }
         #endregion
 
+        #region ElectroMagnet Tab Events
+        /// <summary>
+        /// Enable or disable the ElectroMagnet
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void enableElectroMagnetCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            //
+            // Update the appearance of other UI related parameters.
+            //
+            this.emFastDelayTimeLabel.Enabled = this.enableElectroMagnetCheckBox.Checked;
+            this.emFastDelayTimeNumericUpDown.Enabled = this.enableElectroMagnetCheckBox.Checked;
+            this.emSlowDelayTimeLabel.Enabled = this.enableElectroMagnetCheckBox.Checked;
+            this.emSlowDelayTimeNumericUpDown.Enabled = this.enableElectroMagnetCheckBox.Checked;
+            this.emShortCircuitDelayTimeLabel.Enabled = this.enableElectroMagnetCheckBox.Checked;
+            this.emShortCircuitDelayTimeNumericUpDown.Enabled = this.enableElectroMagnetCheckBox.Checked;
+            this.emHoldOnToConductanceRangeCheckBox.Enabled = this.enableElectroMagnetCheckBox.Checked;
+            this.emSkipFirstCycleByStepperMotorCheckBox.Enabled = this.enableElectroMagnetCheckBox.Checked;
+            this.emHoldOnMaxConductanceLabel.Enabled = (this.enableElectroMagnetCheckBox.Checked && this.emHoldOnToConductanceRangeCheckBox.Checked);
+            this.emHoldOnMaxConductanceNumericEdit.Enabled = (this.enableElectroMagnetCheckBox.Checked && this.emHoldOnToConductanceRangeCheckBox.Checked);
+            this.emHoldOnMaxVoltageLabel.Enabled = (this.enableElectroMagnetCheckBox.Checked && this.emHoldOnToConductanceRangeCheckBox.Checked);
+            this.emHoldOnMaxVoltageNumericEdit.Enabled = (this.enableElectroMagnetCheckBox.Checked && this.emHoldOnToConductanceRangeCheckBox.Checked);
+            this.emHoldOnMinConductanceLabel.Enabled = (this.enableElectroMagnetCheckBox.Checked && this.emHoldOnToConductanceRangeCheckBox.Checked);
+            this.emHoldOnMinConductanceNumericEdit.Enabled = (this.enableElectroMagnetCheckBox.Checked && this.emHoldOnToConductanceRangeCheckBox.Checked);
+            this.emHoldOnMinVoltageLabel.Enabled = (this.enableElectroMagnetCheckBox.Checked && this.emHoldOnToConductanceRangeCheckBox.Checked);
+            this.emHoldOnMinVoltageNumericEdit.Enabled = (this.enableElectroMagnetCheckBox.Checked && this.emHoldOnToConductanceRangeCheckBox.Checked);
+        }
+
+        private void holdOnToConductanceRangeCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            this.emHoldOnMaxConductanceLabel.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
+            this.emHoldOnMaxConductanceNumericEdit.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
+            this.emHoldOnMaxVoltageLabel.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
+            this.emHoldOnMaxVoltageNumericEdit.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
+            this.emHoldOnMinConductanceLabel.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
+            this.emHoldOnMinConductanceNumericEdit.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
+            this.emHoldOnMinVoltageLabel.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
+            this.emHoldOnMinVoltageNumericEdit.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
+        }
+
+        private void emHoldOnMaxConductanceNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            this.emHoldOnMaxVoltageNumericEdit.Value = GetVoltageFromConductnace(this.emHoldOnMaxConductanceNumericEdit.Value);
+        }
+
+        private void emHoldOnMinConductanceNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            this.emHoldOnMinVoltageNumericEdit.Value = GetVoltageFromConductnace(this.emHoldOnMinConductanceNumericEdit.Value);
+        }
+        #endregion
+
         #region General Controls' Events
         /// <summary>
         /// On gain changed. Make sure amplifier is updated accordingly and other UI parameters as well.
@@ -255,6 +309,8 @@ namespace SBJController
             m_sbjController.ChangeGain(gainPower);
             this.triggerConductanceNumericEdit.Value = GetTriggerConductance();
             this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * this.biasNumericEdit.Value * Math.Pow(10, gainPower);            
+            this.emHoldOnMaxConductanceNumericEdit.Value = 100 * GetTriggerConductance();
+            this.emHoldOnMinConductanceNumericEdit.Value = 50 * GetTriggerConductance();
         }
 
         /// <summary>
@@ -274,6 +330,7 @@ namespace SBJController
             }
             this.triggerConductanceNumericEdit.Value = GetTriggerConductance();
             this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * this.biasNumericEdit.Value * Math.Pow(10, int.Parse(this.gainComboBox.Text));            
+            this.emHoldOnMaxVoltageNumericEdit.Value = GetVoltageFromConductnace(this.emHoldOnMaxConductanceNumericEdit.Value); 
         }
 
         /// <summary>
@@ -399,11 +456,36 @@ namespace SBJController
             this.frequencyNumericUpDown.Enabled = laserModeComboBox.Text.Equals("Square") && this.enableLaserCheckBox.Checked;
         }
 
-
         private void amplitudeNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             double amplitude = (double)this.amplitudeNumericUpDown.Value;
             m_sbjController.Tabor.SetDcModeAmplitude(amplitude);
+        }
+
+        /// <summary>
+        /// sutting down the electroMagnet when leaving the controller tab
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void controllerTabControl_Deselected(object sender, TabControlEventArgs e)
+        {
+            m_sbjController.ControllerTabControlDeselected();
+        }
+
+        private void pathTextBox_TextChanged(object sender, EventArgs e)
+        {
+            //
+            // The folder in which we save the files has been changed, so we need to set the file number back to zero.
+            //            
+            this.fileNumberNumericUpDown.Value = 0;
+        }
+
+        private void totalSamplesNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            //
+            // the total number of samples was changed - the trigger usually should be after 85% of the samples.
+            //
+            pretriggerSamplesNumericUpDown.Value = (decimal)0.85 * totalSamplesNumericUpDown.Value;
         }
         #endregion
         
@@ -533,6 +615,16 @@ namespace SBJController
                                                  (int)this.pretriggerSamplesNumericUpDown.Value,
                                                  (int)this.stepperWaitTime1NumericUpDown.Value,
                                                  (int)this.stepperWaitTime2NumericUpDown.Value,
+                                                 this.enableElectroMagnetCheckBox.Checked,
+                                                 (int)this.emShortCircuitDelayTimeNumericUpDown.Value,
+                                                 (int)this.emFastDelayTimeNumericUpDown.Value,
+                                                 (int)this.emSlowDelayTimeNumericUpDown.Value,
+                                                 this.emHoldOnToConductanceRangeCheckBox.Checked,
+                                                 this.emHoldOnMaxConductanceNumericEdit.Value,
+                                                 this.emHoldOnMaxVoltageNumericEdit.Value,
+                                                 this.emHoldOnMinConductanceNumericEdit.Value,
+                                                 this.emHoldOnMinVoltageNumericEdit.Value,
+                                                 this.emSkipFirstCycleByStepperMotorCheckBox.Checked,
                                                  this.enableLaserCheckBox.Checked,
                                                  this.laserModeComboBox.SelectedItem.ToString(),
                                                  (int)this.amplitudeNumericUpDown.Value,
@@ -563,27 +655,17 @@ namespace SBJController
             double maxConductance = m_maxVoltage / Math.Pow(10, int.Parse(this.gainComboBox.Text)) / this.biasNumericEdit.Value / m_1G0;
             return maxConductance / 1000;
         }
+
+        /// <summary>
+        /// Calculates the voltage suitable for the conductance, using the gain and bias that are set on the UI.
+        /// </summary>
+        /// <param name="conductance"></param>
+        /// <returns></returns>
+        private double GetVoltageFromConductnace(double conductance)
+        {
+            int gainPower = int.Parse(this.gainComboBox.Text);
+            return -conductance * m_1G0 * this.biasNumericEdit.Value * Math.Pow(10, gainPower);
+        }
         #endregion
-
-        private void LockInSettingsTabControl_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void generalSettingsTabPage_Click(object sender, EventArgs e)
-        {
-
-        }
-
     }
 }
