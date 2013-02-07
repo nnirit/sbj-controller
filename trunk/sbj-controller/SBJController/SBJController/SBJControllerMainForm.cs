@@ -26,7 +26,7 @@ namespace SBJController
             m_sbjController = new SBJController();
             m_sbjController.DataAquired += new SBJController.DataAquiredEventHandler(OnDataAquisition);
             this.bottomPropertyGrid.SelectedObject = new Sample();
-            this.topPropertyGrid.SelectedObject = new Sample();            
+            this.topPropertyGrid.SelectedObject = new Sample();
         }
         #endregion
 
@@ -41,7 +41,7 @@ namespace SBJController
         /// <param name="e"></param>
         private void shortCircuitButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (shortCircuitButton.Checked)
+            if (shortCircuitCheckBoxButton.Checked)
             {
                 //
                 // Short Circuit request.
@@ -52,9 +52,9 @@ namespace SBJController
                     //
                     // Change button text and behavior of other related controls
                     //
-                    shortCircuitButton.Text = "Stop";
-                    startStopButton.Enabled = false;
-                    moveUpCheckBox.Enabled = false;
+                    shortCircuitCheckBoxButton.Text = "Stop";
+                    startStopCheckBoxButton.Enabled = false;
+                    moveUpCheckBoxButton.Enabled = false;
 
                     //
                     // Do work async
@@ -100,10 +100,10 @@ namespace SBJController
             // We've reached short circuit or we were requested to stop
             // So let's bring back the appearance of the UI.
             //
-            shortCircuitButton.Text = "Short Circuit";
-            shortCircuitButton.Checked = false;
-            startStopButton.Enabled = true;
-            moveUpCheckBox.Enabled = true;
+            shortCircuitCheckBoxButton.Text = "Short Circuit";
+            shortCircuitCheckBoxButton.Checked = false;
+            startStopCheckBoxButton.Enabled = true;
+            moveUpCheckBoxButton.Enabled = true;
         }
         #endregion
 
@@ -116,7 +116,7 @@ namespace SBJController
         /// <param name="e"></param>
         private void startStopButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (startStopButton.Checked)
+            if (startStopCheckBoxButton.Checked)
             {
                 //
                 // We were requested to start data acquisition so we must verify
@@ -127,9 +127,9 @@ namespace SBJController
                     //
                     // Change button text and UI appearance
                     //
-                    startStopButton.Text = "Stop";
-                    shortCircuitButton.Enabled = false;
-                    moveUpCheckBox.Enabled = false;
+                    startStopCheckBoxButton.Text = "Stop";
+                    shortCircuitCheckBoxButton.Enabled = false;
+                    moveUpCheckBoxButton.Enabled = false;
                     generalSettingsPanel.Enabled = false;
                     laserSettingsPanel.Enabled = false;
                     lockInPanel.Enabled = false;
@@ -169,10 +169,10 @@ namespace SBJController
             //
             // We've done taking data so we must bring the UI appearance
             //
-            startStopButton.Text = "Start";
-            startStopButton.Checked = false;
-            shortCircuitButton.Enabled = true;
-            moveUpCheckBox.Enabled = true;
+            startStopCheckBoxButton.Text = "Start";
+            startStopCheckBoxButton.Checked = false;
+            shortCircuitCheckBoxButton.Enabled = true;
+            moveUpCheckBoxButton.Enabled = true;
             generalSettingsPanel.Enabled = true;
             laserSettingsPanel.Enabled = true;
             lockInPanel.Enabled = true;
@@ -200,16 +200,16 @@ namespace SBJController
         /// <param name="e"></param>
         private void moveUpCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (this.moveUpCheckBox.Checked)
+            if (this.moveUpCheckBoxButton.Checked)
             {
                 if (!stepperUpBackgroundWorker.IsBusy)
                 {
                     //
                     // Change button text
                     //
-                    this.moveUpCheckBox.Text = "Stop";
-                    this.shortCircuitButton.Enabled = false;
-                    this.startStopButton.Enabled = false;
+                    this.moveUpCheckBoxButton.Text = "Stop";
+                    this.shortCircuitCheckBoxButton.Enabled = false;
+                    this.startStopCheckBoxButton.Enabled = false;
                     this.stepperUpBackgroundWorker.RunWorkerAsync();
                 }
                 else
@@ -239,9 +239,60 @@ namespace SBJController
             //
             // Bring back the appearance
             //
-            moveUpCheckBox.Text = "Stepper Up";
-            this.shortCircuitButton.Enabled = true;
-            this.startStopButton.Enabled = true;
+            moveUpCheckBoxButton.Text = "Stepper Up";
+            this.shortCircuitCheckBoxButton.Enabled = true;
+            this.startStopCheckBoxButton.Enabled = true;
+        }
+        #endregion
+
+        #region Fix Bias Handlers
+        private void fixBiasCheckBoxButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.fixBiasCheckBoxButton.Checked)
+            {
+                if (!fixBiasBackgroundWorker.IsBusy)
+                {
+                    //
+                    // Change button text
+                    //
+                    this.fixBiasCheckBoxButton.Text = "Stop";
+                    this.shortCircuitCheckBoxButton.Enabled = false;
+                    this.startStopCheckBoxButton.Enabled = false;
+                    this.moveUpCheckBoxButton.Enabled = false;
+                    this.fixBiasBackgroundWorker.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Can not start bias fixing." + Environment.NewLine + "Please try again in few seconds.");
+                }
+            }
+            else
+            {
+                this.fixBiasBackgroundWorker.CancelAsync();
+            }
+        }
+
+        private void fixBiasBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            m_sbjController.FixBias((double)shortCircuitVoltageNumericUpDown.Value, worker, e);
+        }
+
+        private void fixBiasBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //
+            // Bring back the appearance
+            //
+            fixBiasCheckBoxButton.Text = "Fix Bias";
+            fixBiasCheckBoxButton.Checked = false;
+            this.shortCircuitCheckBoxButton.Enabled = true;
+            this.startStopCheckBoxButton.Enabled = true;
+            this.moveUpCheckBoxButton.Enabled = true;
+            if (!e.Cancelled)
+            {
+                this.biasErrorNumericEdit.Value = (double)e.Result;
+            }
+            m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
         }
         #endregion
 
@@ -326,7 +377,7 @@ namespace SBJController
             //
             if (m_sbjController != null)
             {
-                m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value);
+                m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
             }
             this.triggerConductanceNumericEdit.Value = GetTriggerConductance();
             this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * this.biasNumericEdit.Value * Math.Pow(10, int.Parse(this.gainComboBox.Text));            
@@ -442,7 +493,7 @@ namespace SBJController
         {
             int gainPower = int.Parse(this.gainComboBox.Text);
             m_sbjController.ChangeGain(gainPower);
-            m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value);
+            m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
         }
 
         /// <summary>
@@ -537,17 +588,6 @@ namespace SBJController
             }
         }
 
-        private double[] GetCombinedDataPoints(double[,] data)
-        {
-            int numberOfDataPoints = data.GetLength(1);
-            double[] combinedData = new double[numberOfDataPoints];
-            for (int i = 0; i < numberOfDataPoints; i++)
-            {
-                combinedData[i] = data[1, i] < 0 ? data[0, i] : data[0, i] + data[1, i];
-            }
-            return combinedData;
-        }     
-
         private double[,] GetDataAsConductionValues(double[,] rawData)
         {
             int numberOfChannels = rawData.GetLength(0);
@@ -606,39 +646,40 @@ namespace SBJController
                 // Apparently this function was called from a safe thread so just carry on with
                 // what we were planning on doing.
                 //
-                return new SBJControllerSettings(this.biasNumericEdit.Value,
-                                                 this.gainComboBox.Text,
-                                                 this.triggerVoltageNumericEdit.Value,
-                                                 this.triggerConductanceNumericEdit.Value,
-                                                 (int)this.sampleRateNumericUpDown.Value,
-                                                 (int)this.totalSamplesNumericUpDown.Value,
-                                                 (int)this.pretriggerSamplesNumericUpDown.Value,
-                                                 (int)this.stepperWaitTime1NumericUpDown.Value,
-                                                 (int)this.stepperWaitTime2NumericUpDown.Value,
-                                                 this.enableElectroMagnetCheckBox.Checked,
-                                                 (int)this.emShortCircuitDelayTimeNumericUpDown.Value,
-                                                 (int)this.emFastDelayTimeNumericUpDown.Value,
-                                                 (int)this.emSlowDelayTimeNumericUpDown.Value,
-                                                 this.emHoldOnToConductanceRangeCheckBox.Checked,
-                                                 this.emHoldOnMaxConductanceNumericEdit.Value,
-                                                 this.emHoldOnMaxVoltageNumericEdit.Value,
-                                                 this.emHoldOnMinConductanceNumericEdit.Value,
-                                                 this.emHoldOnMinVoltageNumericEdit.Value,
-                                                 this.emSkipFirstCycleByStepperMotorCheckBox.Checked,
-                                                 this.enableLaserCheckBox.Checked,
-                                                 this.laserModeComboBox.SelectedItem.ToString(),
-                                                 (int)this.amplitudeNumericUpDown.Value,
-                                                 (int)this.frequencyNumericUpDown.Value,
-                                                 this.sampleLockInSignalCheckBox.Checked, 
-                                                 this.samplePhaseCheckBox.Checked,
-                                                 this.sensitivityNumericEdit.Value,
-                                                 this.fileSavingCheckBox.Checked,
-                                                 this.pathTextBox.Text,
-                                                 (int)this.fileNumberNumericUpDown.Value,
-                                                 (int)this.numberOfCyclesnumericUpDown.Value,
-                                                 (double)this.shortCircuitVoltageNumericUpDown.Value,
-                                                 (Sample)this.bottomPropertyGrid.SelectedObject,
-                                                 (Sample)this.bottomPropertyGrid.SelectedObject);
+                return new SBJControllerSettings(new GeneralSBJControllerSettings(this.biasNumericEdit.Value,
+                                                                                  this.biasErrorNumericEdit.Value,
+                                                                                  this.gainComboBox.Text,
+                                                                                  this.triggerVoltageNumericEdit.Value,
+                                                                                  this.triggerConductanceNumericEdit.Value,
+                                                                                  (int)this.sampleRateNumericUpDown.Value,
+                                                                                  (int)this.totalSamplesNumericUpDown.Value,
+                                                                                  (int)this.pretriggerSamplesNumericUpDown.Value,
+                                                                                  (int)this.stepperWaitTime1NumericUpDown.Value,
+                                                                                  (int)this.stepperWaitTime2NumericUpDown.Value,
+                                                                                  this.fileSavingCheckBox.Checked,
+                                                                                  this.pathTextBox.Text,
+                                                                                  (int)this.fileNumberNumericUpDown.Value,
+                                                                                  (int)this.numberOfCyclesnumericUpDown.Value,
+                                                                                  (double)this.shortCircuitVoltageNumericUpDown.Value,
+                                                                                  (Sample)this.bottomPropertyGrid.SelectedObject,
+                                                                                  (Sample)this.bottomPropertyGrid.SelectedObject),
+                                                  new LaserSBJControllerSettings(this.enableLaserCheckBox.Checked,
+                                                                                 this.laserModeComboBox.SelectedItem.ToString(),
+                                                                                 (double)this.amplitudeNumericUpDown.Value,
+                                                                                 (int)this.frequencyNumericUpDown.Value),
+                                                  new LockInSBJControllerSettings(this.sampleLockInSignalCheckBox.Checked,
+                                                                                  this.samplePhaseCheckBox.Checked,
+                                                                                  this.sensitivityNumericEdit.Value),
+                                                  new ElectroMagnetSBJControllerSettings(this.enableElectroMagnetCheckBox.Checked,
+                                                                                         (int)this.emShortCircuitDelayTimeNumericUpDown.Value,
+                                                                                         (int)this.emFastDelayTimeNumericUpDown.Value,
+                                                                                         (int)this.emSlowDelayTimeNumericUpDown.Value,
+                                                                                         this.emHoldOnToConductanceRangeCheckBox.Checked,
+                                                                                         this.emHoldOnMaxConductanceNumericEdit.Value,
+                                                                                         this.emHoldOnMaxVoltageNumericEdit.Value,
+                                                                                         this.emHoldOnMinConductanceNumericEdit.Value,
+                                                                                         this.emHoldOnMinVoltageNumericEdit.Value,
+                                                                                         this.emSkipFirstCycleByStepperMotorCheckBox.Checked));
             }
         }
 
@@ -667,5 +708,7 @@ namespace SBJController
             return -conductance * m_1G0 * this.biasNumericEdit.Value * Math.Pow(10, gainPower);
         }
         #endregion
+
+        
     }
 }
