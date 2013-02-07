@@ -43,7 +43,7 @@ namespace SBJController
             Write(String.Format(c_dcAmplitudeCommand, voltAmplitude), "Error occured while trying to set DC mode amplitude.");           
         }
 
-        public void SetSquareModeAmplitude(int voltAmplitude)
+        public void SetSquareModeAmplitude(double voltAmplitude)
         {
             Write(String.Format(c_squareAmplitudeCommand, voltAmplitude), "Error occured while trying to set Square mode amplitude.");            
         }
