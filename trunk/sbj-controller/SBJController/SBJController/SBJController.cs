@@ -126,7 +126,7 @@ namespace SBJController
             //
             m_stepperMotor.Direction = StepperDirection.UP;
             m_stepperMotor.SteppingMode = StepperSteppingMode.HALF;
-            m_stepperMotor.Delay = settings.StepperWaitTime1;
+            m_stepperMotor.Delay = settings.GeneralSettings.StepperWaitTime1;
 
             //
             // Read the initial voltgae before we've done anything
@@ -149,7 +149,7 @@ namespace SBJController
                 //
                 if (!isDelayedChanged && (Math.Abs(currentVoltage) < Math.Abs(initialVoltage) * 0.9999))
                 {
-                     m_stepperMotor.Delay = settings.StepperWaitTime2;
+                    m_stepperMotor.Delay = settings.GeneralSettings.StepperWaitTime2;
                     isDelayedChanged = true;
                 }
                 Thread.Sleep(m_stepperMotor.Delay);
@@ -165,7 +165,7 @@ namespace SBJController
             //
             // Verify that saving is required
             //
-            if (settings.IsFileSavingRequired == false)
+            if (settings.GeneralSettings.IsFileSavingRequired == false)
             {
                 return;
             }
@@ -173,13 +173,16 @@ namespace SBJController
             //
             // Write the Params.txt file.
             //
-            using (StreamWriter file = new StreamWriter(Path.Combine(settings.Path, c_settingsFileName), true))
+            using (StreamWriter file = new StreamWriter(Path.Combine(settings.GeneralSettings.Path, c_settingsFileName), true))
             {
                 file.WriteLine("---------------------------------------------");
                 file.WriteLine(DateTime.Now.ToString());
-                foreach (var property in settings.GetType().GetProperties())
+                foreach (var settingsProperty in settings.GetType().GetProperties())
                 {
-                    file.WriteLine(property.Name + ":\t" + property.GetValue(settings, null).ToString());
+                    foreach (var property in settingsProperty.PropertyType.GetProperties())
+                    {
+                        file.WriteLine(property.Name + ":\t" + property.GetValue(settingsProperty.GetValue(settings,null), null).ToString());
+                    }
                 }               
             }
         }
@@ -269,23 +272,23 @@ namespace SBJController
             //
             // Return if no need to turn the laser on
             //
-            if (!settings.IsLaserOn)
+            if (!settings.LaserSettings.IsLaserOn)
             {
                 return;
             }
 
-            if (settings.LaserMode.Equals("DC"))
+            if (settings.LaserSettings.LaserMode.Equals("DC"))
             {
                 m_taborLaserController.SetDCMode();
-                m_taborLaserController.SetDcModeAmplitude(settings.LaserAmplitude);
+                m_taborLaserController.SetDcModeAmplitude(settings.LaserSettings.LaserAmplitude);
             }
             else
             {
-                if (settings.LaserMode.Equals("Square"))
+                if (settings.LaserSettings.LaserMode.Equals("Square"))
                 {
                     m_taborLaserController.SetSquareMode();
-                    m_taborLaserController.SetSquareModeAmplitude(settings.LaserAmplitude);
-                    m_taborLaserController.SetSquareModeFrequency(settings.LaserFrequency);
+                    m_taborLaserController.SetSquareModeAmplitude(settings.LaserSettings.LaserAmplitude);
+                    m_taborLaserController.SetSquareModeFrequency(settings.LaserSettings.LaserFrequency);
                 }
                 else
                 {
@@ -294,6 +297,51 @@ namespace SBJController
             }
         }
 
+        /// <summary>
+        /// Get the task for the data aquisition
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private Task GetMultipleChannelsTriggeredTask(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+
+            //
+            // Determines the direction of the current - 
+            // Either positive (then voltage is negative) or negative (then voltage is positive number)
+            //
+            bool isPositiveVoltage = AnalogIn(0) > 0;
+
+
+            AnalogEdgeReferenceTriggerSlope triggerSlope = isPositiveVoltage ? AnalogEdgeReferenceTriggerSlope.Falling : AnalogEdgeReferenceTriggerSlope.Rising;
+            double triggerVoltage = isPositiveVoltage ? settings.GeneralSettings.TriggerVoltage * (-1) : settings.GeneralSettings.TriggerVoltage;
+
+            //
+            // Create the task with its propertites
+            //
+            TriggeredTaskProperties taskProperties = new TriggeredTaskProperties(settings.LockInSettings.IsLockInSignalEnable,
+                                                                                 settings.LockInSettings.IsLockInPhaseSignalEnable,
+                                                                                 settings.GeneralSettings.SampleRate,
+                                                                                 settings.GeneralSettings.TotalSamples,
+                                                                                 triggerVoltage,
+                                                                                 settings.GeneralSettings.PretriggerSamples,
+                                                                                 triggerSlope);
+
+            return m_daqController.CreateMultipleChannelsTriggeredTask(taskProperties);
+        }
+
+        //TODO: Add Summary here
+        private void ApplyVoltageOnElectroMagnetIfNeeded(bool isEMEnabled)
+        {
+            if (isEMEnabled)
+            {
+                //TODO: Move 6.5 to constants
+                m_electroMagnet.SetVoltage(6.5);
+            }
+        }
+      
         #region ElectroMagnet
 
         /// <summary>
@@ -344,7 +392,7 @@ namespace SBJController
             // And configure the first setpper delay (shorter) - faster movement
             //
             m_electroMagnet.Direction = StepperDirection.UP;
-            m_electroMagnet.Delay = settings.EMFastDelayTime;
+            m_electroMagnet.Delay = settings.ElectromagnetSettings.EMFastDelayTime;
 
             //
             // Read the initial voltgae before we've done anything
@@ -373,22 +421,22 @@ namespace SBJController
                 //
                 if (!isDelayedChanged && (Math.Abs(currentVoltage) < Math.Abs(initialVoltage) * 0.9999))
                 {
-                    m_electroMagnet.Delay = settings.EMSlowDelayTime;
+                    m_electroMagnet.Delay = settings.ElectromagnetSettings.EMSlowDelayTime;
                     isDelayedChanged = true;
                 }
 
                 //
                 // If hold-on trigger was exceeded, wait 10 ms and check if still true.
                 //
-                if (settings.IsEMHoldOnEnable && Math.Abs(currentVoltage) < Math.Abs(settings.EMHoldOnMaxVoltage * 1.1))
+                if (settings.ElectromagnetSettings.IsEMHoldOnEnable && Math.Abs(currentVoltage) < Math.Abs(settings.ElectromagnetSettings.EMHoldOnMaxVoltage * 1.1))
                 {
                     Thread.Sleep(10);
-                    if (Math.Abs(currentVoltage) < Math.Abs(settings.EMHoldOnMaxVoltage * 1.1))
+                    if (Math.Abs(currentVoltage) < Math.Abs(settings.ElectromagnetSettings.EMHoldOnMaxVoltage * 1.1))
                     {
                         //
                         // trigger was truely exceeded. try to hold on to a certain junction voltage.
                         //
-                        if (!StabilizeJunction(currentVoltage, settings.EMHoldOnMaxVoltage, settings.EMHoldOnMinVoltage))
+                        if (!StabilizeJunction(currentVoltage, settings.ElectromagnetSettings.EMHoldOnMaxVoltage, settings.ElectromagnetSettings.EMHoldOnMinVoltage))
                         {
                             return false;
                         }
@@ -529,7 +577,7 @@ namespace SBJController
         /// <returns></returns>
         private bool EMTryObtainShortCircuit(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
-            switch (EMShortCircuit(settings.EMShortCircuitDelayTime, settings.ShortCircuitVoltage, worker, e))
+            switch (EMShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitVoltage, worker, e))
             {
                 case 0:
                     //
@@ -712,7 +760,7 @@ namespace SBJController
         public bool AquireData(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             bool isCancelled = false;
-            int finalFileNumber = settings.CurrentFileNumber;
+            int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
             double[,] dataAquired;
 
             //
@@ -728,39 +776,18 @@ namespace SBJController
             //
             //apply initial voltage on the EM
             //
-            if (settings.IsEMEnable)
-            {
-                m_electroMagnet.SetVoltage(6.5);
-            }
-
-            TryObtainShortCircuit(settings.ShortCircuitVoltage, worker, e);
-            double currentVoltage = AnalogIn(0);
+            ApplyVoltageOnElectroMagnetIfNeeded(settings.ElectromagnetSettings.IsEMEnable);
 
             //
-            // If we are measuring positive values of voltages at contact
-            // that means that the trigger edge should be falling.
+            // Create the task
             //
-            AnalogEdgeReferenceTriggerSlope triggerSlope = (currentVoltage > 0) ? AnalogEdgeReferenceTriggerSlope.Falling : AnalogEdgeReferenceTriggerSlope.Rising;
-            double triggerVoltage = (currentVoltage > 0) ? settings.TriggerVoltage * (-1) : settings.TriggerVoltage; 
-
-            //
-            // Create the task with its propertites
-            //
-            TriggeredTaskProperties taskProperties = new TriggeredTaskProperties(settings.IsLockInSignalEnable, 
-                                                                                 settings.IsLockInPhaseSignalEnable,
-                                                                                 settings.SampleRate,
-                                                                                 settings.TotalSamples,
-                                                                                 triggerVoltage,
-                                                                                 settings.PretriggerSamples,
-                                                                                 triggerSlope);
-           
-            m_task = m_daqController.CreateMultipleChannelsTriggeredTask(taskProperties);
+            m_task = GetMultipleChannelsTriggeredTask(settings, worker, e);
 
 
             //
             // Main loop for data aquisition
             //
-            for (int i = 0; i < settings.TotalNumberOfCycles; i++)
+            for (int i = 0; i < settings.GeneralSettings.TotalNumberOfCycles; i++)
             {
                 //
                 // Cancel the operatin if user asked for
@@ -775,7 +802,7 @@ namespace SBJController
                 // if EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
                 // move on to the next cycle.
                 //
-                if (settings.IsEMEnable && settings.IsEMSkipFirstCycleEnable && i==0)
+                if (settings.ElectromagnetSettings.IsEMEnable && settings.ElectromagnetSettings.IsEMSkipFirstCycleEnable && i == 0)
                 {
                     m_stepperMotor.Shutdown();
                     continue;
@@ -784,7 +811,7 @@ namespace SBJController
                 //
                 // Turn off the laser before we reach contact
                 //
-                if (settings.IsLaserOn)
+                if (settings.LaserSettings.IsLaserOn)
                 {
                     m_taborLaserController.TurnOff();
                     Thread.Sleep(5000);
@@ -801,8 +828,9 @@ namespace SBJController
                 // If EM is enabled and we're after the first cycle, use the EM.
                 // If user asked to stop than exit
                 //
-                isCancelled = (settings.IsEMEnable && i > 0) ? 
-                    EMTryObtainShortCircuit(settings, worker, e) : TryObtainShortCircuit(settings.ShortCircuitVoltage, worker, e);
+                isCancelled = (settings.ElectromagnetSettings.IsEMEnable && i > 0) ? 
+                               EMTryObtainShortCircuit(settings, worker, e) : 
+                               TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
                 if (isCancelled)
                 {
                     break;
@@ -813,9 +841,11 @@ namespace SBJController
                 // And also this is the time to switch the laser on.
                 //
                 int gainPower;
-                Int32.TryParse(settings.Gain, out gainPower);
+                Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
                 m_amplifier.ChangeGain(gainPower);
-                if (settings.IsLaserOn)
+
+
+                if (settings.LaserSettings.IsLaserOn)
                 {
                     m_taborLaserController.TurnOn();
                 }
@@ -824,7 +854,7 @@ namespace SBJController
                 // Start openning the junction.
                 // If EM is enabled and we're after the first cycle, use the EM.
                 //
-                if (settings.IsEMEnable && i > 0)
+                if (settings.ElectromagnetSettings.IsEMEnable && i > 0)
                 {
                     EMBeginOpenJunction(settings);
                 }
@@ -836,6 +866,7 @@ namespace SBJController
                 //
                 // Start the task and wait for the data
                 //
+                
                 try
                 {
                     m_task.Start();
@@ -851,7 +882,7 @@ namespace SBJController
                 {
                     dataAquired = reader.ReadMultiSample(-1);
 
-                    if (dataAquired.Length < settings.TotalSamples)
+                    if (dataAquired.Length < settings.GeneralSettings.TotalSamples)
                     {
                         //
                         // If from some reason we weren't able to 
@@ -881,7 +912,7 @@ namespace SBJController
                 //
                 // if EM is enabled, the first trace was done by the stepper motor and we want to ignore it.
                 //
-                if (settings.IsEMEnable && i == 0)
+                if (settings.ElectromagnetSettings.IsEMEnable && i == 0)
                 {
                     //
                     // from now on we use the EM, so we don't want the stepper motor to stay on.
@@ -895,9 +926,9 @@ namespace SBJController
                 // Save data if needed
                 //
                 finalFileNumber++;
-                if (settings.IsFileSavingRequired)
+                if (settings.GeneralSettings.IsFileSavingRequired)
                 {
-                    finalFileNumber = SaveData(settings.Path, dataAquired, finalFileNumber);
+                    finalFileNumber = SaveData(settings.GeneralSettings.Path, dataAquired, finalFileNumber);
                 }
 
                 //
@@ -912,11 +943,11 @@ namespace SBJController
             //
             // Finish the measurement properly
             //
-            if (settings.IsLaserOn)
+            if (settings.LaserSettings.IsLaserOn)
             {
                 m_taborLaserController.TurnOff();
             }
-            if (settings.IsEMEnable)
+            if (settings.ElectromagnetSettings.IsEMEnable)
             {
                 m_electroMagnet.Shutdown();
             }
@@ -925,7 +956,7 @@ namespace SBJController
 
             return (isCancelled || e.Cancel);
         }
-      
+       
         /// <summary>
         /// Move the stepper up
         /// </summary>
@@ -941,6 +972,85 @@ namespace SBJController
                 Thread.Sleep(m_stepperMotor.MinDelay);
             }
             e.Cancel = true;
+        }
+
+
+        /// <summary>
+        /// Fix the bias incase of drift in the source meter
+        /// </summary>
+        /// <param name="shortCircuitVoltage"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        public void FixBias(double shortCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            int i = 0;
+            bool isBiasedFixed = false;
+            double biasFixValue = 0;
+            double currentVoltage = 0;
+
+            //
+            // First, reach to contact
+            //
+            TryObtainShortCircuit(shortCircuitVoltage, worker, e);
+
+            //
+            // Set bias to zero and lets check where we stand.
+            // If everything is OK then at zero bias the current 
+            // should be also zero. If it's not, correction should be made.
+            //
+            m_sourceMeter.SetBias(0);
+            double previousVoltage = AnalogIn(0);
+
+            //
+            // We need to know if voltage needs to be increased or decreased.
+            // If we measure positive voltage that means that the current 
+            // is negative and the bias should be increased.
+            //
+            int biasChangeFactor = previousVoltage > 0 ? 1 : -1;
+
+
+            while (!worker.CancellationPending && !isBiasedFixed)
+            {
+                //
+                // Change the bias with accuracy of 0.0005;
+                //
+                biasFixValue = ++i * 0.0005 * biasChangeFactor;
+                m_sourceMeter.SetBias(biasFixValue);
+                
+                //
+                // Wait before reading the voltage again
+                //
+                Thread.Sleep(1000);
+                currentVoltage = AnalogIn(0);
+
+                //
+                // We know we've fixed the bias only when the current 
+                // changed its sign so the multiplication of the two
+                // values would negative. 
+                //
+                if (currentVoltage * previousVoltage < 0)
+                {
+                    isBiasedFixed = true;
+
+                    //
+                    // Set result to the correction value which is the average
+                    // between the current bias and the previous one.
+                    //
+                    e.Result = (biasFixValue + ((i - 1) * 0.0005 * biasChangeFactor)) / 2;
+                }
+                else
+                {
+                    //
+                    // Still we havent crossed the zero point so
+                    // update the voltage value and continue
+                    // 
+                    previousVoltage = currentVoltage;
+                }
+            }
+            if (worker.CancellationPending)
+            {
+                e.Cancel = true;
+            }
         }
 
         /// <summary>
@@ -1101,6 +1211,8 @@ namespace SBJController
         [DllImport("IODrive2007.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern double AnalogIn(byte channel);
         #endregion       
+    
+ 
     }
 }
 
