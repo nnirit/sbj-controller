@@ -51,8 +51,7 @@
             this.SuspendLayout();
             // 
             // EMVoltageMeter
-            // 
-            this.EMVoltageMeter.CaptionVerticalOrientation = NationalInstruments.UI.VerticalCaptionOrientation.BottomToTop;
+            //             
             this.EMVoltageMeter.CoercionInterval = 0.005D;
             this.EMVoltageMeter.CoercionMode = NationalInstruments.UI.NumericCoercionMode.ToInterval;
             this.EMVoltageMeter.DialColor = System.Drawing.SystemColors.ControlLightLight;
