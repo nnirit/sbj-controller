@@ -26,10 +26,14 @@ namespace SBJController
             //
             // convert the DAQDeviceType given by the settings to its enum representation.
             //
-            if (!Enum.TryParse(Settings.Default.DAQDeviceType, out m_daqDeviceType))
+            try
+            {
+                m_daqDeviceType = (DAQDeviceType)Enum.Parse(m_daqDeviceType.GetType(), Settings.Default.DAQDeviceType);
+            }
+            catch (ArgumentException ex)            
             {
                 throw new SBJException(string.Format("The DAQDeviceType {0} is invalid.\n Please change to one of the following: {1}",
-                    Settings.Default.DAQDeviceType));
+                    Settings.Default.DAQPhysicalChannelName3, GetAvailableDAQDevices(), ex));
             }
         }
         #endregion 
@@ -100,7 +104,7 @@ namespace SBJController
             }
 
             //
-            // If we also monitor the lock in phase signal than add another channel.
+            // If we also monitor the lock in phase signal then add another channel.
             //
             if (properties.SampleLockInPhaseSignal)
             {
@@ -179,8 +183,19 @@ namespace SBJController
             return terminalConfiguration;
         }
 
-        #endregion
 
+        private string GetAvailableDAQDevices()
+        {
+            StringBuilder daqDevices = new StringBuilder();
+            foreach (string deviceName in Enum.GetNames(m_daqDeviceType.GetType()))
+            {
+                daqDevices.Append(deviceName);
+                daqDevices.Append(";");
+            }
+            return daqDevices.ToString();            
+        }
+
+        #endregion
     }
 
     #region TaskProperties Class
