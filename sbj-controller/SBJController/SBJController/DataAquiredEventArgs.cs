@@ -11,19 +11,19 @@ namespace SBJController
     public class DataAquiredEventArgs
     {
         /// <summary>
-        /// The data that was received
+        /// The active channels
         /// </summary>
-        public double[,] Data { get; set; }
+        public IList<IDataChannel> PhysicalChannels { get; set; }
 
          /// <summary>
         /// The file number in which the data was saved
         /// </summary>
         public int FileNumber { get; set; }
 
-        public DataAquiredEventArgs(double[,] data, int fileNumber)
+        public DataAquiredEventArgs(IList<IDataChannel> physicalChannels, int fileNumber)
         {
-            Data = data;
             FileNumber = fileNumber;
+            PhysicalChannels = physicalChannels;
         }
 
     }
