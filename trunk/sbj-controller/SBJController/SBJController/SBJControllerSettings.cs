@@ -1,4 +1,7 @@
 ﻿
+using System.Collections.Generic;
+using System.Text;
+using System;
 namespace SBJController
 {
     /// <summary>
@@ -10,16 +13,19 @@ namespace SBJController
         public LaserSBJControllerSettings LaserSettings { get; set; }
         public LockInSBJControllerSettings LockInSettings { get; set; }
         public ElectroMagnetSBJControllerSettings ElectromagnetSettings { get; set; }
+        public ChannelsSettings ChannelsSettings { get; set; }
 
         public SBJControllerSettings(GeneralSBJControllerSettings generalSettings,
                                      LaserSBJControllerSettings laserSettings,
                                      LockInSBJControllerSettings lockInSettings,
-                                     ElectroMagnetSBJControllerSettings electromagnetSettings)
+                                     ElectroMagnetSBJControllerSettings electromagnetSettings,
+                                     ChannelsSettings channelsSettings)
         {
             GeneralSettings = generalSettings;
             LaserSettings = laserSettings;
             LockInSettings = lockInSettings;
             ElectromagnetSettings = electromagnetSettings;
+            ChannelsSettings = channelsSettings;
         }
     }
 
@@ -71,7 +77,16 @@ namespace SBJController
             Bottom = bottom;
             Top = top;
         }
-    
+
+        public override string ToString()
+        {
+            StringBuilder toStringResult = new StringBuilder("General Settings:" + Environment.NewLine);
+            foreach (var property in this.GetType().GetProperties())
+            {
+                toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString() + Environment.NewLine);
+            }
+            return toStringResult.ToString();
+        }
     }
 
     /// <summary>
@@ -91,6 +106,16 @@ namespace SBJController
             LaserAmplitude = laserAmplitude;
             LaserFrequency = laserFrequency;
         }
+
+        public override string ToString()
+        {
+            StringBuilder toStringResult = new StringBuilder("Laser Settings:" + Environment.NewLine);
+            foreach (var property in this.GetType().GetProperties())
+            {
+                toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString() + Environment.NewLine);
+            }
+            return toStringResult.ToString();
+        }
     }
 
     /// <summary>
@@ -99,14 +124,33 @@ namespace SBJController
     public class LockInSBJControllerSettings
     {
         public bool IsLockInSignalEnable { get; set; }
-        public bool IsLockInPhaseSignalEnable { get; set; }
-        public double LockInSensitivity { get; set; }  
-        
-        public  LockInSBJControllerSettings(bool isLockInSignalEnable, bool isLockInPhaseSignalEnable, double lockInSensitivity)
+        public bool IsLockInInternalEnable { get; set; }
+        public double LockInSensitivity { get; set; }
+        public double LockInTimeConstant { get; set; }
+        public double LockInRollOff { get; set; }
+        public double LockInAcVoltage { get; set; }
+        public int LockInMixerReductionFactor { get; set; }
+
+
+        public LockInSBJControllerSettings(bool isLockInSignalEnable, bool isLockInInternalEnable, double lockInSensitivity, double lockInTimeConstant, double lockInRollOff, double lockInAcVoltage, int lockInMixerReductionFactor)
         {
             IsLockInSignalEnable = isLockInSignalEnable;
-            IsLockInPhaseSignalEnable = isLockInPhaseSignalEnable;
+            IsLockInInternalEnable = isLockInInternalEnable;
             LockInSensitivity = lockInSensitivity;
+            LockInAcVoltage = lockInAcVoltage;
+            LockInTimeConstant = lockInTimeConstant;
+            LockInRollOff = lockInRollOff;
+            LockInMixerReductionFactor = lockInMixerReductionFactor;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder toStringResult = new StringBuilder("LockIn Settings:" + Environment.NewLine);
+            foreach (var property in this.GetType().GetProperties())
+            {
+                toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString() + Environment.NewLine);
+            }
+            return toStringResult.ToString();
         }
     }
 
@@ -142,6 +186,41 @@ namespace SBJController
             EMHoldOnMinConductance = emHoldOnMinConductance;
             EMHoldOnMinVoltage = emHoldOnMinVoltage;
             IsEMSkipFirstCycleEnable = isEMSkipFirstCycleEnable;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder toStringResult = new StringBuilder("Electromagnet Settings:" + Environment.NewLine);
+            foreach (var property in this.GetType().GetProperties())
+            {
+                toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString()+ Environment.NewLine);
+            }
+            return toStringResult.ToString();
+        }
+    }
+
+    public class ChannelsSettings
+    {
+        private IList<IDataChannel> m_activeChannels;
+
+        public IList<IDataChannel> ActiveChannels
+        {
+            get { return m_activeChannels; }
+        }
+
+        public ChannelsSettings(IList<IDataChannel> channels)
+        {
+            m_activeChannels = channels;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder toStringResult = new StringBuilder("Channels Settings:" + Environment.NewLine);
+            foreach (var dataChannel in ActiveChannels)
+            {
+                toStringResult.Append(dataChannel.PhysicalName + ":\t" + dataChannel.Name + Environment.NewLine);                
+            }
+            return toStringResult.ToString();
         }
     }
 }
