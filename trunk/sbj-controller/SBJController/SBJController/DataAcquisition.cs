@@ -2,6 +2,8 @@
 using System.Text;
 using SBJController.Properties;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace SBJController
 {
@@ -33,7 +35,7 @@ namespace SBJController
             catch (ArgumentException ex)            
             {
                 throw new SBJException(string.Format("The DAQDeviceType {0} is invalid.\n Please change to one of the following: {1}",
-                    Settings.Default.DAQPhysicalChannelName3, GetAvailableDAQDevices(), ex));
+                    Settings.Default.DAQPhysicalChannelName2, GetAvailableDAQDevices(), ex));
             }
         }
         #endregion 
@@ -54,7 +56,7 @@ namespace SBJController
             //
             // Define a voltage channel
             //
-            AIChannel anaglogChannel = analogInputTask.AIChannels.CreateVoltageChannel(Settings.Default.DAQPhysicalChannelName1, string.Empty,
+            AIChannel anaglogChannel = analogInputTask.AIChannels.CreateVoltageChannel(Settings.Default.DAQPhysicalChannelName0, string.Empty,
                                                             GetAITerminalConfiguration(), 
                                                             -10, 10, AIVoltageUnits.Volts);
             //
@@ -90,28 +92,20 @@ namespace SBJController
 
             //
             // Construct the the physical channel name according to the desired inputs.
-            // First channel is always monitor.
             //
-            StringBuilder physicalChannelName = new StringBuilder(Settings.Default.DAQPhysicalChannelName1);
+            StringBuilder physicalChannelName = new StringBuilder();
 
-            //
-            // If we also have lock in signal than add a channel
-            //
-            if (properties.SampleLockInSignal)
+            foreach (var channel in properties.ActiveChannels)
             {
-                physicalChannelName.Append(":");
-                physicalChannelName.Append(Settings.Default.DAQPhysicalChannelName2);
+                physicalChannelName.Append(channel.PhysicalName);
+                physicalChannelName.Append(",");
             }
 
             //
-            // If we also monitor the lock in phase signal then add another channel.
+            // Remove last ':' from channel name
             //
-            if (properties.SampleLockInPhaseSignal)
-            {
-                physicalChannelName.Append(":");
-                physicalChannelName.Append(Settings.Default.DAQPhysicalChannelName3);
-            }
-            
+            physicalChannelName.Remove(physicalChannelName.Length - 1, 1);
+           
             //
             // Define a voltage channel
             //
@@ -154,7 +148,7 @@ namespace SBJController
         {
             Task analogInputTask = new Task();
 
-            analogInputTask.AIChannels.CreateVoltageChannel(Settings.Default.DAQPhysicalChannelName1, string.Empty,
+            analogInputTask.AIChannels.CreateVoltageChannel(Settings.Default.DAQPhysicalChannelName0, string.Empty,
                                                              GetAITerminalConfiguration(),
                                                              -10, 0, AIVoltageUnits.Volts);
 
@@ -237,8 +231,8 @@ namespace SBJController
         #endregion
 
         #region Constructor
-        public TriggeredTaskProperties(bool sampleLockInSignal, bool sampleLockInPhaseSignal, double sampleRate, int samplesPerChannel, double triggerLevel, long preTriggerSamples, AnalogEdgeReferenceTriggerSlope triggerSlope) 
-            : base(sampleRate, samplesPerChannel, sampleLockInSignal, sampleLockInPhaseSignal)
+        public TriggeredTaskProperties(IList<IDataChannel> activeChannels, double sampleRate, int samplesPerChannel, double triggerLevel, long preTriggerSamples, AnalogEdgeReferenceTriggerSlope triggerSlope) 
+            : base(sampleRate, samplesPerChannel, activeChannels)
         {
             TriggerLevel = triggerLevel;
             PreTriggerSamples = preTriggerSamples;
@@ -252,8 +246,7 @@ namespace SBJController
         #region Private members
         private double m_sampleRate;
         private int m_samplesPerChannel;
-        private bool m_sampleLockInSignal;
-        private bool m_sampleLockInPhaseSignal;
+        private IList<IDataChannel> m_activeChannels;
         #endregion
 
         #region Properties
@@ -276,31 +269,21 @@ namespace SBJController
         }
 
         /// <summary>
-        /// Indicates whether lock in signal should be monitored.
+        /// The active channels
         /// </summary>
-        public bool SampleLockInSignal
+        public IList<IDataChannel> ActiveChannels
         {
-            get { return m_sampleLockInSignal; }
-            private set { m_sampleLockInSignal = value; }
-        }
-
-        /// <summary>
-        /// Indicates whether lock in phase signal should be monitored.
-        /// </summary>
-        public bool SampleLockInPhaseSignal
-        {
-            get { return m_sampleLockInPhaseSignal; }
-            private set { m_sampleLockInPhaseSignal = value; }
+            get { return m_activeChannels; }
+            private set { m_activeChannels = value; }
         }
         #endregion
 
         #region Constructor
-        public TaskProperties(double sampleRate, int samplesPerChannel, bool sampleLockInSignal, bool sampleLockInPhaseSignal)
+        public TaskProperties(double sampleRate, int samplesPerChannel,IList<IDataChannel> activeChannels)
         {
             SampleRate = sampleRate;
             SamplesPerChannel = samplesPerChannel;
-            SampleLockInSignal = sampleLockInSignal;
-            SampleLockInPhaseSignal = sampleLockInPhaseSignal;
+            ActiveChannels = activeChannels;
         }
         #endregion
     }
