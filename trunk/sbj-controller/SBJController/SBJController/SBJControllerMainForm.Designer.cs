@@ -31,6 +31,8 @@
             this.obtainShortCircuitBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.controllerTabControl = new System.Windows.Forms.TabControl();
             this.dataAquisitionTabPage = new System.Windows.Forms.TabPage();
+            this.plotGroupBox = new System.Windows.Forms.GroupBox();
+            this.channelsListView = new System.Windows.Forms.ListView();
             this.operateGroupBox = new System.Windows.Forms.GroupBox();
             this.fixBiasCheckBoxButton = new System.Windows.Forms.CheckBox();
             this.moveUpCheckBoxButton = new System.Windows.Forms.CheckBox();
@@ -93,10 +95,17 @@
             this.laserAmplitudeLabel = new System.Windows.Forms.Label();
             this.LockInSettingsTabPage = new System.Windows.Forms.TabPage();
             this.lockInPanel = new System.Windows.Forms.Panel();
-            this.samplePhaseCheckBox = new System.Windows.Forms.CheckBox();
-            this.sampleLockInSignalCheckBox = new System.Windows.Forms.CheckBox();
-            this.sensitivityNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
-            this.sensitivityLabel = new System.Windows.Forms.Label();
+            this.rollOffComboBox = new System.Windows.Forms.ComboBox();
+            this.rollOffLabel = new System.Windows.Forms.Label();
+            this.enableLockInCheckBox = new System.Windows.Forms.CheckBox();
+            this.timeConstantComboBox = new System.Windows.Forms.ComboBox();
+            this.timeConstantLabel = new System.Windows.Forms.Label();
+            this.sensitivityComboBox = new System.Windows.Forms.ComboBox();
+            this.internalSourceLockInGroupBox = new System.Windows.Forms.GroupBox();
+            this.internalSourceLockInCheckBoxcheckBox = new System.Windows.Forms.CheckBox();
+            this.lockInAcVoltageNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.lockInAcVoltageLabel = new System.Windows.Forms.Label();
+            this.lockInSensitivityLabel = new System.Windows.Forms.Label();
             this.ElectroMagnetTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetSettingsPanel = new System.Windows.Forms.Panel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -117,6 +126,16 @@
             this.emFastDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.enableElectroMagnetCheckBox = new System.Windows.Forms.CheckBox();
             this.emFastDelayTimeLabel = new System.Windows.Forms.Label();
+            this.channelsConfigurationTabPage = new System.Windows.Forms.TabPage();
+            this.channelsSettingsPanel = new System.Windows.Forms.Panel();
+            this.channel1ComboBox = new System.Windows.Forms.ComboBox();
+            this.channel3ComboBox = new System.Windows.Forms.ComboBox();
+            this.channel0CheckBox = new System.Windows.Forms.CheckBox();
+            this.channel3CheckBox = new System.Windows.Forms.CheckBox();
+            this.channel0ComboBox = new System.Windows.Forms.ComboBox();
+            this.channel2ComboBox = new System.Windows.Forms.ComboBox();
+            this.channel1CheckBox = new System.Windows.Forms.CheckBox();
+            this.channel2CheckBox = new System.Windows.Forms.CheckBox();
             this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
             this.electroMagnetUserControl2 = new ElectroMagnetUserControl();
@@ -125,8 +144,11 @@
             this.aquireDataBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.stepperUpBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.fixBiasBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.mixerReductionFactorNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.acVoltageReductionFactorLabel = new System.Windows.Forms.Label();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
+            this.plotGroupBox.SuspendLayout();
             this.operateGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfCyclesnumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.shortCircuitVoltageNumericUpDown)).BeginInit();
@@ -155,7 +177,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.amplitudeNumericUpDown)).BeginInit();
             this.LockInSettingsTabPage.SuspendLayout();
             this.lockInPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.sensitivityNumericEdit)).BeginInit();
+            this.internalSourceLockInGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.lockInAcVoltageNumericEdit)).BeginInit();
             this.ElectroMagnetTabPage.SuspendLayout();
             this.electroMagnetSettingsPanel.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -166,9 +189,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.emShortCircuitDelayTimeNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.emSlowDelayTimeNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.emFastDelayTimeNumericUpDown)).BeginInit();
+            this.channelsConfigurationTabPage.SuspendLayout();
+            this.channelsSettingsPanel.SuspendLayout();
             this.controlPanelsTabPage.SuspendLayout();
             this.electroMagnetGroupBox.SuspendLayout();
             this.stepperMotorGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.mixerReductionFactorNumericEdit)).BeginInit();
             this.SuspendLayout();
             // 
             // obtainShortCircuitBackgroundWorker
@@ -194,6 +220,7 @@
             // dataAquisitionTabPage
             // 
             this.dataAquisitionTabPage.AutoScroll = true;
+            this.dataAquisitionTabPage.Controls.Add(this.plotGroupBox);
             this.dataAquisitionTabPage.Controls.Add(this.operateGroupBox);
             this.dataAquisitionTabPage.Controls.Add(this.traceWaveformGraph);
             this.dataAquisitionTabPage.Controls.Add(this.samplePropertiesGroupBox);
@@ -205,6 +232,30 @@
             this.dataAquisitionTabPage.TabIndex = 0;
             this.dataAquisitionTabPage.Text = "DAQ";
             this.dataAquisitionTabPage.UseVisualStyleBackColor = true;
+            // 
+            // plotGroupBox
+            // 
+            this.plotGroupBox.Controls.Add(this.channelsListView);
+            this.plotGroupBox.ForeColor = System.Drawing.Color.Red;
+            this.plotGroupBox.Location = new System.Drawing.Point(494, 16);
+            this.plotGroupBox.Name = "plotGroupBox";
+            this.plotGroupBox.Size = new System.Drawing.Size(235, 339);
+            this.plotGroupBox.TabIndex = 25;
+            this.plotGroupBox.TabStop = false;
+            this.plotGroupBox.Text = "Plots";
+            // 
+            // channelsListView
+            // 
+            this.channelsListView.CheckBoxes = true;
+            this.channelsListView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.channelsListView.Location = new System.Drawing.Point(3, 16);
+            this.channelsListView.Name = "channelsListView";
+            this.channelsListView.Size = new System.Drawing.Size(229, 320);
+            this.channelsListView.TabIndex = 25;
+            this.channelsListView.UseCompatibleStateImageBehavior = false;
+            this.channelsListView.View = System.Windows.Forms.View.List;
+            this.channelsListView.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.channelsListView_ItemChecked);
+            this.channelsListView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.channelsListView_ItemSelectionChanged);
             // 
             // operateGroupBox
             // 
@@ -433,12 +484,12 @@
                         | NationalInstruments.UI.GraphInteractionModes.DragCursor)
                         | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption)
                         | NationalInstruments.UI.GraphInteractionModes.EditRange)));
-            this.traceWaveformGraph.Location = new System.Drawing.Point(153, 16);
+            this.traceWaveformGraph.Location = new System.Drawing.Point(21, 16);
             this.traceWaveformGraph.Name = "traceWaveformGraph";
             this.traceWaveformGraph.PlotAreaColor = System.Drawing.Color.LightGray;
             this.traceWaveformGraph.Plots.AddRange(new NationalInstruments.UI.WaveformPlot[] {
             this.waveformPlot1});
-            this.traceWaveformGraph.Size = new System.Drawing.Size(492, 339);
+            this.traceWaveformGraph.Size = new System.Drawing.Size(467, 339);
             this.traceWaveformGraph.TabIndex = 21;
             this.traceWaveformGraph.XAxes.AddRange(new NationalInstruments.UI.XAxis[] {
             this.xAxis1});
@@ -581,6 +632,7 @@
             this.SettingsTabControl.Controls.Add(this.laserSettingsTabPage);
             this.SettingsTabControl.Controls.Add(this.LockInSettingsTabPage);
             this.SettingsTabControl.Controls.Add(this.ElectroMagnetTabPage);
+            this.SettingsTabControl.Controls.Add(this.channelsConfigurationTabPage);
             this.SettingsTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SettingsTabControl.Location = new System.Drawing.Point(3, 16);
             this.SettingsTabControl.Name = "SettingsTabControl";
@@ -642,7 +694,7 @@
             // biasErrorLabel
             // 
             this.biasErrorLabel.AutoSize = true;
-            this.biasErrorLabel.ForeColor = System.Drawing.Color.Black;
+            this.biasErrorLabel.ForeColor = System.Drawing.Color.Red;
             this.biasErrorLabel.Location = new System.Drawing.Point(4, 39);
             this.biasErrorLabel.Name = "biasErrorLabel";
             this.biasErrorLabel.Size = new System.Drawing.Size(68, 13);
@@ -1012,58 +1064,191 @@
             // 
             // lockInPanel
             // 
-            this.lockInPanel.Controls.Add(this.samplePhaseCheckBox);
-            this.lockInPanel.Controls.Add(this.sampleLockInSignalCheckBox);
-            this.lockInPanel.Controls.Add(this.sensitivityNumericEdit);
-            this.lockInPanel.Controls.Add(this.sensitivityLabel);
+            this.lockInPanel.Controls.Add(this.rollOffComboBox);
+            this.lockInPanel.Controls.Add(this.rollOffLabel);
+            this.lockInPanel.Controls.Add(this.enableLockInCheckBox);
+            this.lockInPanel.Controls.Add(this.timeConstantComboBox);
+            this.lockInPanel.Controls.Add(this.timeConstantLabel);
+            this.lockInPanel.Controls.Add(this.sensitivityComboBox);
+            this.lockInPanel.Controls.Add(this.internalSourceLockInGroupBox);
+            this.lockInPanel.Controls.Add(this.lockInSensitivityLabel);
             this.lockInPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lockInPanel.Location = new System.Drawing.Point(3, 3);
             this.lockInPanel.Name = "lockInPanel";
             this.lockInPanel.Size = new System.Drawing.Size(514, 196);
             this.lockInPanel.TabIndex = 0;
             // 
-            // samplePhaseCheckBox
+            // rollOffComboBox
             // 
-            this.samplePhaseCheckBox.AutoSize = true;
-            this.samplePhaseCheckBox.ForeColor = System.Drawing.Color.Black;
-            this.samplePhaseCheckBox.Location = new System.Drawing.Point(3, 30);
-            this.samplePhaseCheckBox.Name = "samplePhaseCheckBox";
-            this.samplePhaseCheckBox.Size = new System.Drawing.Size(126, 17);
-            this.samplePhaseCheckBox.TabIndex = 5;
-            this.samplePhaseCheckBox.Text = "Sample Phase Signal";
-            this.samplePhaseCheckBox.UseVisualStyleBackColor = true;
+            this.rollOffComboBox.FormattingEnabled = true;
+            this.rollOffComboBox.Items.AddRange(new object[] {
+            "6",
+            "12",
+            "18",
+            "24"});
+            this.rollOffComboBox.Location = new System.Drawing.Point(137, 124);
+            this.rollOffComboBox.Name = "rollOffComboBox";
+            this.rollOffComboBox.Size = new System.Drawing.Size(89, 21);
+            this.rollOffComboBox.TabIndex = 14;
+            this.rollOffComboBox.Text = "18";
+            this.rollOffComboBox.SelectedValueChanged += new System.EventHandler(this.rollOffComboBox_SelectedValueChanged);
             // 
-            // sampleLockInSignalCheckBox
+            // rollOffLabel
             // 
-            this.sampleLockInSignalCheckBox.AutoSize = true;
-            this.sampleLockInSignalCheckBox.ForeColor = System.Drawing.Color.Black;
-            this.sampleLockInSignalCheckBox.Location = new System.Drawing.Point(3, 3);
-            this.sampleLockInSignalCheckBox.Name = "sampleLockInSignalCheckBox";
-            this.sampleLockInSignalCheckBox.Size = new System.Drawing.Size(129, 17);
-            this.sampleLockInSignalCheckBox.TabIndex = 4;
-            this.sampleLockInSignalCheckBox.Text = "Sample LockIn Signal";
-            this.sampleLockInSignalCheckBox.UseVisualStyleBackColor = true;
+            this.rollOffLabel.AutoSize = true;
+            this.rollOffLabel.ForeColor = System.Drawing.Color.Black;
+            this.rollOffLabel.Location = new System.Drawing.Point(9, 127);
+            this.rollOffLabel.Name = "rollOffLabel";
+            this.rollOffLabel.Size = new System.Drawing.Size(64, 13);
+            this.rollOffLabel.TabIndex = 13;
+            this.rollOffLabel.Text = "Roll Off [dB]";
             // 
-            // sensitivityNumericEdit
+            // enableLockInCheckBox
             // 
-            this.sensitivityNumericEdit.CoercionInterval = 0.01;
-            this.sensitivityNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2, true);
-            this.sensitivityNumericEdit.Location = new System.Drawing.Point(90, 53);
-            this.sensitivityNumericEdit.Name = "sensitivityNumericEdit";
-            this.sensitivityNumericEdit.Range = new NationalInstruments.UI.Range(2E-09, 1);
-            this.sensitivityNumericEdit.Size = new System.Drawing.Size(75, 20);
-            this.sensitivityNumericEdit.TabIndex = 3;
-            this.sensitivityNumericEdit.Value = 0.5;
+            this.enableLockInCheckBox.AutoSize = true;
+            this.enableLockInCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.enableLockInCheckBox.Location = new System.Drawing.Point(12, 16);
+            this.enableLockInCheckBox.Name = "enableLockInCheckBox";
+            this.enableLockInCheckBox.Size = new System.Drawing.Size(95, 17);
+            this.enableLockInCheckBox.TabIndex = 12;
+            this.enableLockInCheckBox.Text = "Enable LockIn";
+            this.enableLockInCheckBox.UseVisualStyleBackColor = true;
+            this.enableLockInCheckBox.CheckedChanged += new System.EventHandler(this.enableLockInCheckBox_CheckedChanged);
             // 
-            // sensitivityLabel
+            // timeConstantComboBox
             // 
-            this.sensitivityLabel.AutoSize = true;
-            this.sensitivityLabel.ForeColor = System.Drawing.Color.Black;
-            this.sensitivityLabel.Location = new System.Drawing.Point(3, 57);
-            this.sensitivityLabel.Name = "sensitivityLabel";
-            this.sensitivityLabel.Size = new System.Drawing.Size(70, 13);
-            this.sensitivityLabel.TabIndex = 2;
-            this.sensitivityLabel.Text = "Sensitivity [V]";
+            this.timeConstantComboBox.FormattingEnabled = true;
+            this.timeConstantComboBox.Items.AddRange(new object[] {
+            "10E-6",
+            "30E-6",
+            "100E-6",
+            "300E-6",
+            "1E-3",
+            "3E-3",
+            "10E-3",
+            "30E-3",
+            "100E-3",
+            "300E-3",
+            "1",
+            "3",
+            "10",
+            "30",
+            "100",
+            "300",
+            "1E+3",
+            "3E+3",
+            "10E+3",
+            "30E+3"});
+            this.timeConstantComboBox.Location = new System.Drawing.Point(137, 86);
+            this.timeConstantComboBox.Name = "timeConstantComboBox";
+            this.timeConstantComboBox.Size = new System.Drawing.Size(89, 21);
+            this.timeConstantComboBox.TabIndex = 11;
+            this.timeConstantComboBox.Text = "30E-3";
+            this.timeConstantComboBox.SelectedValueChanged += new System.EventHandler(this.timeConstantComboBox_SelectedValueChanged);
+            // 
+            // timeConstantLabel
+            // 
+            this.timeConstantLabel.AutoSize = true;
+            this.timeConstantLabel.ForeColor = System.Drawing.Color.Black;
+            this.timeConstantLabel.Location = new System.Drawing.Point(9, 89);
+            this.timeConstantLabel.Name = "timeConstantLabel";
+            this.timeConstantLabel.Size = new System.Drawing.Size(101, 13);
+            this.timeConstantLabel.TabIndex = 10;
+            this.timeConstantLabel.Text = "Time Constant [sec]";
+            // 
+            // sensitivityComboBox
+            // 
+            this.sensitivityComboBox.FormattingEnabled = true;
+            this.sensitivityComboBox.Items.AddRange(new object[] {
+            "2E-9",
+            "5E-9",
+            "10E-9",
+            "20E-9",
+            "50E-9",
+            "100E-9",
+            "200E-9",
+            "500E-9",
+            "1E-6",
+            "2E-6",
+            "5E-6",
+            "10E-6",
+            "20E-6",
+            "50E-6",
+            "100E-6",
+            "200E-6",
+            "500E-6",
+            "1E-3",
+            "2E-3",
+            "5E-3",
+            "10E-3",
+            "20E-3",
+            "50E-3",
+            "100E-3",
+            "200E-3",
+            "500E-3",
+            "1"});
+            this.sensitivityComboBox.Location = new System.Drawing.Point(137, 50);
+            this.sensitivityComboBox.Name = "sensitivityComboBox";
+            this.sensitivityComboBox.Size = new System.Drawing.Size(89, 21);
+            this.sensitivityComboBox.TabIndex = 9;
+            this.sensitivityComboBox.Text = "500E-3";
+            this.sensitivityComboBox.SelectedValueChanged += new System.EventHandler(this.sensitivityComboBox_SelectedValueChanged);
+            // 
+            // internalSourceLockInGroupBox
+            // 
+            this.internalSourceLockInGroupBox.Controls.Add(this.mixerReductionFactorNumericEdit);
+            this.internalSourceLockInGroupBox.Controls.Add(this.acVoltageReductionFactorLabel);
+            this.internalSourceLockInGroupBox.Controls.Add(this.internalSourceLockInCheckBoxcheckBox);
+            this.internalSourceLockInGroupBox.Controls.Add(this.lockInAcVoltageNumericEdit);
+            this.internalSourceLockInGroupBox.Controls.Add(this.lockInAcVoltageLabel);
+            this.internalSourceLockInGroupBox.ForeColor = System.Drawing.Color.Red;
+            this.internalSourceLockInGroupBox.Location = new System.Drawing.Point(260, 3);
+            this.internalSourceLockInGroupBox.Name = "internalSourceLockInGroupBox";
+            this.internalSourceLockInGroupBox.Size = new System.Drawing.Size(251, 184);
+            this.internalSourceLockInGroupBox.TabIndex = 8;
+            this.internalSourceLockInGroupBox.TabStop = false;
+            // 
+            // internalSourceLockInCheckBoxcheckBox
+            // 
+            this.internalSourceLockInCheckBoxcheckBox.AutoSize = true;
+            this.internalSourceLockInCheckBoxcheckBox.ForeColor = System.Drawing.Color.Black;
+            this.internalSourceLockInCheckBoxcheckBox.Location = new System.Drawing.Point(11, 13);
+            this.internalSourceLockInCheckBoxcheckBox.Name = "internalSourceLockInCheckBoxcheckBox";
+            this.internalSourceLockInCheckBoxcheckBox.Size = new System.Drawing.Size(61, 17);
+            this.internalSourceLockInCheckBoxcheckBox.TabIndex = 8;
+            this.internalSourceLockInCheckBoxcheckBox.Text = "Internal";
+            this.internalSourceLockInCheckBoxcheckBox.UseVisualStyleBackColor = true;
+            // 
+            // lockInAcVoltageNumericEdit
+            // 
+            this.lockInAcVoltageNumericEdit.CoercionInterval = 0.01;
+            this.lockInAcVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2, true);
+            this.lockInAcVoltageNumericEdit.Location = new System.Drawing.Point(152, 50);
+            this.lockInAcVoltageNumericEdit.Name = "lockInAcVoltageNumericEdit";
+            this.lockInAcVoltageNumericEdit.Range = new NationalInstruments.UI.Range(1E-05, 1);
+            this.lockInAcVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
+            this.lockInAcVoltageNumericEdit.TabIndex = 7;
+            this.lockInAcVoltageNumericEdit.Value = 0.01;
+            // 
+            // lockInAcVoltageLabel
+            // 
+            this.lockInAcVoltageLabel.AutoSize = true;
+            this.lockInAcVoltageLabel.ForeColor = System.Drawing.Color.Black;
+            this.lockInAcVoltageLabel.Location = new System.Drawing.Point(10, 50);
+            this.lockInAcVoltageLabel.Name = "lockInAcVoltageLabel";
+            this.lockInAcVoltageLabel.Size = new System.Drawing.Size(76, 13);
+            this.lockInAcVoltageLabel.TabIndex = 6;
+            this.lockInAcVoltageLabel.Text = "AC Voltage [V]";
+            // 
+            // lockInSensitivityLabel
+            // 
+            this.lockInSensitivityLabel.AutoSize = true;
+            this.lockInSensitivityLabel.ForeColor = System.Drawing.Color.Black;
+            this.lockInSensitivityLabel.Location = new System.Drawing.Point(9, 53);
+            this.lockInSensitivityLabel.Name = "lockInSensitivityLabel";
+            this.lockInSensitivityLabel.Size = new System.Drawing.Size(70, 13);
+            this.lockInSensitivityLabel.TabIndex = 2;
+            this.lockInSensitivityLabel.Text = "Sensitivity [V]";
             // 
             // ElectroMagnetTabPage
             // 
@@ -1343,6 +1528,119 @@
             this.emFastDelayTimeLabel.TabIndex = 2;
             this.emFastDelayTimeLabel.Text = "Fast Delay Time [ms]";
             // 
+            // channelsConfigurationTabPage
+            // 
+            this.channelsConfigurationTabPage.Controls.Add(this.channelsSettingsPanel);
+            this.channelsConfigurationTabPage.Location = new System.Drawing.Point(4, 22);
+            this.channelsConfigurationTabPage.Name = "channelsConfigurationTabPage";
+            this.channelsConfigurationTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.channelsConfigurationTabPage.Size = new System.Drawing.Size(520, 202);
+            this.channelsConfigurationTabPage.TabIndex = 4;
+            this.channelsConfigurationTabPage.Text = "Channels";
+            this.channelsConfigurationTabPage.UseVisualStyleBackColor = true;
+            // 
+            // channelsSettingsPanel
+            // 
+            this.channelsSettingsPanel.Controls.Add(this.channel1ComboBox);
+            this.channelsSettingsPanel.Controls.Add(this.channel3ComboBox);
+            this.channelsSettingsPanel.Controls.Add(this.channel0CheckBox);
+            this.channelsSettingsPanel.Controls.Add(this.channel3CheckBox);
+            this.channelsSettingsPanel.Controls.Add(this.channel0ComboBox);
+            this.channelsSettingsPanel.Controls.Add(this.channel2ComboBox);
+            this.channelsSettingsPanel.Controls.Add(this.channel1CheckBox);
+            this.channelsSettingsPanel.Controls.Add(this.channel2CheckBox);
+            this.channelsSettingsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.channelsSettingsPanel.Location = new System.Drawing.Point(3, 3);
+            this.channelsSettingsPanel.Name = "channelsSettingsPanel";
+            this.channelsSettingsPanel.Size = new System.Drawing.Size(514, 196);
+            this.channelsSettingsPanel.TabIndex = 8;
+            // 
+            // channel1ComboBox
+            // 
+            this.channel1ComboBox.FormattingEnabled = true;
+            this.channel1ComboBox.Location = new System.Drawing.Point(107, 33);
+            this.channel1ComboBox.Name = "channel1ComboBox";
+            this.channel1ComboBox.Size = new System.Drawing.Size(202, 21);
+            this.channel1ComboBox.TabIndex = 3;
+            this.channel1ComboBox.SelectedValueChanged += new System.EventHandler(this.channel1ComboBox_SelectedValueChanged);
+            // 
+            // channel3ComboBox
+            // 
+            this.channel3ComboBox.FormattingEnabled = true;
+            this.channel3ComboBox.Location = new System.Drawing.Point(107, 87);
+            this.channel3ComboBox.Name = "channel3ComboBox";
+            this.channel3ComboBox.Size = new System.Drawing.Size(202, 21);
+            this.channel3ComboBox.TabIndex = 7;
+            this.channel3ComboBox.SelectedValueChanged += new System.EventHandler(this.channel3ComboBox_SelectedValueChanged);
+            // 
+            // channel0CheckBox
+            // 
+            this.channel0CheckBox.AutoSize = true;
+            this.channel0CheckBox.Checked = true;
+            this.channel0CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.channel0CheckBox.ForeColor = System.Drawing.Color.Black;
+            this.channel0CheckBox.Location = new System.Drawing.Point(7, 8);
+            this.channel0CheckBox.Name = "channel0CheckBox";
+            this.channel0CheckBox.Size = new System.Drawing.Size(71, 17);
+            this.channel0CheckBox.TabIndex = 0;
+            this.channel0CheckBox.Text = "Dev1/ai0";
+            this.channel0CheckBox.UseVisualStyleBackColor = true;
+            this.channel0CheckBox.CheckedChanged += new System.EventHandler(this.channel0CheckBox_CheckedChanged);
+            // 
+            // channel3CheckBox
+            // 
+            this.channel3CheckBox.AutoSize = true;
+            this.channel3CheckBox.ForeColor = System.Drawing.Color.Black;
+            this.channel3CheckBox.Location = new System.Drawing.Point(7, 89);
+            this.channel3CheckBox.Name = "channel3CheckBox";
+            this.channel3CheckBox.Size = new System.Drawing.Size(71, 17);
+            this.channel3CheckBox.TabIndex = 6;
+            this.channel3CheckBox.Text = "Dev1/ai3";
+            this.channel3CheckBox.UseVisualStyleBackColor = true;
+            this.channel3CheckBox.CheckedChanged += new System.EventHandler(this.channel3CheckBox_CheckedChanged);
+            // 
+            // channel0ComboBox
+            // 
+            this.channel0ComboBox.FormattingEnabled = true;
+            this.channel0ComboBox.Location = new System.Drawing.Point(107, 6);
+            this.channel0ComboBox.Name = "channel0ComboBox";
+            this.channel0ComboBox.Size = new System.Drawing.Size(202, 21);
+            this.channel0ComboBox.TabIndex = 1;
+            this.channel0ComboBox.SelectedValueChanged += new System.EventHandler(this.channel0ComboBox_SelectedValueChanged);
+            // 
+            // channel2ComboBox
+            // 
+            this.channel2ComboBox.FormattingEnabled = true;
+            this.channel2ComboBox.Location = new System.Drawing.Point(107, 60);
+            this.channel2ComboBox.Name = "channel2ComboBox";
+            this.channel2ComboBox.Size = new System.Drawing.Size(202, 21);
+            this.channel2ComboBox.TabIndex = 5;
+            this.channel2ComboBox.SelectedValueChanged += new System.EventHandler(this.channel2ComboBox_SelectedValueChanged);
+            // 
+            // channel1CheckBox
+            // 
+            this.channel1CheckBox.AutoSize = true;
+            this.channel1CheckBox.ForeColor = System.Drawing.Color.Black;
+            this.channel1CheckBox.Location = new System.Drawing.Point(7, 35);
+            this.channel1CheckBox.Name = "channel1CheckBox";
+            this.channel1CheckBox.Size = new System.Drawing.Size(71, 17);
+            this.channel1CheckBox.TabIndex = 2;
+            this.channel1CheckBox.Text = "Dev1/ai1";
+            this.channel1CheckBox.UseVisualStyleBackColor = true;
+            this.channel1CheckBox.CheckedChanged += new System.EventHandler(this.channel1CheckBox_CheckedChanged);
+            // 
+            // channel2CheckBox
+            // 
+            this.channel2CheckBox.AutoSize = true;
+            this.channel2CheckBox.ForeColor = System.Drawing.Color.Black;
+            this.channel2CheckBox.Location = new System.Drawing.Point(7, 62);
+            this.channel2CheckBox.Name = "channel2CheckBox";
+            this.channel2CheckBox.Size = new System.Drawing.Size(71, 17);
+            this.channel2CheckBox.TabIndex = 4;
+            this.channel2CheckBox.Text = "Dev1/ai2";
+            this.channel2CheckBox.UseVisualStyleBackColor = true;
+            this.channel2CheckBox.CheckedChanged += new System.EventHandler(this.channel2CheckBox_CheckedChanged);
+            // 
             // controlPanelsTabPage
             // 
             this.controlPanelsTabPage.AutoScroll = true;
@@ -1412,6 +1710,27 @@
             this.fixBiasBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.fixBiasBackgroundWorker_DoWork);
             this.fixBiasBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.fixBiasBackgroundWorker_RunWorkerCompleted);
             // 
+            // mixerReductionFactorNumericEdit
+            // 
+            this.mixerReductionFactorNumericEdit.CoercionInterval = 0.01;
+            this.mixerReductionFactorNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateGenericMode("F0");
+            this.mixerReductionFactorNumericEdit.Location = new System.Drawing.Point(152, 83);
+            this.mixerReductionFactorNumericEdit.Name = "mixerReductionFactorNumericEdit";
+            this.mixerReductionFactorNumericEdit.Range = new NationalInstruments.UI.Range(0, 100);
+            this.mixerReductionFactorNumericEdit.Size = new System.Drawing.Size(75, 20);
+            this.mixerReductionFactorNumericEdit.TabIndex = 10;
+            this.mixerReductionFactorNumericEdit.Value = 100;
+            // 
+            // acVoltageReductionFactorLabel
+            // 
+            this.acVoltageReductionFactorLabel.AutoSize = true;
+            this.acVoltageReductionFactorLabel.ForeColor = System.Drawing.Color.Black;
+            this.acVoltageReductionFactorLabel.Location = new System.Drawing.Point(10, 83);
+            this.acVoltageReductionFactorLabel.Name = "acVoltageReductionFactorLabel";
+            this.acVoltageReductionFactorLabel.Size = new System.Drawing.Size(117, 13);
+            this.acVoltageReductionFactorLabel.TabIndex = 9;
+            this.acVoltageReductionFactorLabel.Text = "Mixer Reduction Factor";
+            // 
             // SBJControllerMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1426,6 +1745,7 @@
             this.controllerTabControl.ResumeLayout(false);
             this.dataAquisitionTabPage.ResumeLayout(false);
             this.dataAquisitionTabPage.PerformLayout();
+            this.plotGroupBox.ResumeLayout(false);
             this.operateGroupBox.ResumeLayout(false);
             this.operateGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfCyclesnumericUpDown)).EndInit();
@@ -1458,7 +1778,9 @@
             this.LockInSettingsTabPage.ResumeLayout(false);
             this.lockInPanel.ResumeLayout(false);
             this.lockInPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.sensitivityNumericEdit)).EndInit();
+            this.internalSourceLockInGroupBox.ResumeLayout(false);
+            this.internalSourceLockInGroupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.lockInAcVoltageNumericEdit)).EndInit();
             this.ElectroMagnetTabPage.ResumeLayout(false);
             this.electroMagnetSettingsPanel.ResumeLayout(false);
             this.electroMagnetSettingsPanel.PerformLayout();
@@ -1471,9 +1793,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.emShortCircuitDelayTimeNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.emSlowDelayTimeNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.emFastDelayTimeNumericUpDown)).EndInit();
+            this.channelsConfigurationTabPage.ResumeLayout(false);
+            this.channelsSettingsPanel.ResumeLayout(false);
+            this.channelsSettingsPanel.PerformLayout();
             this.controlPanelsTabPage.ResumeLayout(false);
             this.electroMagnetGroupBox.ResumeLayout(false);
             this.stepperMotorGroupBox.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.mixerReductionFactorNumericEdit)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -1545,10 +1871,7 @@
         private System.Windows.Forms.TabPage laserSettingsTabPage;
         private System.Windows.Forms.TabPage LockInSettingsTabPage;
         private System.Windows.Forms.Panel lockInPanel;
-        private NationalInstruments.UI.WindowsForms.NumericEdit sensitivityNumericEdit;
-        private System.Windows.Forms.Label sensitivityLabel;
-        private System.Windows.Forms.CheckBox sampleLockInSignalCheckBox;
-        private System.Windows.Forms.CheckBox samplePhaseCheckBox;
+        private System.Windows.Forms.Label lockInSensitivityLabel;
         private System.Windows.Forms.TabPage ElectroMagnetTabPage;
         private System.Windows.Forms.CheckBox enableElectroMagnetCheckBox;
         private System.Windows.Forms.GroupBox stepperMotorGroupBox;
@@ -1577,6 +1900,30 @@
         private System.Windows.Forms.CheckBox fixBiasCheckBoxButton;
         private System.ComponentModel.BackgroundWorker fixBiasBackgroundWorker;
         private NationalInstruments.UI.WindowsForms.NumericEdit biasErrorNumericEdit;
+        private System.Windows.Forms.TabPage channelsConfigurationTabPage;
+        private System.Windows.Forms.CheckBox channel0CheckBox;
+        private System.Windows.Forms.ComboBox channel3ComboBox;
+        private System.Windows.Forms.CheckBox channel3CheckBox;
+        private System.Windows.Forms.ComboBox channel2ComboBox;
+        private System.Windows.Forms.CheckBox channel2CheckBox;
+        private System.Windows.Forms.ComboBox channel1ComboBox;
+        private System.Windows.Forms.CheckBox channel1CheckBox;
+        private System.Windows.Forms.ComboBox channel0ComboBox;
+        private NationalInstruments.UI.WindowsForms.NumericEdit lockInAcVoltageNumericEdit;
+        private System.Windows.Forms.Label lockInAcVoltageLabel;
+        private System.Windows.Forms.Panel channelsSettingsPanel;
+        private System.Windows.Forms.ComboBox sensitivityComboBox;
+        private System.Windows.Forms.GroupBox internalSourceLockInGroupBox;
+        private System.Windows.Forms.CheckBox internalSourceLockInCheckBoxcheckBox;
+        private System.Windows.Forms.Label timeConstantLabel;
+        private System.Windows.Forms.ComboBox timeConstantComboBox;
+        private System.Windows.Forms.CheckBox enableLockInCheckBox;
+        private System.Windows.Forms.ComboBox rollOffComboBox;
+        private System.Windows.Forms.Label rollOffLabel;
+        private System.Windows.Forms.GroupBox plotGroupBox;
+        private System.Windows.Forms.ListView channelsListView;
+        private NationalInstruments.UI.WindowsForms.NumericEdit mixerReductionFactorNumericEdit;
+        private System.Windows.Forms.Label acVoltageReductionFactorLabel;
                          
     }
 }

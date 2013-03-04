@@ -5,6 +5,10 @@ using System.Windows.Forms;
 using NationalInstruments.DAQmx;
 using System.Drawing;
 using NationalInstruments.UI;
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
+using SBJController.Properties;
 
 namespace SBJController
 {
@@ -27,7 +31,9 @@ namespace SBJController
             m_sbjController.DataAquired += new SBJController.DataAquiredEventHandler(OnDataAquisition);
             this.bottomPropertyGrid.SelectedObject = new Sample();
             this.topPropertyGrid.SelectedObject = new Sample();
+            PopulateChannelsList();
         }
+       
         #endregion
 
         #region UI Event Handlers
@@ -134,6 +140,7 @@ namespace SBJController
                     laserSettingsPanel.Enabled = false;
                     lockInPanel.Enabled = false;
                     electroMagnetSettingsPanel.Enabled = false;
+                    channelsSettingsPanel.Enabled = false;
                     aquireDataBackgroundWorker.RunWorkerAsync();
                 }
                 else
@@ -176,6 +183,7 @@ namespace SBJController
             generalSettingsPanel.Enabled = true;
             laserSettingsPanel.Enabled = true;
             lockInPanel.Enabled = true;
+            channelsSettingsPanel.Enabled = true;
             electroMagnetSettingsPanel.Enabled = true;
         }
 
@@ -275,7 +283,7 @@ namespace SBJController
         private void fixBiasBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            m_sbjController.FixBias((double)shortCircuitVoltageNumericUpDown.Value, worker, e);
+            m_sbjController.FixBias((double)shortCircuitVoltageNumericUpDown.Value,(double)biasNumericEdit.Value, worker, e);
         }
 
         private void fixBiasBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -290,7 +298,10 @@ namespace SBJController
             this.moveUpCheckBoxButton.Enabled = true;
             if (!e.Cancelled)
             {
-                this.biasErrorNumericEdit.Value = (double)e.Result;
+                this.biasErrorNumericEdit.Value = ((Bias)e.Result).Error;
+                this.biasNumericEdit.Value = (double)this.biasNumericEdit.Value * ((Bias)e.Result).Sign;
+                this.biasErrorLabel.ForeColor = Color.Black;
+
             }
             m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
         }
@@ -359,7 +370,7 @@ namespace SBJController
             int gainPower = int.Parse(this.gainComboBox.Text);
             m_sbjController.ChangeGain(gainPower);
             this.triggerConductanceNumericEdit.Value = GetTriggerConductance();
-            this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * this.biasNumericEdit.Value * Math.Pow(10, gainPower);            
+            this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.biasNumericEdit.Value) * Math.Pow(10, gainPower);            
             this.emHoldOnMaxConductanceNumericEdit.Value = 100 * GetTriggerConductance();
             this.emHoldOnMinConductanceNumericEdit.Value = 50 * GetTriggerConductance();
         }
@@ -379,8 +390,16 @@ namespace SBJController
             {
                 m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
             }
+
+            //
+            // If bias had changed sign it is recommanded to run fix bias again.
+            //
+            if (e.NewValue * e.OldValue < 0)
+            {
+                this.biasErrorLabel.ForeColor = Color.Red;
+            }
             this.triggerConductanceNumericEdit.Value = GetTriggerConductance();
-            this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * this.biasNumericEdit.Value * Math.Pow(10, int.Parse(this.gainComboBox.Text));            
+            this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.biasNumericEdit.Value) * Math.Pow(10, int.Parse(this.gainComboBox.Text));            
             this.emHoldOnMaxVoltageNumericEdit.Value = GetVoltageFromConductnace(this.emHoldOnMaxConductanceNumericEdit.Value); 
         }
 
@@ -416,7 +435,7 @@ namespace SBJController
         /// <param name="e"></param>
         private void triggerConductanceNumericEdit_AfterChangeValue_1(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
         {
-            this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * this.biasNumericEdit.Value * Math.Pow(10, int.Parse(this.gainComboBox.Text));
+            this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.biasNumericEdit.Value) * Math.Pow(10, int.Parse(this.gainComboBox.Text));
         }
 
         /// <summary>
@@ -507,6 +526,11 @@ namespace SBJController
             this.frequencyNumericUpDown.Enabled = laserModeComboBox.Text.Equals("Square") && this.enableLaserCheckBox.Checked;
         }
 
+        /// <summary>
+        /// Set Laser amplitude
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void amplitudeNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             double amplitude = (double)this.amplitudeNumericUpDown.Value;
@@ -523,6 +547,11 @@ namespace SBJController
             m_sbjController.ControllerTabControlDeselected();
         }
 
+        /// <summary>
+        /// On path changed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void pathTextBox_TextChanged(object sender, EventArgs e)
         {
             //
@@ -531,6 +560,11 @@ namespace SBJController
             this.fileNumberNumericUpDown.Value = 0;
         }
 
+        /// <summary>
+        /// On number of samples changed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void totalSamplesNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             //
@@ -538,6 +572,233 @@ namespace SBJController
             //
             pretriggerSamplesNumericUpDown.Value = (decimal)0.85 * totalSamplesNumericUpDown.Value;
         }
+
+        /// <summary>
+        /// On enable lock in 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void enableLockInCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.enableLockInCheckBox.Checked)
+            {
+                //
+                // Turn on lock in with all its configuration
+                //
+                m_sbjController.LockIn.Connect();
+                m_sbjController.LockIn.SetSensitivity(Double.Parse(this.sensitivityComboBox.Text));
+                m_sbjController.LockIn.SetRollOff(int.Parse(this.rollOffComboBox.Text));
+                m_sbjController.LockIn.SetTimeConstant(Double.Parse(this.timeConstantComboBox.Text));
+            }
+            else
+            {
+                //
+                // Set lock in to local mode when unchcked
+                //
+                m_sbjController.LockIn.SetLocalMode();
+            }
+        }
+
+        /// <summary>
+        /// On sensitivity change
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void sensitivityComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            m_sbjController.LockIn.SetSensitivity(Double.Parse(this.sensitivityComboBox.Text));
+        }
+
+        /// <summary>
+        /// On Time constant change
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void timeConstantComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            m_sbjController.LockIn.SetTimeConstant(Double.Parse(this.timeConstantComboBox.Text));
+        }
+
+        /// <summary>
+        /// Set roll off
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void rollOffComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            m_sbjController.LockIn.SetRollOff(int.Parse(this.rollOffComboBox.Text));
+        }
+
+        /// <summary>
+        /// Ignore selection on channels list view
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void channelsListView_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+        {
+            if (e.IsSelected)
+            {
+                e.Item.Selected = false;
+            }
+        }
+
+        /// <summary>
+        /// Update UI appearnce when channels are checked \ unchecked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void channel0ComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (channel0CheckBox.Checked)
+            {
+                UpdateChannelsToDisplayListView();
+            }
+        }
+
+        /// <summary>
+        /// Update UI appearnce when channels are checked \ unchecked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void channel1ComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (channel1CheckBox.Checked)
+            {
+                UpdateChannelsToDisplayListView();
+            }
+        }
+
+        /// <summary>
+        /// Update UI appearnce when channels are checked \ unchecked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void channel2ComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (channel2CheckBox.Checked)
+            {
+                UpdateChannelsToDisplayListView();
+            }
+        }
+
+        /// <summary>
+        /// Update UI appearnce when channels are checked \ unchecked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void channel3ComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (channel3CheckBox.Checked)
+            {
+                UpdateChannelsToDisplayListView();
+            }
+        }
+
+        /// <summary>
+        /// Update the channel to display list appearance
+        /// </summary>
+        private void UpdateChannelsToDisplayListView()
+        {
+            foreach (ListViewItem channel in channelsListView.Items)
+            {
+                UpdateChannelAppearance(channel);
+            }
+        }
+
+        /// <summary>
+        /// Update channels list appearance according to the selected channels to sample
+        /// </summary>
+        /// <param name="channel"></param>
+        private void UpdateChannelAppearance(ListViewItem channel)
+        {
+            //
+            // LockInXYInternalSourceDataChannel is a special cas and doesn't obbey the rules
+            //
+            if (channel.Name.Equals(typeof(LockInXYInternalSourceDataChannel).Name))
+            {
+                return;
+            }
+
+            //
+            // check if channel you wish to display is active
+            //
+            bool isChannelActive = IsChannelActive(channel.Text);
+
+            //
+            // If it is not active mark it in red to let the user know something is wrong
+            // 
+            if (channel.Checked && !isChannelActive)
+            {
+                channel.ForeColor = Color.Red;
+            }
+
+            //
+            // Set the color back to black if channel is inactive
+            //
+            if (channel.Checked && isChannelActive)
+            {
+                channel.ForeColor = Color.Black;
+            }
+
+            //
+            // Set the channel back to black if channle is not active anymore
+            //
+            if (!channel.Checked)
+            {
+                channel.ForeColor = Color.Black;
+            }
+        }
+
+        /// <summary>
+        /// Update channel appearance
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void channelsListView_ItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            UpdateChannelAppearance(e.Item);
+        }
+
+        /// <summary>
+        /// Update channels appearance
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void channel3CheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateChannelsToDisplayListView();
+        }
+
+        /// <summary>
+        /// Update channels appearance
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void channel2CheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateChannelsToDisplayListView();
+        }
+
+        /// <summary>
+        /// Update channels appearance
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void channel1CheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateChannelsToDisplayListView();
+        }
+
+        /// <summary>
+        /// Update channels appearance
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void channel0CheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateChannelsToDisplayListView();
+        }      
+
         #endregion
         
         #endregion
@@ -565,8 +826,9 @@ namespace SBJController
                 //
                 // Update plot
                 //
-                this.waveformPlot1.ClearData();
-                double[,] data = GetDataAsConductionValues(e.Data);
+                this.traceWaveformGraph.ClearData();
+                List<IDataChannel> channelsToDisplay = GetChannelsToDisplay(e.PhysicalChannels as List<IDataChannel>);
+                double[,] data = GetPhysicalData(channelsToDisplay);
                 int numberOfChannels = data.GetLength(0);
                 this.traceWaveformGraph.PlotYMultiple(data);
        
@@ -575,50 +837,52 @@ namespace SBJController
                     this.traceWaveformGraph.Plots[1].PointColor = Color.Blue;
                     this.traceWaveformGraph.Plots[1].YAxis = yAxis2;
                     this.traceWaveformGraph.Plots[1].ToolTipsEnabled = true;
-                    this.traceWaveformGraph.Plots[1].LineColor = Color.Blue;
-                    if (numberOfChannels > 2)
-                    {
-                        //this.traceWaveformGraph.Plots[2].YAxis = yAxis1;
-                        //this.traceWaveformGraph.Plots[2].ToolTipsEnabled = true;
-                        //this.traceWaveformGraph.Plots[2].LineColor = Color.Black;
-                    }
+                    this.traceWaveformGraph.Plots[1].LineColor = Color.Blue;                    
                 }
                 
                 this.traceWaveformGraph.Caption = string.Format("Trace #{0} at {1}", this.fileNumberNumericUpDown.Value, DateTime.Now.TimeOfDay);        
             }
         }
 
-        private double[,] GetDataAsConductionValues(double[,] rawData)
+        private List<IDataChannel> GetChannelsToDisplay(List<IDataChannel> physicalChannels)
         {
-            int numberOfChannels = rawData.GetLength(0);
-            int numberOfDataPoints = rawData.GetLength(1);
-            double[,] data = new double[numberOfChannels, numberOfDataPoints];
-            int gain = Int32.Parse(this.gainComboBox.Text);
-            double bias = this.biasNumericEdit.Value;
-           
-            for (int i = 0; i < numberOfDataPoints; i++)
+            List<IDataChannel> selectedChannels = new List<IDataChannel>();
+            foreach (ListViewItem selectedChannel in channelsListView.CheckedItems)
             {
-                double rawDataPoint = Math.Abs(rawData[0, i]);
-                data[0, i] = rawDataPoint / Math.Pow(10, gain) / bias / m_1G0;
-
-                if (numberOfChannels > 1)
+                IDataChannel physicalChannel = physicalChannels.Find(new Predicate<IDataChannel>(x => x.Name.Equals(selectedChannel.Name)));
+                if (physicalChannel != null)
                 {
-                    //
-                    // The lock in siganl is normalized to the range of [0 10] so that at overload when
-                    // maximum sensitivity value is detected, the out out is 10V.
-                    //
-                    double normalizationFactor = (10 / this.sensitivityNumericEdit.Value);
-                    double lockInSignalDataPoint = rawData[1, i];
-                    data[1, i] = lockInSignalDataPoint / Math.Pow(10, gain) / bias / m_1G0 / normalizationFactor;
-
-                    if (numberOfChannels > 2)
-                    {
-                        double lockInPhaseDataPoint = rawData[2, i];
-                        data[2, i] = lockInPhaseDataPoint;
-                    }
+                    selectedChannels.Add(physicalChannel);
                 }
             }
-            return data;
+
+            return selectedChannels;
+        }
+
+        private double[,] GetPhysicalData(IList<IDataChannel> physicalChannels)
+        {
+            List<double[]> physicalDataAsList = new List<double[]>();
+            foreach (var channel in physicalChannels)
+            {
+                channel.ConvertToPhysicalData();
+                physicalDataAsList.AddRange(channel.PhysicalData);
+            }            
+
+            return GetDataAsArray(physicalDataAsList);            
+        }
+
+        private double[,] GetDataAsArray(List<double[]> physicalDataAsList)
+        {
+            double[,] dataAsArray = new double[physicalDataAsList.Count, physicalDataAsList[0].Length];
+            for (int i = 0; i < physicalDataAsList.Count; i++)
+            {
+                for (int j = 0; j < physicalDataAsList[i].Length; j++)
+                {
+                    dataAsArray[i, j] = physicalDataAsList[i][j];
+                }
+            }
+
+            return dataAsArray;
         }
 
         /// <summary>
@@ -667,9 +931,13 @@ namespace SBJController
                                                                                  this.laserModeComboBox.SelectedItem.ToString(),
                                                                                  (double)this.amplitudeNumericUpDown.Value,
                                                                                  (int)this.frequencyNumericUpDown.Value),
-                                                  new LockInSBJControllerSettings(this.sampleLockInSignalCheckBox.Checked,
-                                                                                  this.samplePhaseCheckBox.Checked,
-                                                                                  this.sensitivityNumericEdit.Value),
+                                                  new LockInSBJControllerSettings(this.enableLockInCheckBox.Checked,
+                                                                                  this.internalSourceLockInCheckBoxcheckBox.Checked,
+                                                                                  Double.Parse(this.sensitivityComboBox.Text),
+                                                                                  Double.Parse(this.timeConstantComboBox.Text),
+                                                                                  Double.Parse(this.rollOffComboBox.Text),
+                                                                                  (double)this.lockInAcVoltageNumericEdit.Value,
+                                                                                  (int)this.mixerReductionFactorNumericEdit.Value),
                                                   new ElectroMagnetSBJControllerSettings(this.enableElectroMagnetCheckBox.Checked,
                                                                                          (int)this.emShortCircuitDelayTimeNumericUpDown.Value,
                                                                                          (int)this.emFastDelayTimeNumericUpDown.Value,
@@ -679,7 +947,9 @@ namespace SBJController
                                                                                          this.emHoldOnMaxVoltageNumericEdit.Value,
                                                                                          this.emHoldOnMinConductanceNumericEdit.Value,
                                                                                          this.emHoldOnMinVoltageNumericEdit.Value,
-                                                                                         this.emSkipFirstCycleByStepperMotorCheckBox.Checked));
+                                                                                         this.emSkipFirstCycleByStepperMotorCheckBox.Checked),
+                                                 new ChannelsSettings(GetActiveChannels()));
+                                                                         
             }
         }
 
@@ -693,7 +963,7 @@ namespace SBJController
             // Critical conductance is set to 3 order of magnitude below the maximum
             // conductance measured at this gain range
             //
-            double maxConductance = m_maxVoltage / Math.Pow(10, int.Parse(this.gainComboBox.Text)) / this.biasNumericEdit.Value / m_1G0;
+            double maxConductance = m_maxVoltage / Math.Pow(10, int.Parse(this.gainComboBox.Text)) / Math.Abs(this.biasNumericEdit.Value) / m_1G0;
             return maxConductance / 1000;
         }
 
@@ -705,10 +975,142 @@ namespace SBJController
         private double GetVoltageFromConductnace(double conductance)
         {
             int gainPower = int.Parse(this.gainComboBox.Text);
-            return -conductance * m_1G0 * this.biasNumericEdit.Value * Math.Pow(10, gainPower);
+            return -conductance * m_1G0 * Math.Abs(this.biasNumericEdit.Value) * Math.Pow(10, gainPower);
         }
-        #endregion
 
-        
+        private void PopulateChannelsList()
+        {
+            List<string> channelTypes = new List<string>();
+            List<string> complexChannelTypes = new List<string>();
+            var typeIDataChannel = typeof(IDataChannel);
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypes())
+                {
+                    if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
+                    {
+                        if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+                        {
+                            channelTypes.Add(type.Name);
+                        }
+                        else
+                        {
+                            complexChannelTypes.Add(type.Name);
+                        }
+                    }
+                }
+            }                   
+            
+            this.channel0ComboBox.DataSource = channelTypes;
+            this.channel1ComboBox.DataSource = new List<string>(channelTypes);
+            this.channel2ComboBox.DataSource = new List<string>(channelTypes);
+            this.channel3ComboBox.DataSource = new List<string>(channelTypes);
+
+            this.channel0CheckBox.Text = Settings.Default.DAQPhysicalChannelName0;
+            this.channel1CheckBox.Text = Settings.Default.DAQPhysicalChannelName1;
+            this.channel2CheckBox.Text = Settings.Default.DAQPhysicalChannelName2;
+            this.channel3CheckBox.Text = Settings.Default.DAQPhysicalChannelName3;
+
+            //
+            // Also populate the channels in the display list
+            //
+            List<string> allAvailableChannels = channelTypes;
+            allAvailableChannels.AddRange(complexChannelTypes);
+            List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
+            channelsListView.Items.AddRange(channelsToDisplay.ToArray());           
+            channelsListView.Items[channelsListView.Items.IndexOfKey(typeof(DefaultDataChannel).Name)].Checked = true;            
+        }
+
+        private List<ListViewItem> GetChannelsToDisplay(List<string> channelsToDisplay)
+        {
+            List<ListViewItem> channelsToDisplayAsListView = new List<ListViewItem>();
+            foreach (string channel in channelsToDisplay)
+            {
+                ListViewItem newListViewItem = new ListViewItem(channel);
+                newListViewItem.Name = channel;
+                channelsToDisplayAsListView.Add(newListViewItem);
+            }
+
+            return channelsToDisplayAsListView;
+        }
+
+        /// <summary>
+        /// Create instances of the desired channels to be sampled from by reflection
+        /// </summary>
+        /// <returns></returns>
+        private List<IDataChannel> GetActiveChannels()
+        {
+            List<IDataChannel> activeChannels = new List<IDataChannel>();
+
+            DataConvertorSettings dataConvertorSettings =  new DataConvertorSettings(Math.Abs(this.biasNumericEdit.Value), Convert.ToInt32(this.gainComboBox.Text),
+                                                                                     this.lockInAcVoltageNumericEdit.Value, Double.Parse(this.sensitivityComboBox.Text));
+
+            if (channel0CheckBox.Checked)
+            {
+                activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(channel0ComboBox.SelectedValue as string)), 
+                                                                          new object[]{channel0CheckBox.Text, dataConvertorSettings}));
+            }
+
+            if (channel1CheckBox.Checked)
+            {
+                activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(channel1ComboBox.SelectedValue as string)),
+                                                                          new object[] { channel1CheckBox.Text, dataConvertorSettings }));
+            }
+
+            if (channel2CheckBox.Checked)
+            {
+                activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(channel2ComboBox.SelectedValue as string)),
+                                                                          new object[] { channel2CheckBox.Text, dataConvertorSettings }));
+            }
+
+            if (channel3CheckBox.Checked)
+            {
+                activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(channel3ComboBox.SelectedValue as string)),
+                                                                          new object[] { channel3CheckBox.Text, dataConvertorSettings }));
+            }
+
+            return activeChannels;
+        }
+
+        /// <summary>
+        /// Get the full type name with its namespace
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
+        private string GetFullTypeName(string typeName)
+        {
+            return Assembly.GetExecutingAssembly().GetName().Name + "." + typeName;
+        }
+
+        /// <summary>
+        /// Determines whether a channel is active and is marked as to be samples from
+        /// </summary>
+        /// <param name="channelName"></param>
+        /// <returns></returns>
+        private bool IsChannelActive(string channelName)
+        {
+            if (channel0CheckBox.Checked && channel0ComboBox.Text.Equals(channelName))
+            {
+                return true;
+            }
+
+            if (channel1CheckBox.Checked && channel1ComboBox.Text.Equals(channelName))
+            {
+                return true;
+            }
+
+            if (channel2CheckBox.Checked && channel2ComboBox.Text.Equals(channelName))
+            {
+                return true;
+            }
+
+            if (channel3CheckBox.Checked && channel3ComboBox.Text.Equals(channelName))
+            {
+                return true;
+            }
+
+            return false;
+        }        
+        #endregion         
     }
 }
