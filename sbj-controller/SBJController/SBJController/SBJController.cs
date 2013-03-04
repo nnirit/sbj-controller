@@ -14,7 +14,7 @@ namespace SBJController
     /// <summary>
     /// Represents the main class for controlling the Squeezable Break Junction
     /// </summary>
-    public class SBJController
+    public partial class SBJController
     {
         #region Private Members
         private StepperMotor m_stepperMotor;
@@ -22,6 +22,7 @@ namespace SBJController
         private Amplifier m_amplifier;
         private SourceMeter m_sourceMeter;
         private Tabor m_taborLaserController;
+        private LockIn m_LockIn;
         private DataAcquisitionController m_daqController;
         private Task m_task;
         private bool m_quitJunctionOpenningOperation;
@@ -56,7 +57,13 @@ namespace SBJController
         {
             get { return m_sourceMeter; }
             set { m_sourceMeter = value; }
-        }        
+        }
+
+        public LockIn LockIn
+        {
+            get { return m_LockIn; }
+            set { m_LockIn = value; }
+        }    
 
         public Tabor Tabor
         {
@@ -78,6 +85,7 @@ namespace SBJController
             m_daqController = new DataAcquisitionController();
             m_quitJunctionOpenningOperation = false;
             m_taborLaserController = new Tabor();
+            m_LockIn = new LockIn();
             InitializeComponents();
         }
         #endregion
@@ -179,10 +187,7 @@ namespace SBJController
                 file.WriteLine(DateTime.Now.ToString());
                 foreach (var settingsProperty in settings.GetType().GetProperties())
                 {
-                    foreach (var property in settingsProperty.PropertyType.GetProperties())
-                    {
-                        file.WriteLine(property.Name + ":\t" + property.GetValue(settingsProperty.GetValue(settings,null), null).ToString());
-                    }
+                    file.WriteLine(settingsProperty.GetValue(settings, null).ToString());                    
                 }               
             }
         }
@@ -194,40 +199,48 @@ namespace SBJController
         /// <param name="dataAquired">The data to write</param>
         /// <param name="fileNumber">The file number</param>
         /// <returns>The final file number in case of any changes (duplicates)</returns>
-        private int SaveData(string path, double[,] dataAquired, int fileNumber)
+        private int SaveData(SBJControllerSettings settings, IList<IDataChannel> activeChannels, int fileNumber)
         {
-            int numberOfChannels = dataAquired.GetLength(0);
-            int numberOfDataPoints = dataAquired.GetLength(1);
+            string path = settings.GeneralSettings.Path;
             int finalNumber = fileNumber;
-            List<string> filesNames = GetFilesNames(finalNumber);
-            string firstFileFullPath = Path.Combine(path, filesNames[0]);
-
-            //
-            // As long as the data file exists increase file number
-            //
-            while (File.Exists(firstFileFullPath))
+         
+            foreach (var channel in activeChannels)
             {
-                filesNames = GetFilesNames(++finalNumber);
-                firstFileFullPath = Path.Combine(path, filesNames[0]);
-            }
-
-
-            for (int i = 0; i < numberOfChannels; i++)
-            {
-                string fullPath =  Path.Combine(path, filesNames[i]);
+                string fullPath = GetFileName(path, channel.Name, fileNumber);
+                
                 //
                 // Write each data point in a new line
                 //
                 using (StreamWriter file = new StreamWriter(fullPath))
                 {
-                    for (int j = 0; j < numberOfDataPoints; j++)
+                    for (int j = 0; j < channel.RawData[0].Length; j++)
                     {
-                        file.WriteLine(dataAquired[i, j]);
+                        file.WriteLine(channel.RawData[0][j]);
                     }
                 }
             }
-
             return finalNumber;
+        }
+
+        private string GetFileName(string path, string name, int fileNumber)
+        {
+            StringBuilder fileNameStringBuilder = new StringBuilder(name);
+            fileNameStringBuilder.Append(DateTime.Now.ToString("ddMMyy"));
+            fileNameStringBuilder.Append("_");
+            fileNameStringBuilder.Append(fileNumber);
+            fileNameStringBuilder.Append(".txt");
+
+            string fileFullPath = Path.Combine(path, fileNameStringBuilder.ToString());
+
+            //
+            // As long as the data file exists increase file number
+            //
+            while (File.Exists(fileFullPath))
+            {
+                fileFullPath = GetFileName(path, name, ++fileNumber);
+            }
+
+            return fileFullPath;
         }
 
         /// <summary>
@@ -321,8 +334,7 @@ namespace SBJController
             //
             // Create the task with its propertites
             //
-            TriggeredTaskProperties taskProperties = new TriggeredTaskProperties(settings.LockInSettings.IsLockInSignalEnable,
-                                                                                 settings.LockInSettings.IsLockInPhaseSignalEnable,
+            TriggeredTaskProperties taskProperties = new TriggeredTaskProperties(settings.ChannelsSettings.ActiveChannels,                                                                                 
                                                                                  settings.GeneralSettings.SampleRate,
                                                                                  settings.GeneralSettings.TotalSamples,
                                                                                  triggerVoltage,
@@ -332,355 +344,51 @@ namespace SBJController
             return m_daqController.CreateMultipleChannelsTriggeredTask(taskProperties);
         }
 
-        //TODO: Add Summary here
-        private void ApplyVoltageOnElectroMagnetIfNeeded(bool isEMEnabled)
+        private void AssignRawDataToChannels(IList<IDataChannel> activeChannels, double[,] rawData)
         {
-            if (isEMEnabled)
+            if (activeChannels.Count != rawData.GetLength(0))
             {
-                //TODO: Move 6.5 to constants
-                m_electroMagnet.SetVoltage(6.5);
+                throw new SBJException("The number of active channels doesn't match the number of channels within the aquired data.");
+            }
+
+            for (int i = 0; i < rawData.GetLength(0); i++)
+            {
+                List<double> channelRawData = new List<double>(rawData.GetLength(1));
+                for (int j = 0; j< rawData.GetLength(1); j++)
+                {
+                    channelRawData.Add(rawData[i, j]);
+                }
+                activeChannels[i].RawData.Clear();
+                activeChannels[i].RawData.Add(channelRawData.ToArray());
             }
         }
-      
-        #region ElectroMagnet
 
-        /// <summary>
-        /// Open the junction asynchronously by the ElectroMagnet
-        /// </summary>
-        /// <param name="settings"></param>       
-        private void EMBeginOpenJunction(SBJControllerSettings settings)
+
+        private List<IDataChannel> GetPhysicalData(IList<IDataChannel> activeChannels)
         {
-            EMOpenJunctionMethodDelegate emOpenJunctionDelegate = new EMOpenJunctionMethodDelegate(EMTryOpenJunction);
-            AsyncCallback callback = new AsyncCallback(EMEndOpenJunction);
-            IAsyncResult asyncResult = emOpenJunctionDelegate.BeginInvoke(settings, callback, emOpenJunctionDelegate);       
-        }
-
-        /// <summary>
-        /// Try open junction by the EM, by calling EMOpenJunction.
-        /// if min voltage exceeded without the junction being opened, do a few steps by the stepper motor, then retry EM (recursion).
-        /// </summary>
-        /// <param name="settings"></param>
-        /// <returns></returns>
-        private bool EMTryOpenJunction(SBJControllerSettings settings)
-        {
-            //
-            // if the EM reached voltage 0 without opening the junction, 
-            // return to higher voltage on EM, do some steps by the stepper motor and retry opening by EM.
-            //
-            if (!EMOpenJunction(settings))
-            {
-                m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, 6.5);
-                m_stepperMotor.Direction = StepperDirection.UP;
-                m_stepperMotor.SteppingMode = StepperSteppingMode.FULL;
-                m_stepperMotor.Delay = m_stepperMotor.MinDelay;
-                m_stepperMotor.MoveMultipleSteps(100);
-                m_stepperMotor.Shutdown();
-                return EMTryOpenJunction(settings);
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Open the junction by the ElectroMagnet.
-        /// If min voltage exceeded without the junction being opened, return false. 
-        /// </summary>
-        /// <param name="settings">The settings to be used to open the junction</param>
-        private bool EMOpenJunction(SBJControllerSettings settings)
-        {
-            //
-            // Set the direction of the movement and stepping mode
-            // And configure the first setpper delay (shorter) - faster movement
-            //
-            m_electroMagnet.Direction = StepperDirection.UP;
-            m_electroMagnet.Delay = settings.ElectromagnetSettings.EMFastDelayTime;
-
-            //
-            // Read the initial voltgae before we've done anything
-            //
-            double initialVoltage = AnalogIn(0);
-            bool isDelayedChanged = false;
-            m_quitJunctionOpenningOperation = false;
-
-            //
-            // Until we've not been signaled from outer thread to stop we'll continue moving up.
-            //
-            while (!m_quitJunctionOpenningOperation)
-            {
-                if (!m_electroMagnet.MoveSingleStep())
+            List<IDataChannel> complexChannels = new List<IDataChannel>();
+            for (int i = 0; i < activeChannels.Count; i++)
+            {               
+                if (activeChannels[i].GetType().Equals(typeof(LockInXInternalSourceDataChannel)) ||
+                    activeChannels[i].GetType().Equals(typeof(LockInYInternalSourceDataChannel)))
                 {
-                    //
-                    // if min Votlage on EM was exceeded return false.
-                    //
-                    return false;
-                }
-                double currentVoltage = AnalogIn(0);
-
-                //
-                // If voltgae had been changed in 0.0001% then switch to slow mode
-                // Note that voltage can be negative so we must take the absoulute value
-                //
-                if (!isDelayedChanged && (Math.Abs(currentVoltage) < Math.Abs(initialVoltage) * 0.9999))
-                {
-                    m_electroMagnet.Delay = settings.ElectromagnetSettings.EMSlowDelayTime;
-                    isDelayedChanged = true;
-                }
-
-                //
-                // If hold-on trigger was exceeded, wait 10 ms and check if still true.
-                //
-                if (settings.ElectromagnetSettings.IsEMHoldOnEnable && Math.Abs(currentVoltage) < Math.Abs(settings.ElectromagnetSettings.EMHoldOnMaxVoltage * 1.1))
-                {
-                    Thread.Sleep(10);
-                    if (Math.Abs(currentVoltage) < Math.Abs(settings.ElectromagnetSettings.EMHoldOnMaxVoltage * 1.1))
-                    {
-                        //
-                        // trigger was truely exceeded. try to hold on to a certain junction voltage.
-                        //
-                        if (!StabilizeJunction(currentVoltage, settings.ElectromagnetSettings.EMHoldOnMaxVoltage, settings.ElectromagnetSettings.EMHoldOnMinVoltage))
-                        {
-                            return false;
-                        }
-                        else
-                        {
-                            return true;
-                        }
-                    }
-                }
-                Thread.Sleep(m_electroMagnet.Delay);
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// A feedback loop that stabilizes the junction's voltage between maxVoltage and minVoltage.
-        /// </summary>
-        /// <param name="currentVoltage"></param>
-        /// <param name="triggerVoltage"></param>
-        /// <returns>false if min or max voltage was exceeded, true if the process has been stopped from another thread.</returns>
-        private bool StabilizeJunction(double currentVoltage, double maxVoltage, double minVoltage)
-        {
-            double deviation = 0;
-            double oldDev1=0, oldDev2=0, oldDev3=0, oldDev4=0, oldDev5=0;
-            double diff = 0;
-            
-            //
-            // The moment we entered this function, try to stop the junction from closing by opening a little.
-            //
-            m_electroMagnet.Direction = StepperDirection.UP;
-            m_electroMagnet.Delay = 5;
-            m_electroMagnet.MoveMultipleSteps(5);
-
-            //
-            // this loop runs until the thread is stopped from the background, 
-            // or until one of the limits of the EM voltage is exceeded.
-            //
-            while (!m_quitJunctionOpenningOperation)
-            {
-                currentVoltage = AnalogIn(0);
-                if (currentVoltage > 10)
-                {
-                    currentVoltage = 10;
-                }
-                if (currentVoltage < -10)
-                {
-                    currentVoltage = -10;
-                }
-                //
-                // save older deviations
-                //
-                oldDev5 = oldDev4;
-                oldDev4 = oldDev3;
-                oldDev3 = oldDev2;
-                oldDev2 = oldDev1;
-                oldDev1 = deviation;
-                deviation = 0;
-                
-                //
-                // if voltage at the junction is too low, move the electrodes one step closer
-                //
-                if (Math.Abs(currentVoltage) < Math.Abs(minVoltage))
-                {
-                    //
-                    // calculate the deviation from target voltage. deviation is negative. 
-                    //
-                    deviation = Math.Abs(currentVoltage) - Math.Abs(minVoltage);
-
-                    //
-                    // calculate the derivative in order to know the slop of the trace. we average on 3 dots. 
-                    //
-                    diff = 0.333 * (oldDev2 + oldDev1 + deviation - oldDev5 - oldDev4 - oldDev3);
-
-                    m_electroMagnet.Direction = StepperDirection.DOWN;
-                    if (!m_electroMagnet.MoveSingleStep())
-                    {
-                        //
-                        // if max Votlage on EM was exceeded return false.
-                        //
-                        return false;
-                    }
-                }
-
-                //
-                // if voltage at the junction is too high, open the junction one step
-                //
-                if (Math.Abs(currentVoltage) > Math.Abs(maxVoltage))
-                {
-                    //
-                    // calculate the deviation from target voltage
-                    //
-                    deviation = Math.Abs(currentVoltage) - Math.Abs(maxVoltage);
-
-                    //
-                    // calculate the derivative in order to know the slop of the trace.
-                    // if it's negative its good since we want the voltage to go down. 
-                    // so we take the minus of diff.
-                    //
-                    diff = -0.333 * (oldDev2 + oldDev1 + deviation - oldDev5 - oldDev4 - oldDev3);
-
-                    m_electroMagnet.Direction = StepperDirection.UP;
-                    if (!m_electroMagnet.MoveSingleStep())
-                    {
-                        //
-                        // if min Votlage on EM was exceeded return false.
-                        //
-                        return false;
-                    }
-                }
-                             
-                //
-                // deviation is between 0-10. that means: time delay between 13-55 ms. 
-                // the larger the deviation, the faster we move (=> shorter time delay) 
-                // the values of diff can change between (+10) - (-10). if it's positive we're good and want to step slower. if negative - we want to step faster.
-                //
-                Thread.Sleep((int)(diff + 5 + 100/(Math.Abs(deviation) + 2)));              
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// End junction openning by EM
-        /// </summary>
-        /// <param name="asyncResult"></param>
-        private void EMEndOpenJunction(IAsyncResult asyncResult)
-        {
-            EMOpenJunctionMethodDelegate emOpenJunctionDelegate = (EMOpenJunctionMethodDelegate)asyncResult.AsyncState;
-            emOpenJunctionDelegate.EndInvoke(asyncResult);
-        }
-
-        /// <summary>
-        /// Try obtain short circuit by ElectroMagnet, by calling EMShortCircuit.
-        /// If max EM voltage was exceeded without getting a short circuit, use the stepper motor and retry by recurcion. 
-        /// </summary>
-        /// <param name="settings"></param>
-        /// <param name="worker"></param>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        private bool EMTryObtainShortCircuit(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
-        {
-            switch (EMShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitVoltage, worker, e))
-            {
-                case 0:
-                    //
-                    // short contact succeeded. 
-                    //
-                    return false;
-
-                case 1:
-                    //
-                    // the proccess was cancelled by the user.
-                    //
-                    return true;
-
-                case 2:
-                    //
-                    // we've reached the max voltage on the EM without getting to contact.
-                    // return voltage to zero and get the electrodes closer by the stepper motor, 
-                    // then start over again. 
-                    //
-                    m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, 6.5);
-                    m_stepperMotor.Direction = StepperDirection.DOWN;
-                    m_stepperMotor.SteppingMode = StepperSteppingMode.FULL;
-                    m_stepperMotor.Delay = m_stepperMotor.MinDelay;
-                    m_stepperMotor.MoveMultipleSteps(100);
-                    m_stepperMotor.Shutdown();
-                    return EMTryObtainShortCircuit(settings, worker, e);
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Try and obtain short circut by the ElectroMagnet
-        /// </summary>
-        /// <param name="shortCircuitVoltage">The voltage indicator for short circuit</param>        
-        /// <returns>2 whether max EM voltage was exceeded. 1 whether the operation was cancelled. 0 otherwise</returns>
-        private int EMShortCircuit(int shortCircuitDelayTime, double shortCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
-        {
-            double voltageAfterStepping;
-            bool isPermanentShortCircuit = false;
-            bool isTempShortCircuit = false;
-
-            //
-            // Get current voltage
-            //
-            double currentVoltage = Math.Abs(AnalogIn(0));
-
-            //
-            // Set EM direction and delay
-            // 
-            m_electroMagnet.Direction = StepperDirection.DOWN;
-            m_electroMagnet.Delay = shortCircuitDelayTime;
-
-            //
-            // Reach to contact
-            //
-            while (!isPermanentShortCircuit)
-            {
-                //
-                // If the backgroundworker requested cancellation - exit
-                //
-                if (worker != null && worker.CancellationPending)
-                {
-                    e.Cancel = true;
-                    break;
-                }
-
-                //
-                // Move down 10 steps and check the voltage afterwords.
-                // if the EM exceeded max voltage return 2.
-                //
-                if (!m_electroMagnet.MoveMultipleSteps(10))
-                {
-                    return 2;
-                }
-                voltageAfterStepping = Math.Abs(AnalogIn(0));
-
-                //
-                // If we reach contact both current voltage and voltgae after stepping
-                // should be smaller than the short circuit threshold (since voltage is negative)
-                //
-                isTempShortCircuit = (currentVoltage > Math.Abs(shortCircuitVoltage)) &&
-                                     (voltageAfterStepping > shortCircuitVoltage);
-
-                //
-                // If we think we've reached short circuit than wait
-                // for 10msec and than check again to verify this is permanent.
-                //
-                if (isTempShortCircuit)
-                {
-                    Thread.Sleep(10);
-                    currentVoltage = Math.Abs(AnalogIn(0));
-                    isPermanentShortCircuit = currentVoltage > Math.Abs(shortCircuitVoltage);
-                }
-                else
-                {
-                    currentVoltage = voltageAfterStepping;
+                    complexChannels.Add(activeChannels[i]);
                 }
             }
-            return (e.Cancel ? 1 : 0);
-        }
-  
-        #endregion
-        
+
+            IList<IDataChannel> physicalDataChannels = new List<IDataChannel>(activeChannels);
+
+            if (complexChannels.Count == 2)
+            {
+                LockInXYInternalSourceDataChannel XYChannel = new LockInXYInternalSourceDataChannel(complexChannels[0].DataConvertionSettings);
+                XYChannel.RawData = new List<double[]>(complexChannels[0].RawData);
+                XYChannel.RawData.Add(complexChannels[1].RawData[0]);
+                physicalDataChannels.Add(XYChannel);
+            }            
+
+            return physicalDataChannels as List<IDataChannel>;
+        }    
+
         #endregion
 
         #region Public Methods
@@ -882,7 +590,7 @@ namespace SBJController
                 {
                     dataAquired = reader.ReadMultiSample(-1);
 
-                    if (dataAquired.Length < settings.GeneralSettings.TotalSamples)
+                    if (dataAquired.GetLength(1) < settings.GeneralSettings.TotalSamples)
                     {
                         //
                         // If from some reason we weren't able to 
@@ -890,6 +598,11 @@ namespace SBJController
                         //
                         m_task.Stop();
                         continue;
+                    }
+
+                    if (settings.ChannelsSettings.ActiveChannels.Count != dataAquired.GetLength(0))
+                    {
+                        throw new SBJException("Number of data channels doesn't fit the recieved data.");
                     }
                 }
                 catch (DaqException)
@@ -920,6 +633,8 @@ namespace SBJController
                     m_stepperMotor.Shutdown();
                     continue;
                 }
+                
+                AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAquired);
 
                 // 
                 // Increase file number by one
@@ -928,7 +643,7 @@ namespace SBJController
                 finalFileNumber++;
                 if (settings.GeneralSettings.IsFileSavingRequired)
                 {
-                    finalFileNumber = SaveData(settings.GeneralSettings.Path, dataAquired, finalFileNumber);
+                    finalFileNumber = SaveData(settings, settings.ChannelsSettings.ActiveChannels, finalFileNumber);
                 }
 
                 //
@@ -936,7 +651,7 @@ namespace SBJController
                 //
                 if (DataAquired != null)
                 {
-                    DataAquired(this, new DataAquiredEventArgs(dataAquired, finalFileNumber));
+                    DataAquired(this, new DataAquiredEventArgs(GetPhysicalData(settings.ChannelsSettings.ActiveChannels), finalFileNumber));
                 }                
             }
 
@@ -981,7 +696,7 @@ namespace SBJController
         /// <param name="shortCircuitVoltage"></param>
         /// <param name="worker"></param>
         /// <param name="e"></param>
-        public void FixBias(double shortCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        public void FixBias(double shortCircuitVoltage, double bias, BackgroundWorker worker, DoWorkEventArgs e)
         {
             int i = 0;
             bool isBiasedFixed = false;
@@ -992,6 +707,15 @@ namespace SBJController
             // First, reach to contact
             //
             TryObtainShortCircuit(shortCircuitVoltage, worker, e);
+            int shortCircuitVoltageSign = AnalogIn(0) > 0 ? 1 : -1;
+
+            //
+            // Measurements with triggered must be carried on with negative voltage.
+            // So we must check whether the bias sign should be flipped.
+            //
+            int biasSignFactor = shortCircuitVoltageSign > 0 ? -1 : 1;
+            int biasSign = bias > 0 ? 1 : -1;
+
 
             //
             // Set bias to zero and lets check where we stand.
@@ -1000,14 +724,28 @@ namespace SBJController
             //
             m_sourceMeter.SetBias(0);
             double previousVoltage = AnalogIn(0);
+            int previousVoltageSign = previousVoltage > 0 ? 1 : -1;
 
             //
-            // We need to know if voltage needs to be increased or decreased.
-            // If we measure positive voltage that means that the current 
-            // is negative and the bias should be increased.
+            // We need to know if bias needs to be increased or decreased in order to make the correction.
+            // That depends on the bias direction and the measured voltage.            
             //
-            int biasChangeFactor = previousVoltage > 0 ? 1 : -1;
+            int biasChangeFactor = 1;
+            if (biasSignFactor * biasSign > 0)
+            {
+                //
+                // If we are here than the measured voltage has oposite sign than the bias
+                //
+                biasChangeFactor = previousVoltageSign > 0 ? 1 : -1; 
 
+            }
+            else
+            {
+                //
+                // If we are here than the measured voltage has the same sign as the bias.
+                //
+                biasChangeFactor = previousVoltageSign > 0 ? -1 : 1;                 
+            }
 
             while (!worker.CancellationPending && !isBiasedFixed)
             {
@@ -1036,7 +774,7 @@ namespace SBJController
                     // Set result to the correction value which is the average
                     // between the current bias and the previous one.
                     //
-                    e.Result = (biasFixValue + ((i - 1) * 0.0005 * biasChangeFactor)) / 2;
+                    e.Result = new Bias((biasFixValue + ((i - 1) * 0.0005 * biasChangeFactor)) / 2 , biasSignFactor);
                 }
                 else
                 {
@@ -1063,7 +801,7 @@ namespace SBJController
             //
             // Try and open excel file
             //
-            Microsoft.Office.Interop.Excel.Application xlsLogBook = new Microsoft.Office.Interop.Excel.Application();
+            ApplicationClass xlsLogBook = new ApplicationClass();
             if (xlsLogBook == null)
             {
                 throw new SBJException("Excel is not installed on current machine.");
@@ -1200,6 +938,7 @@ namespace SBJController
             m_amplifier.Shutdown();
             m_electroMagnet.Shutdown();
             m_taborLaserController.Shutdown();
+            m_LockIn.Shutdown();
             if (m_task != null)
             {
                 m_task.Dispose();
@@ -1213,6 +952,18 @@ namespace SBJController
         #endregion       
     
  
+    }
+
+    internal class Bias
+    {
+        internal double Error { get; set; }
+        internal double Sign { get; set; }
+
+        public Bias(double error, double sign)
+        {
+            Error = error;
+            Sign = sign;
+        }
     }
 }
 
