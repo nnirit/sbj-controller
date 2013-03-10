@@ -344,8 +344,16 @@ namespace SBJController
             return m_daqController.CreateMultipleChannelsTriggeredTask(taskProperties);
         }
 
+        /// <summary>
+        /// Assign the aquired data to each active channel
+        /// </summary>
+        /// <param name="activeChannels">The list of active channels from which we sampled our data</param>
+        /// <param name="rawData">The raw data as receieved from the DAQ card</param>
         private void AssignRawDataToChannels(IList<IDataChannel> activeChannels, double[,] rawData)
         {
+            //
+            // The number of rows in rawData matrix must be equal to the number of channels
+            //
             if (activeChannels.Count != rawData.GetLength(0))
             {
                 throw new SBJException("The number of active channels doesn't match the number of channels within the aquired data.");
@@ -363,9 +371,16 @@ namespace SBJController
             }
         }
 
-
-        private List<IDataChannel> GetPhysicalData(IList<IDataChannel> activeChannels)
+        /// <summary>
+        /// Get the channels to display from the active channels from which we sampled from.
+        /// </summary>
+        /// <param name="activeChannels">The current active channels</param>
+        /// <returns>A complete set of the relevant data channels that can be displayed</returns>
+        private List<IDataChannel> GetChannelsForDisplay(IList<IDataChannel> activeChannels)
         {
+            //
+            // Check for complex data channels possible combinations
+            //
             List<IDataChannel> complexChannels = new List<IDataChannel>();
             for (int i = 0; i < activeChannels.Count; i++)
             {               
@@ -376,17 +391,22 @@ namespace SBJController
                 }
             }
 
-            IList<IDataChannel> physicalDataChannels = new List<IDataChannel>(activeChannels);
+            //
+            // Each acctive channels is an option channel for display.
+            // Also we must add available complex data channel which we couldn't
+            // sampled directly.
+            //
+            IList<IDataChannel> possibleChannelsForDisplay = new List<IDataChannel>(activeChannels);
 
             if (complexChannels.Count == 2)
             {
                 LockInXYInternalSourceDataChannel XYChannel = new LockInXYInternalSourceDataChannel(complexChannels[0].DataConvertionSettings);
                 XYChannel.RawData = new List<double[]>(complexChannels[0].RawData);
                 XYChannel.RawData.Add(complexChannels[1].RawData[0]);
-                physicalDataChannels.Add(XYChannel);
+                possibleChannelsForDisplay.Add(XYChannel);
             }            
 
-            return physicalDataChannels as List<IDataChannel>;
+            return possibleChannelsForDisplay as List<IDataChannel>;
         }    
 
         #endregion
@@ -634,6 +654,9 @@ namespace SBJController
                     continue;
                 }
                 
+                //
+                // Assign the aquired data for each channel
+                //
                 AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAquired);
 
                 // 
@@ -651,7 +674,7 @@ namespace SBJController
                 //
                 if (DataAquired != null)
                 {
-                    DataAquired(this, new DataAquiredEventArgs(GetPhysicalData(settings.ChannelsSettings.ActiveChannels), finalFileNumber));
+                    DataAquired(this, new DataAquiredEventArgs(GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels), finalFileNumber));
                 }                
             }
 

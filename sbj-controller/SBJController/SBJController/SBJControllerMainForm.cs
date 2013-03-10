@@ -824,11 +824,23 @@ namespace SBJController
                 this.fileNumberNumericUpDown.Value = e.FileNumber;                
 
                 //
-                // Update plot
+                // Clear the last plot
                 //
                 this.traceWaveformGraph.ClearData();
-                List<IDataChannel> channelsToDisplay = GetChannelsToDisplay(e.PhysicalChannels as List<IDataChannel>);
+
+                //
+                // Retreive the channels to be dispalyed according to the user's choice.
+                //
+                List<IDataChannel> channelsToDisplay = GetChannelsToDisplay(e.DataChannels as List<IDataChannel>);
+
+                //
+                // Convert the raw data to phyical one
+                //
                 double[,] data = GetPhysicalData(channelsToDisplay);
+
+                //
+                // Update plot
+                //
                 int numberOfChannels = data.GetLength(0);
                 this.traceWaveformGraph.PlotYMultiple(data);
        
@@ -844,12 +856,26 @@ namespace SBJController
             }
         }
 
-        private List<IDataChannel> GetChannelsToDisplay(List<IDataChannel> physicalChannels)
+        /// <summary>
+        /// Get the channels to display on the UI
+        /// </summary>
+        /// <param name="physicalChannels">The possible available channels</param>
+        /// <returns></returns>
+        private List<IDataChannel> GetChannelsToDisplay(List<IDataChannel> dataChannels)
         {
             List<IDataChannel> selectedChannels = new List<IDataChannel>();
+
+            //
+            // Only dispaly channels that were chosen to be displayed
+            // 
             foreach (ListViewItem selectedChannel in channelsListView.CheckedItems)
             {
-                IDataChannel physicalChannel = physicalChannels.Find(new Predicate<IDataChannel>(x => x.Name.Equals(selectedChannel.Name)));
+                //
+                // Find the desired channel in the available channel list.
+                // Only add it to the list if it was found.
+                //
+                IDataChannel physicalChannel = dataChannels.Find(new Predicate<IDataChannel>(x => x.Name.Equals(selectedChannel.Name)));
+
                 if (physicalChannel != null)
                 {
                     selectedChannels.Add(physicalChannel);
@@ -859,10 +885,15 @@ namespace SBJController
             return selectedChannels;
         }
 
-        private double[,] GetPhysicalData(IList<IDataChannel> physicalChannels)
+        /// <summary>
+        /// Get the physical data out of the available data channels
+        /// </summary>
+        /// <param name="physicalChannels"></param>
+        /// <returns></returns>
+        private double[,] GetPhysicalData(IList<IDataChannel> dataChannels)
         {
             List<double[]> physicalDataAsList = new List<double[]>();
-            foreach (var channel in physicalChannels)
+            foreach (var channel in dataChannels)
             {
                 channel.ConvertToPhysicalData();
                 physicalDataAsList.AddRange(channel.PhysicalData);
@@ -871,6 +902,11 @@ namespace SBJController
             return GetDataAsArray(physicalDataAsList);            
         }
 
+        /// <summary>
+        /// Converts the data to a matrix of elements in order to be displayed later
+        /// </summary>
+        /// <param name="physicalDataAsList">A list of data sets for each channel</param>
+        /// <returns></returns>
         private double[,] GetDataAsArray(List<double[]> physicalDataAsList)
         {
             double[,] dataAsArray = new double[physicalDataAsList.Count, physicalDataAsList[0].Length];
@@ -978,11 +1014,19 @@ namespace SBJController
             return -conductance * m_1G0 * Math.Abs(this.biasNumericEdit.Value) * Math.Pow(10, gainPower);
         }
 
+        /// <summary>
+        /// Populate the channles list in the UI
+        /// </summary>
         private void PopulateChannelsList()
         {
             List<string> channelTypes = new List<string>();
             List<string> complexChannelTypes = new List<string>();
             var typeIDataChannel = typeof(IDataChannel);
+
+            //
+            // A possible data channel is only one which ipmlements IDataChannel
+            // Take only these ones and sort to Simple and Complex data channels lists.
+            //
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var type in assembly.GetTypes())
@@ -1001,6 +1045,9 @@ namespace SBJController
                 }
             }                   
             
+            //
+            // In the channles tab only assign the simple data channels
+            //
             this.channel0ComboBox.DataSource = channelTypes;
             this.channel1ComboBox.DataSource = new List<string>(channelTypes);
             this.channel2ComboBox.DataSource = new List<string>(channelTypes);
@@ -1021,6 +1068,11 @@ namespace SBJController
             channelsListView.Items[channelsListView.Items.IndexOfKey(typeof(DefaultDataChannel).Name)].Checked = true;            
         }
 
+        /// <summary>
+        /// Creats a list view for the channels
+        /// </summary>
+        /// <param name="channelsToDisplay"></param>
+        /// <returns></returns>        
         private List<ListViewItem> GetChannelsToDisplay(List<string> channelsToDisplay)
         {
             List<ListViewItem> channelsToDisplayAsListView = new List<ListViewItem>();
