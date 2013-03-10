@@ -13,17 +13,17 @@ namespace SBJController
         /// <summary>
         /// The active channels
         /// </summary>
-        public IList<IDataChannel> PhysicalChannels { get; set; }
+        public IList<IDataChannel> DataChannels { get; set; }
 
          /// <summary>
         /// The file number in which the data was saved
         /// </summary>
         public int FileNumber { get; set; }
 
-        public DataAquiredEventArgs(IList<IDataChannel> physicalChannels, int fileNumber)
+        public DataAquiredEventArgs(IList<IDataChannel> dataChannels, int fileNumber)
         {
             FileNumber = fileNumber;
-            PhysicalChannels = physicalChannels;
+            DataChannels = dataChannels;
         }
 
     }
