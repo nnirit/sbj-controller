@@ -24,9 +24,8 @@ namespace SBJController
         private StepperDirection m_direction;
         private double m_currentEMVoltage;
         private int m_delay;
-        //private double m_voltInterval;
 
-        #endregion;
+        #endregion
 
         #region Properties
 

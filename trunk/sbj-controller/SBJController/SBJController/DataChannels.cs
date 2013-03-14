@@ -22,7 +22,7 @@ namespace SBJController
             : base(physicalName, settings)
         {
             Name = "DefaultDataChannel";
-        }
+        } 
 
         /// <summary>
         /// Override. 
@@ -31,7 +31,7 @@ namespace SBJController
         /// <param name="rawVoltageValue"></param>
         /// <returns></returns>
         internal override double ConvertVoltageToConductanceValue(double rawVoltageValue)
-        {
+        {           
             return Math.Abs(rawVoltageValue) / Math.Pow(10, DataConvertionSettings.Gain) / DataConvertionSettings.Bias / c_1G0;
         }       
     }
@@ -253,6 +253,87 @@ namespace SBJController
             return rawVoltageValue / Math.Pow(10, DataConvertionSettings.Gain) / s_1G0 / m_normalizationFactor * s_rmsToPPFactor;
         }
     }
+
+    /// <summary>
+    /// Represents the IV data after processing. 
+    /// The Physical Data contains the trace constructed by a certain voltage measurements.
+    /// The additional data is the I-V cycles and will be saved but not displayed by the UI
+    /// </summary>
+    public class IVProcessedDataChannel : ComplexDataChannel, IDataChannel
+    {
+        private static double s_1G0 = 77.5E-6;
+        public IVProcessedDataChannel(DataConvertorSettings settings)
+            : base(settings)
+        {
+            Name = "IVProcessedDataChannel";
+        }
+
+        //
+        // this function sets the right values in physical data and additional data.
+        //
+        internal override IList<double[]> ConvertVoltageToConductanceValue(double[] junctionData, double[] voltageData)
+        {
+            //
+            // get an instance of the class that has the functions that does all the data processing for the iv measurements.
+            //
+            IVDataHandle ivDataHandle = new IVDataHandle(junctionData, voltageData, 
+                                                         base.DataConvertionSettings.SamplesPerIVCycle, 
+                                                         base.DataConvertionSettings.Gain);
+
+            //
+            // set AdditionalData to be the IV cycles data
+            //
+            base.AdditionalData = ivDataHandle.GetIVCycles();
+
+            //
+            // set the physical data to be a trace at a certain voltage
+            //
+            base.PhysicalData = ivDataHandle.GetCertainVoltageTrace(base.DataConvertionSettings.IVTraceVoltage);
+            
+            return PhysicalData;
+        }
+    }
+    
+    /// <summary>
+    /// This class represents the IV input monitor channel (reads directly the output voltage)
+    /// </summary>
+    public class IVInputMonitorChannel : SimpleDataChannel, IDataChannel
+    {
+        public IVInputMonitorChannel(string PhysicalName, DataConvertorSettings settings)
+            : base(PhysicalName, settings)
+        {
+            Name = "IVInputMonitorChannel";
+        }
+
+        //
+        // no need to modify the raw data, so just return with it.
+        //
+        internal override double ConvertVoltageToConductanceValue(double rawVoltageValue)
+        {
+            return rawVoltageValue;
+        }
+    }
+
+    /// <summary>
+    /// This class represents the IV input data channel
+    /// </summary>
+    public class IVInputDataChannel : SimpleDataChannel, IDataChannel
+    {
+        public IVInputDataChannel(string physicalName, DataConvertorSettings settings)
+            : base(physicalName, settings)
+        {
+            Name = "IVInputDataChannel";
+        }
+
+        internal override double ConvertVoltageToConductanceValue(double rawVoltageValue)
+        {
+            //
+            // calculates the current (not the conductance since the bias was oscilating).
+            //
+            return rawVoltageValue / Math.Pow(10, base.DataConvertionSettings.Gain);
+        }        
+
+    }
     
     /// <summary>
     /// This class represents a simple data channel.
@@ -387,7 +468,7 @@ namespace SBJController
 
             IList<double[]> convertedData = new List<double[]>();
 
-
+            //TODO: change the name of this function to something like "GetPhysicalAndAdditionalData"
             convertedData = ConvertVoltageToConductanceValue(RawData[0], RawData[1]);
 
             PhysicalData = convertedData;
@@ -423,12 +504,12 @@ namespace SBJController
         /// Physical data is the real meaningful data after the conversion of the raw data
         /// </summary>
         public IList<double[]> PhysicalData { get; set; }
+        public IList<IList<double[]>> AdditionalData { get; set; }
 
         /// <summary>
         /// A set of general settings which are required for the conversion processfrom raw data to physical data
         /// </summary>
         public DataConvertorSettings DataConvertionSettings { get; set; }
-
 
         /// <summary>
         /// Constructor
@@ -440,6 +521,7 @@ namespace SBJController
             PhysicalName = physicalName;
             PhysicalData = new List<double[]>();
             RawData = new List<double[]>();
+            AdditionalData = new List<IList<double[]>>();
             DataConvertionSettings = settings;
         }
 
@@ -462,6 +544,7 @@ namespace SBJController
             Name = channel.Name;
             RawData = rawData;
             DataConvertionSettings = settings;
+            AdditionalData = new List<IList<double[]>>();
         }
     }
 
@@ -474,6 +557,8 @@ namespace SBJController
         private int m_gain;
         private double m_acVoltage;
         private double m_sensitivity;
+        private int m_samplesPerIVCycle;
+        private double m_ivTraceVoltage;
 
         public double Bias
         {
@@ -495,12 +580,24 @@ namespace SBJController
             get { return m_sensitivity; }
         }
 
-        public DataConvertorSettings(double bias, int gain, double acVoltage, double sensitivity)
+        public int SamplesPerIVCycle
+        {
+            get { return m_samplesPerIVCycle; }
+        }
+
+        public double IVTraceVoltage
+        {
+            get { return m_ivTraceVoltage; }
+        }
+
+        public DataConvertorSettings(double bias, int gain, double acVoltage, double sensitivity, int samplesPerIVCycle, double ivTraceVoltage)
         {
             m_acVoltage = acVoltage;
             m_bias = bias;
             m_gain = gain;
             m_sensitivity = sensitivity;
+            m_samplesPerIVCycle = samplesPerIVCycle;
+            m_ivTraceVoltage = ivTraceVoltage;
         }
     }
 }

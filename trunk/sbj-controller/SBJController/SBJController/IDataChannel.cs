@@ -30,10 +30,15 @@ namespace SBJController
         /// The physical data itself with its physical meaning (as oppose to the raw data).
         /// </summary>
         IList<double[]> PhysicalData { get; set; }
+        
+        //
+        // data to be saved 
+        //
+        IList<IList<double[]>> AdditionalData { get; set; }
 
         /// <summary>
         /// All the settings which are essential for making the conversion from raw data to physical data.
-        /// </summary>
+        /// </summary>        
         DataConvertorSettings DataConvertionSettings { get; set; }
 
         /// <summary>

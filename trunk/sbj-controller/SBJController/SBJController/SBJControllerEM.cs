@@ -9,6 +9,13 @@ namespace SBJController
 {
     public partial class SBJController
     {
+        #region Members
+        private ElectroMagnet m_electroMagnet;        
+        private const double c_initialEMVoltage = 6.5;
+        private delegate bool EMOpenJunctionMethodDelegate(SBJControllerSettings settings);
+        #endregion
+
+        #region Private Methods
         /// <summary>
         /// Open the junction asynchronously by the ElectroMagnet
         /// </summary>
@@ -20,13 +27,16 @@ namespace SBJController
             IAsyncResult asyncResult = emOpenJunctionDelegate.BeginInvoke(settings, callback, emOpenJunctionDelegate);
         }
 
-        //TODO: Add Summary here
+        /// <summary>
+        /// Applies initial voltage on ElectroMagnet if it's about to be used. 
+        /// It prevents the situation the EM reaches 0 voltage without the junction opening.
+        /// </summary>
+        /// <param name="isEMEnabled"></param>
         private void ApplyVoltageOnElectroMagnetIfNeeded(bool isEMEnabled)
         {
             if (isEMEnabled)
             {
-                //TODO: Move 6.5 to constants
-                m_electroMagnet.SetVoltage(6.5);
+                m_electroMagnet.SetVoltage(c_initialEMVoltage);
             }
         }
 
@@ -44,12 +54,8 @@ namespace SBJController
             //
             if (!EMOpenJunction(settings))
             {
-                m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, 6.5);
-                m_stepperMotor.Direction = StepperDirection.UP;
-                m_stepperMotor.SteppingMode = StepperSteppingMode.FULL;
-                m_stepperMotor.Delay = m_stepperMotor.MinDelay;
-                m_stepperMotor.MoveMultipleSteps(100);
-                m_stepperMotor.Shutdown();
+                m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
+                MoveStepsByStepperMotor(StepperDirection.UP, 100);
                 return EMTryOpenJunction(settings);
             }
             return true;
@@ -63,7 +69,7 @@ namespace SBJController
         private bool EMOpenJunction(SBJControllerSettings settings)
         {
             //
-            // Set the direction of the movement and stepping mode
+            // Set the direction of the movement
             // And configure the first setpper delay (shorter) - faster movement
             //
             m_electroMagnet.Direction = StepperDirection.UP;
@@ -272,12 +278,8 @@ namespace SBJController
                     // return voltage to zero and get the electrodes closer by the stepper motor, 
                     // then start over again. 
                     //
-                    m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, 6.5);
-                    m_stepperMotor.Direction = StepperDirection.DOWN;
-                    m_stepperMotor.SteppingMode = StepperSteppingMode.FULL;
-                    m_stepperMotor.Delay = m_stepperMotor.MinDelay;
-                    m_stepperMotor.MoveMultipleSteps(100);
-                    m_stepperMotor.Shutdown();
+                    m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
+                    MoveStepsByStepperMotor(StepperDirection.DOWN, 100);
                     return EMTryObtainShortCircuit(settings, worker, e);
             }
             return true;
@@ -353,6 +355,92 @@ namespace SBJController
             }
             return (e.Cancel ? 1 : 0);
         }
-  
+
+        /// <summary>
+        /// Move steps by stepper motor with minDelay and Full mode, and shut it down afterwards.
+        /// </summary>
+        /// <param name="stepperDirection"></param>
+        /// <param name="numberOfSteps"></param>
+        private void MoveStepsByStepperMotor(StepperDirection stepperDirection, int numberOfSteps)
+        {
+            m_stepperMotor.Direction = stepperDirection;
+            m_stepperMotor.SteppingMode = StepperSteppingMode.FULL;
+            m_stepperMotor.Delay = m_stepperMotor.MinDelay;
+            m_stepperMotor.MoveMultipleSteps(numberOfSteps);
+            m_stepperMotor.Shutdown();
+        }
+
+        /// <summary>
+        /// Obtain open circuit by stepper motor (returns when open circuit acheived)
+        /// This function does NOT wait for an outside sign! 
+        /// </summary>
+        /// <param name="openCircuitVoltage">the "trigger" voltage</param>
+        /// <param name="worker">background worker</param>
+        /// <param name="e">event of backgraound worker</param>
+        /// <returns></returns>
+        private bool ObtainOpenJunctionByStepperMotor(double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            double voltageAfterStepping;
+            bool isPermanentOpenCircuit = false;
+            bool isTempOpenCircuit = false;
+
+            //
+            // Get current voltage
+            //
+            double currentVoltage = Math.Abs(AnalogIn(0));
+
+            //
+            // Set stepper direction, mode and delay
+            // 
+            m_stepperMotor.Direction = StepperDirection.UP;
+            m_stepperMotor.SteppingMode = StepperSteppingMode.FULL;
+            m_stepperMotor.Delay = 25;
+
+            //
+            // Open the junction
+            //
+            while (!isPermanentOpenCircuit)
+            {
+                //
+                // If the backgroundworker requested cancellation - exit
+                //
+                if (worker != null && worker.CancellationPending)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                //
+                // Move up 5 steps and check the voltage afterwards
+                //
+                m_stepperMotor.MoveMultipleSteps(5);
+                Thread.Sleep(m_stepperMotor.Delay);
+                voltageAfterStepping = Math.Abs(AnalogIn(0));
+
+                //
+                // If the junction is open, both current voltage and voltgae after stepping
+                // should be smaller than the open circuit threshold.
+                //
+                isTempOpenCircuit = (currentVoltage < Math.Abs(openCircuitVoltage)) &&
+                                     (voltageAfterStepping < Math.Abs(openCircuitVoltage));
+
+                //
+                // If we think we've reached open circuit than wait
+                // for 10msec and than check again to verify this is permanent.
+                //
+                if (isTempOpenCircuit)
+                {
+                    Thread.Sleep(10);
+                    currentVoltage = Math.Abs(AnalogIn(0));
+                    isPermanentOpenCircuit = currentVoltage < Math.Abs(openCircuitVoltage);
+                }
+                else
+                {
+                    currentVoltage = voltageAfterStepping;
+                }
+            }
+            return e.Cancel;
+        }
+        #endregion
     }
 }

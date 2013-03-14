@@ -14,18 +14,21 @@ namespace SBJController
         public LockInSBJControllerSettings LockInSettings { get; set; }
         public ElectroMagnetSBJControllerSettings ElectromagnetSettings { get; set; }
         public ChannelsSettings ChannelsSettings { get; set; }
-
+        public IVCurvesSBJControllerSettings IVCurvesSettings { get; set; }
+        
         public SBJControllerSettings(GeneralSBJControllerSettings generalSettings,
                                      LaserSBJControllerSettings laserSettings,
                                      LockInSBJControllerSettings lockInSettings,
                                      ElectroMagnetSBJControllerSettings electromagnetSettings,
-                                     ChannelsSettings channelsSettings)
+                                     ChannelsSettings channelsSettings,
+                                     IVCurvesSBJControllerSettings ivCurvesSettings)
         {
             GeneralSettings = generalSettings;
             LaserSettings = laserSettings;
             LockInSettings = lockInSettings;
-            ElectromagnetSettings = electromagnetSettings;
+            ElectromagnetSettings = electromagnetSettings;                        
             ChannelsSettings = channelsSettings;
+            IVCurvesSettings = ivCurvesSettings;
         }
     }
 
@@ -198,7 +201,8 @@ namespace SBJController
             return toStringResult.ToString();
         }
     }
-
+    
+    //TODO: add summary here
     public class ChannelsSettings
     {
         private IList<IDataChannel> m_activeChannels;
@@ -219,6 +223,35 @@ namespace SBJController
             foreach (var dataChannel in ActiveChannels)
             {
                 toStringResult.Append(dataChannel.PhysicalName + ":\t" + dataChannel.Name + Environment.NewLine);                
+            }
+            return toStringResult.ToString();
+        }
+    }
+
+    /// <summary>
+    /// This class represents the IV settings in the UI
+    /// </summary>
+    public class IVCurvesSBJControllerSettings
+    {
+        public double IVAmplitude { get; set; }
+        public int IVSamplesPerCycle { get; set; }
+        public double IVSamplesDelay { get; set; }
+        public int IVSampleRate { get; set; }
+
+        public IVCurvesSBJControllerSettings(double ivAmplitude, int ivSamplesPerCycle, double ivSamplesDelay, int ivSampleRate)
+        {
+            IVAmplitude = ivAmplitude;
+            IVSamplesPerCycle = ivSamplesPerCycle;
+            IVSamplesDelay = ivSamplesDelay;
+            IVSampleRate = ivSampleRate;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder toStringResult = new StringBuilder("IV Curves Settings:" + Environment.NewLine);
+            foreach (var property in this.GetType().GetProperties())
+            {
+                toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString() + Environment.NewLine);
             }
             return toStringResult.ToString();
         }

@@ -18,7 +18,6 @@ namespace SBJController
     {
         #region Private Members
         private StepperMotor m_stepperMotor;
-        private ElectroMagnet m_electroMagnet;
         private Amplifier m_amplifier;
         private SourceMeter m_sourceMeter;
         private Tabor m_taborLaserController;
@@ -30,8 +29,10 @@ namespace SBJController
         private const string c_dataFileName = "StatDAQ_";
         private const string c_lockInSignalFileName = "LockInSignal_";
         private const string c_lockInPhaseFileName = "LockInPhase_";
+        private const string c_rawDataFolderName = "RawData\\";
+        private const string c_physicalDataFolderName = "PhysicalData\\";
+        private const string c_additionalDataFolderName = "AdditionalData\\";
         private delegate void OpenJunctionMethodDelegate(SBJControllerSettings settings);
-        private delegate bool EMOpenJunctionMethodDelegate(SBJControllerSettings settings);
         public delegate void DataAquiredEventHandler(object sender, DataAquiredEventArgs e);
         public event DataAquiredEventHandler DataAquired;
         #endregion
@@ -97,8 +98,7 @@ namespace SBJController
         /// <exception cref="SBJException">Incase connection to one of the external components was unsuccessful</exception>
         private void InitializeComponents()
         {
-            m_amplifier.Connect();
-            m_sourceMeter.Connect();            
+            m_amplifier.Connect();            
         }
 
         /// <summary>
@@ -199,80 +199,153 @@ namespace SBJController
         /// <param name="dataAquired">The data to write</param>
         /// <param name="fileNumber">The file number</param>
         /// <returns>The final file number in case of any changes (duplicates)</returns>
-        private int SaveData(SBJControllerSettings settings, IList<IDataChannel> activeChannels, int fileNumber)
+        private int SaveData(SBJControllerSettings settings, IList<IDataChannel> activeChannels, IList<IDataChannel> physicalChannels, int fileNumber)
         {
             string path = settings.GeneralSettings.Path;
             int finalNumber = fileNumber;
          
+            //
+            // we need to save the raw data only from the active channels, since the complex channels has the same raw data.
+            //
             foreach (var channel in activeChannels)
             {
-                string fullPath = GetFileName(path, channel.Name, fileNumber);
+                //
+                // save raw data to file
+                //
+                finalNumber = WriteSingleArrayToFile(path, c_rawDataFolderName, channel.Name, fileNumber, channel.RawData[0]);
+            }
+
+            //
+            // saveing the physical and additional data from all the channels, including the complex
+            //
+            foreach (var channel in physicalChannels)
+            {
+                //
+                // save physical data to file
+                //
+                finalNumber = WriteSingleArrayToFile(path, c_physicalDataFolderName, channel.Name, finalNumber, channel.PhysicalData[0]) ;
                 
                 //
-                // Write each data point in a new line
+                // save addition data to files
                 //
-                using (StreamWriter file = new StreamWriter(fullPath))
+                fileNumber = WriteListOfArraysToFile(path, c_additionalDataFolderName, channel.Name, finalNumber, channel.AdditionalData);             
+            }
+            return finalNumber;
+        }
+
+        /// <summary>
+        /// write a double[] data to a .txt file, each data point in a new line.
+        /// </summary>
+        /// <param name="path">the path in which to save the file</param>
+        /// <param name="subFolderName">sub-folder in which to save the file</param>
+        /// <param name="channelName">The name of the channel</param>
+        /// <param name="fileNumber">number of the file</param>
+        /// <param name="data">the data to write</param>
+        /// <returns></returns>
+        private int WriteSingleArrayToFile(string path, string subFolderName, string channelName, int fileNumber, double[] data)
+        {
+            int finalNumber;
+            string fullPath = GetFileName(path, subFolderName, channelName, fileNumber, out finalNumber, -1);
+
+            //
+            // create a folder if needed, does nothing if not
+            //
+            FileInfo fileInfo = new FileInfo(fullPath);
+            (fileInfo).Directory.Create();
+
+            //
+            // Write each data point in a new line
+            //
+            using (StreamWriter file = new StreamWriter(fullPath))
+            {
+                for (int j = 0; j < data.Length; j++)
                 {
-                    for (int j = 0; j < channel.RawData[0].Length; j++)
-                    {
-                        file.WriteLine(channel.RawData[0][j]);
-                    }
+                    file.WriteLine(data[j]);
                 }
             }
             return finalNumber;
         }
 
-        private string GetFileName(string path, string name, int fileNumber)
+        /// <summary>
+        /// Write a List<List<double[]>> into a .txt file, two data points in each line.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="subFolderName"></param>
+        /// <param name="channelName"></param>
+        /// <param name="fileNumber"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private int WriteListOfArraysToFile(string path, string subFolderName, string channelName, int fileNumber, IList<IList<double[]>> data)
         {
-            StringBuilder fileNameStringBuilder = new StringBuilder(name);
+            //
+            // run over all the items (IV cycles) in the list
+            //
+            for (int k = 0; k < data.Count; k++)
+            {
+                string fullPath = GetFileName(path, subFolderName, channelName, fileNumber, out fileNumber, k + 1);
+                
+                //
+                // create a folder if needed, does nothing if not
+                //
+                (new FileInfo(fullPath)).Directory.Create();
+
+                //
+                // Write each data point in a new line
+                //
+                using (StreamWriter file = new StreamWriter(fullPath))
+                {
+                    //
+                    // run over all dots in one IV cycle
+                    //
+                    for (int j = 0; j < data[k][0].Length; j++)
+                    {
+                        //
+                        // write the current and then the voltage on the same line in the file
+                        //
+                        StringBuilder dataInLine = new StringBuilder(data[k][0][j].ToString());
+                        dataInLine.Append(" ");
+                        dataInLine.Append(data[k][1][j]);
+                        file.WriteLine(dataInLine);
+                    }
+                }
+            }
+            return fileNumber;            
+        }
+
+        /// <summary>
+        /// Get the file name.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="channelName"></param>
+        /// <param name="fileNumber">number of trace</param>
+        /// <param name="secondaryNumber">put -1 if not needed!</param>
+        /// <returns></returns>
+        private string GetFileName(string path, string subFolderName, string channelName, int fileNumber, out int finalFileNumber, int secondaryNumber)
+        {
+            StringBuilder fileNameStringBuilder = new StringBuilder(channelName);
             fileNameStringBuilder.Append(DateTime.Now.ToString("ddMMyy"));
             fileNameStringBuilder.Append("_");
             fileNameStringBuilder.Append(fileNumber);
+            if (secondaryNumber > 0)
+            {
+                fileNameStringBuilder.Append("_");
+                fileNameStringBuilder.Append(secondaryNumber);
+            }
             fileNameStringBuilder.Append(".txt");
 
-            string fileFullPath = Path.Combine(path, fileNameStringBuilder.ToString());
+            string fileFullPath = Path.Combine(path, subFolderName, fileNameStringBuilder.ToString());
 
             //
             // As long as the data file exists increase file number
             //
             while (File.Exists(fileFullPath))
             {
-                fileFullPath = GetFileName(path, name, ++fileNumber);
+                fileFullPath = GetFileName(path, subFolderName, channelName, ++fileNumber, out finalFileNumber, secondaryNumber);
             }
-
+            
+            finalFileNumber = fileNumber;
+            
             return fileFullPath;
-        }
-
-        /// <summary>
-        /// Generate the file name for the current cycle
-        /// </summary>
-        /// <param name="fileNumber"></param>
-        /// <returns>The name of the file</returns>
-        private List<string> GetFilesNames(int fileNumber)
-        {
-            List<string> filesNames = new List<string>(3);
-
-            //
-            // Generate file name for channel 1
-            //
-            StringBuilder channelOneStringBuilder = new StringBuilder(c_dataFileName);
-            channelOneStringBuilder.Append(DateTime.Now.ToString("ddMMyy"));
-            channelOneStringBuilder.Append("_");
-            channelOneStringBuilder.Append(fileNumber);
-            channelOneStringBuilder.Append(".txt");
-
-            //
-            // Generate file name for channel 2 and channel 3
-            //
-            string channelOneFileName = channelOneStringBuilder.ToString();
-            string channelTwoFileName = channelOneFileName.Replace(c_dataFileName, c_lockInSignalFileName);
-            string channelThreeFileName = channelOneFileName.Replace(c_dataFileName, c_lockInPhaseFileName);
-
-            filesNames.Add(channelOneFileName);
-            filesNames.Add(channelTwoFileName);
-            filesNames.Add(channelThreeFileName);
-
-            return filesNames;
         }
         
         /// <summary>
@@ -381,33 +454,61 @@ namespace SBJController
             //
             // Check for complex data channels possible combinations
             //
-            List<IDataChannel> complexChannels = new List<IDataChannel>();
+            List<IDataChannel> complexLockInChannels = new List<IDataChannel>();
+            List<IDataChannel> complexIVChannels = new List<IDataChannel>();
+
             for (int i = 0; i < activeChannels.Count; i++)
             {               
                 if (activeChannels[i].GetType().Equals(typeof(LockInXInternalSourceDataChannel)) ||
                     activeChannels[i].GetType().Equals(typeof(LockInYInternalSourceDataChannel)))
                 {
-                    complexChannels.Add(activeChannels[i]);
+                    complexLockInChannels.Add(activeChannels[i]);
+                }
+
+                if (activeChannels[i].GetType().Equals(typeof(IVInputDataChannel)) ||
+                    activeChannels[i].GetType().Equals(typeof(IVInputMonitorChannel)))
+                {
+                    complexIVChannels.Add(activeChannels[i]);
                 }
             }
 
             //
-            // Each acctive channels is an option channel for display.
+            // Each active channels is an option channel for display.
             // Also we must add available complex data channel which we couldn't
             // sampled directly.
             //
             IList<IDataChannel> possibleChannelsForDisplay = new List<IDataChannel>(activeChannels);
 
-            if (complexChannels.Count == 2)
+            if (complexLockInChannels.Count == 2)
             {
-                LockInXYInternalSourceDataChannel XYChannel = new LockInXYInternalSourceDataChannel(complexChannels[0].DataConvertionSettings);
-                XYChannel.RawData = new List<double[]>(complexChannels[0].RawData);
-                XYChannel.RawData.Add(complexChannels[1].RawData[0]);
+                LockInXYInternalSourceDataChannel XYChannel = new LockInXYInternalSourceDataChannel(complexLockInChannels[0].DataConvertionSettings);
+                XYChannel.RawData = new List<double[]>(complexLockInChannels[0].RawData);
+                XYChannel.RawData.Add(complexLockInChannels[1].RawData[0]);
                 possibleChannelsForDisplay.Add(XYChannel);
-            }            
+            }
 
+            if (complexIVChannels.Count == 2)
+            {
+                IVProcessedDataChannel IVProcessedChannel = new IVProcessedDataChannel(complexIVChannels[0].DataConvertionSettings);
+                IVProcessedChannel.RawData = new List<double[]>(complexIVChannels[0].RawData);
+                IVProcessedChannel.RawData.Add(complexIVChannels[1].RawData[0]);
+                possibleChannelsForDisplay.Add(IVProcessedChannel);
+            } 
             return possibleChannelsForDisplay as List<IDataChannel>;
-        }    
+        }
+
+        /// <summary>
+        /// Calculates the physical data in each channel.
+        /// </summary>
+        /// <param name="physicalChannels"></param>
+        /// <returns></returns>
+        private void GetPhysicalData(IList<IDataChannel> physicalChannels)
+        {
+            foreach (var channel in physicalChannels)
+            {
+                channel.ConvertToPhysicalData();
+            }
+        }
 
         #endregion
 
@@ -491,6 +592,8 @@ namespace SBJController
             int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
             double[,] dataAquired;
 
+            List<IDataChannel> physicalChannels = new List<IDataChannel>();
+
             //
             // Configure the laser if needed for this run
             //
@@ -510,7 +613,6 @@ namespace SBJController
             // Create the task
             //
             m_task = GetMultipleChannelsTriggeredTask(settings, worker, e);
-
 
             //
             // Main loop for data aquisition
@@ -582,9 +684,26 @@ namespace SBJController
                 // Start openning the junction.
                 // If EM is enabled and we're after the first cycle, use the EM.
                 //
-                if (settings.ElectromagnetSettings.IsEMEnable && i > 0)
+                if (settings.ElectromagnetSettings.IsEMEnable)
                 {
-                    EMBeginOpenJunction(settings);
+                    if (i == 0)
+                    {
+                        //
+                        // open the junction by stepper motor. this function does it indipendently; 
+                        // it doesn't wait for the trigger task to finish. and we stay on the current thread. 
+                        //
+                        ObtainOpenJunctionByStepperMotor(settings.GeneralSettings.TriggerVoltage, worker, e);
+                        
+                        //
+                        // from now on we will use the EM, so we don't want the stepper motor to stay on. 
+                        //
+                        m_stepperMotor.Shutdown();
+                        continue;
+                    }
+                    else
+                    {
+                        EMBeginOpenJunction(settings);
+                    }
                 }
                 else
                 {
@@ -594,7 +713,6 @@ namespace SBJController
                 //
                 // Start the task and wait for the data
                 //
-                
                 try
                 {
                     m_task.Start();
@@ -643,21 +761,19 @@ namespace SBJController
                 m_task.Stop();
 
                 //
-                // if EM is enabled, the first trace was done by the stepper motor and we want to ignore it.
-                //
-                if (settings.ElectromagnetSettings.IsEMEnable && i == 0)
-                {
-                    //
-                    // from now on we use the EM, so we don't want the stepper motor to stay on.
-                    //
-                    m_stepperMotor.Shutdown();
-                    continue;
-                }
-                
-                //
                 // Assign the aquired data for each channel
-                //
+                //                
                 AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAquired);
+
+                //
+                // physical channel will include both simple and complex channels. 
+                // 
+                physicalChannels = GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels);
+
+                //
+                // calculate the physical data for each channel
+                //
+                GetPhysicalData(physicalChannels);
 
                 // 
                 // Increase file number by one
@@ -666,7 +782,7 @@ namespace SBJController
                 finalFileNumber++;
                 if (settings.GeneralSettings.IsFileSavingRequired)
                 {
-                    finalFileNumber = SaveData(settings, settings.ChannelsSettings.ActiveChannels, finalFileNumber);
+                    finalFileNumber = SaveData(settings, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
                 }
 
                 //
@@ -674,7 +790,7 @@ namespace SBJController
                 //
                 if (DataAquired != null)
                 {
-                    DataAquired(this, new DataAquiredEventArgs(GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels), finalFileNumber));
+                    DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
                 }                
             }
 
@@ -711,7 +827,6 @@ namespace SBJController
             }
             e.Cancel = true;
         }
-
 
         /// <summary>
         /// Fix the bias incase of drift in the source meter
@@ -824,7 +939,7 @@ namespace SBJController
             //
             // Try and open excel file
             //
-            ApplicationClass xlsLogBook = new ApplicationClass();
+            Application xlsLogBook = new Application();
             if (xlsLogBook == null)
             {
                 throw new SBJException("Excel is not installed on current machine.");
