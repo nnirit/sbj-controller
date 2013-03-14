@@ -92,6 +92,12 @@ namespace SBJController
         private void obtainShortCircuitBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
+            
+            //
+            // if we don't use the keithley for bias,  we need to apply it through the DAQ device
+            //
+            ApplyVoltageIfNeeded();
+
             m_sbjController.TryObtainShortCircuit((double)shortCircuitVoltageNumericUpDown.Value, worker, e);
         }
 
@@ -110,6 +116,11 @@ namespace SBJController
             shortCircuitCheckBoxButton.Checked = false;
             startStopCheckBoxButton.Enabled = true;
             moveUpCheckBoxButton.Enabled = true;
+
+            //
+            // if we applied the bias by the DAQ device, we need to stop the task. 
+            //
+            StopApplyingVoltageIfNeeded();
         }
         #endregion
 
@@ -185,6 +196,11 @@ namespace SBJController
             lockInPanel.Enabled = true;
             channelsSettingsPanel.Enabled = true;
             electroMagnetSettingsPanel.Enabled = true;
+
+            //
+            // if we applied the bias by the DAQ device, we need to stop the task. 
+            //
+            StopApplyingVoltageIfNeeded();
         }
 
         /// <summary>
@@ -195,6 +211,12 @@ namespace SBJController
         private void aquireDataBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
+
+            //
+            // if we don't use the keithley for bias,  we need to apply it through the DAQ device
+            //
+            ApplyVoltageIfNeeded();
+
             m_sbjController.AquireData(GetSBJControllerSettings(), worker, e);
         }
         #endregion
@@ -258,6 +280,21 @@ namespace SBJController
         {
             if (this.fixBiasCheckBoxButton.Checked)
             {
+                if (!this.useKeithleyCheckBox.Checked)
+                {
+                    try
+                    {
+                        m_sbjController.SourceMeter.Connect();
+                        m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
+                    }
+                    catch (SBJException ex)
+                    {
+                        //
+                        // the keithley doesn't connect.
+                        //
+                        throw new SBJException("Error occured when tryin to start the keithley", ex);
+                    }
+                }
                 if (!fixBiasBackgroundWorker.IsBusy)
                 {
                     //
@@ -307,6 +344,129 @@ namespace SBJController
         }
         #endregion
 
+        #region IV Cycles Handlers
+
+        private void ivSampleDelayNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            this.ivTimeOfOneCycleNumericEdit.Value = this.ivSampleDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
+            this.ivSampleRateNumericEdit.Value = 1000 / e.NewValue;
+
+            //
+            // the rate must be the AI rate multiplied by 2*n (n is integer, both + and - )
+            // if the reminder is 0 we're good.
+            //// if not we need to fix it
+            ////
+            //double rateInitialValue = 1000 / e.NewValue;
+            //double rateFinalValue = rateInitialValue;
+            //double rateRatioReminder = (rateInitialValue > (double)this.sampleRateNumericUpDown.Value) ?
+            //    ((rateInitialValue / (double)this.sampleRateNumericUpDown.Value) % 2) : (((double)this.sampleRateNumericUpDown.Value / rateInitialValue) % 2);
+
+            //if (rateRatioReminder != 0.00 && rateRatioReminder != 1.000)
+            //{
+            //    if (rateInitialValue > (double)this.sampleRateNumericUpDown.Value)
+            //    {
+            //        rateFinalValue = rateInitialValue - rateRatioReminder;
+            //    }
+            //    else
+            //    {
+            //        rateFinalValue = rateInitialValue - 1 / rateRatioReminder;
+            //    }
+            //    //e.NewValue = 1000 / rateFinalValue;
+            //}
+            //this.ivSampleRateNumericEdit.Value = rateFinalValue;
+
+            
+        }
+
+        /// <summary>
+        /// Fired when the Start IV button is pressed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivStartCyclesCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.ivStartCyclesCheckBox.Checked)
+            {
+                //
+                // We were requested to start data acquisition so we must verify
+                // first that the worker is free for doing the job.
+                //
+                if (!ivCyclesBackgroundWorker.IsBusy)
+                {
+                    //
+                    // Change button text and UI appearance
+                    //
+                    this.ivStartCyclesCheckBox.Text = "Stop IV Cycles";
+                    startStopCheckBoxButton.Enabled = false;
+                    shortCircuitCheckBoxButton.Enabled = false;
+                    moveUpCheckBoxButton.Enabled = false;
+                    generalSettingsPanel.Enabled = false;
+                    laserSettingsPanel.Enabled = false;
+                    lockInPanel.Enabled = false;
+                    electroMagnetSettingsPanel.Enabled = false;
+                    ivCyclesBackgroundWorker.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Can not start IV cycles operation." + Environment.NewLine + "Please try again in few seconds.");
+                }
+            }
+            else
+            {
+                //
+                // We were requested to stop data acquisition process
+                //
+                if (ivCyclesBackgroundWorker.WorkerSupportsCancellation == true)
+                {
+                    ivCyclesBackgroundWorker.CancelAsync();
+                }
+                if (m_sbjController.IVInputTask != null)
+                {
+                    m_sbjController.IVInputTask.Control(TaskAction.Abort);
+                }
+                if (m_sbjController.OutputTask != null)
+                {
+                    m_sbjController.OutputTask.Control(TaskAction.Abort);
+                }      
+                m_sbjController.QuitJunctionOpenningOperation = true;
+                m_sbjController.StepperMotor.Shutdown();
+            }              
+        }
+
+        /// <summary>
+        /// The ivCyclesBackgroundWorker main thread
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivCyclesBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            m_sbjController.IV_AcquireData(GetSBJControllerSettings(), worker, e);
+        }
+
+        /// <summary>
+        /// The callback for the IV cycles background worker
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivCyclesBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //
+            // We've done taking data so we must bring back the UI appearance
+            //
+            ivStartCyclesCheckBox.Text = "Start IV Cycles";
+            ivStartCyclesCheckBox.Checked = false;
+            startStopCheckBoxButton.Enabled = true;
+            shortCircuitCheckBoxButton.Enabled = true;
+            moveUpCheckBoxButton.Enabled = true;
+            generalSettingsPanel.Enabled = true;
+            laserSettingsPanel.Enabled = true;
+            lockInPanel.Enabled = true;
+            electroMagnetSettingsPanel.Enabled = true;
+        }
+
+        #endregion
+
         #region ElectroMagnet Tab Events
         /// <summary>
         /// Enable or disable the ElectroMagnet
@@ -338,6 +498,9 @@ namespace SBJController
 
         private void holdOnToConductanceRangeCheckBox_CheckedChanged(object sender, EventArgs e)
         {
+            //
+            // Update the appearance of other UI related parameters.
+            //            
             this.emHoldOnMaxConductanceLabel.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
             this.emHoldOnMaxConductanceNumericEdit.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
             this.emHoldOnMaxVoltageLabel.Enabled = this.emHoldOnToConductanceRangeCheckBox.Checked;
@@ -386,7 +549,7 @@ namespace SBJController
             // This event is also fired when the UI loads on start.
             // At that point sbjController is still null and we need to verify this.
             //
-            if (m_sbjController != null)
+            if (m_sbjController != null && this.useKeithleyCheckBox.Checked)
             {
                 m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
             }
@@ -512,7 +675,6 @@ namespace SBJController
         {
             int gainPower = int.Parse(this.gainComboBox.Text);
             m_sbjController.ChangeGain(gainPower);
-            m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
         }
 
         /// <summary>
@@ -712,9 +874,10 @@ namespace SBJController
         private void UpdateChannelAppearance(ListViewItem channel)
         {
             //
-            // LockInXYInternalSourceDataChannel is a special cas and doesn't obbey the rules
+            // LockInXYInternalSourceDataChannel and IVProcessed are special cases and doesn't obbey the rules
             //
-            if (channel.Name.Equals(typeof(LockInXYInternalSourceDataChannel).Name))
+            if (channel.Name.Equals(typeof(LockInXYInternalSourceDataChannel).Name) ||
+                channel.Name.Equals(typeof(IVProcessedDataChannel).Name))
             {
                 return;
             }
@@ -797,8 +960,75 @@ namespace SBJController
         private void channel0CheckBox_CheckedChanged(object sender, EventArgs e)
         {
             UpdateChannelsToDisplayListView();
-        }      
+        }
 
+        /// <summary>
+        /// Connect to the keithley if the use keithley checkBox is checked.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void useKeithleyCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.useKeithleyCheckBox.Checked)
+            {
+                m_sbjController.SourceMeter.Connect();
+                m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
+            }
+        }
+
+        /// <summary>
+        /// On IV Amplitude change
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivAmplitudeNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            //
+            // sets the voltage in which we display the trace to be whithing the boundries of +-amplitude.
+            //
+            if (Math.Abs(this.ivVoltageForTheDisplayedTraceNumericEdit.Value) > Math.Abs(this.ivAmplitudeNumericEdit.Value))
+            {
+                this.ivVoltageForTheDisplayedTraceNumericEdit.Value = (this.ivVoltageForTheDisplayedTraceNumericEdit.Value > 0) ? this.ivAmplitudeNumericEdit.Value : (-this.ivAmplitudeNumericEdit.Value);
+            }
+        }
+
+        /// <summary>
+        /// On Voltage for displayed Trace change
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivVoltageForTheDisplayedTraceNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            //
+            // sets the voltage in which we display the trace to be whithing the boundries of +-amplitude.
+            // this function fires when program starts before there is a vlaue inside amplitude, so we need to exclude that case. 
+            //
+            if ((this.ivAmplitudeNumericEdit.Value!=0) && 
+                (Math.Abs(this.ivVoltageForTheDisplayedTraceNumericEdit.Value) > Math.Abs(this.ivAmplitudeNumericEdit.Value)))
+            {
+                this.ivVoltageForTheDisplayedTraceNumericEdit.Value = (this.ivVoltageForTheDisplayedTraceNumericEdit.Value > 0) ? this.ivAmplitudeNumericEdit.Value : (-this.ivAmplitudeNumericEdit.Value);
+            }
+        }
+
+        /// <summary>
+        /// On samples per cycle change
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivSamplesPerCycleNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            this.ivTimeOfOneCycleNumericEdit.Value = this.ivSampleDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
+        }
+
+        /// <summary>
+        /// Open the folder
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void openFolderButton_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start(this.pathTextBox.Text);
+        }
         #endregion
         
         #endregion
@@ -850,8 +1080,7 @@ namespace SBJController
                     this.traceWaveformGraph.Plots[1].YAxis = yAxis2;
                     this.traceWaveformGraph.Plots[1].ToolTipsEnabled = true;
                     this.traceWaveformGraph.Plots[1].LineColor = Color.Blue;                    
-                }
-                
+                }                
                 this.traceWaveformGraph.Caption = string.Format("Trace #{0} at {1}", this.fileNumberNumericUpDown.Value, DateTime.Now.TimeOfDay);        
             }
         }
@@ -895,7 +1124,6 @@ namespace SBJController
             List<double[]> physicalDataAsList = new List<double[]>();
             foreach (var channel in dataChannels)
             {
-                channel.ConvertToPhysicalData();
                 physicalDataAsList.AddRange(channel.PhysicalData);
             }            
 
@@ -917,7 +1145,6 @@ namespace SBJController
                     dataAsArray[i, j] = physicalDataAsList[i][j];
                 }
             }
-
             return dataAsArray;
         }
 
@@ -984,15 +1211,20 @@ namespace SBJController
                                                                                          this.emHoldOnMinConductanceNumericEdit.Value,
                                                                                          this.emHoldOnMinVoltageNumericEdit.Value,
                                                                                          this.emSkipFirstCycleByStepperMotorCheckBox.Checked),
-                                                 new ChannelsSettings(GetActiveChannels()));
+                                                  new ChannelsSettings(GetActiveChannels()),
+                                                  new IVCurvesSBJControllerSettings(this.ivAmplitudeNumericEdit.Value, 
+                                                                                    (int)this.ivSamplesPerCycleNumericEdit.Value, 
+                                                                                    this.ivSampleDelayNumericEdit.Value, 
+                                                                                    (int)this.ivSampleRateNumericEdit.Value));
                                                                          
+
             }
         }
 
         /// <summary>
         /// Get the trigger conductance
         /// </summary>
-        /// <returns></returns>
+        /// <returns></returns>4
         private double GetTriggerConductance()
         {          
             //
@@ -1044,7 +1276,7 @@ namespace SBJController
                     }
                 }
             }                   
-            
+       
             //
             // In the channles tab only assign the simple data channels
             //
@@ -1066,7 +1298,7 @@ namespace SBJController
             List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
             channelsListView.Items.AddRange(channelsToDisplay.ToArray());           
             channelsListView.Items[channelsListView.Items.IndexOfKey(typeof(DefaultDataChannel).Name)].Checked = true;            
-        }
+    }
 
         /// <summary>
         /// Creats a list view for the channels
@@ -1095,8 +1327,8 @@ namespace SBJController
             List<IDataChannel> activeChannels = new List<IDataChannel>();
 
             DataConvertorSettings dataConvertorSettings =  new DataConvertorSettings(Math.Abs(this.biasNumericEdit.Value), Convert.ToInt32(this.gainComboBox.Text),
-                                                                                     this.lockInAcVoltageNumericEdit.Value, Double.Parse(this.sensitivityComboBox.Text));
-
+                                                                                     this.lockInAcVoltageNumericEdit.Value, Double.Parse(this.sensitivityComboBox.Text), 
+                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value, this.ivVoltageForTheDisplayedTraceNumericEdit.Value);
             if (channel0CheckBox.Checked)
             {
                 activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(channel0ComboBox.SelectedValue as string)), 
@@ -1162,7 +1394,56 @@ namespace SBJController
             }
 
             return false;
-        }        
-        #endregion         
+        }
+
+        /// <summary>
+        /// if we can't use the keithey we will use the DAQ as a source instead.
+        /// </summary>
+        private void ApplyVoltageIfNeeded()
+        {
+            //
+            // if we didn't check the keithley as a source for bias,  let's try to connect to it
+            //
+            if (!this.useKeithleyCheckBox.Checked)
+            {
+                try
+                {
+                    m_sbjController.SourceMeter.Connect();
+                    m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
+                }
+                catch (SBJException)
+                {
+                    //
+                    // the keithley doesn't connect. let's try the DAQ
+                    //
+                    try
+                    {
+                        m_sbjController.StartConstantOutputTask(this.biasNumericEdit.Value);
+                    }
+                    catch (DaqException ex)
+                    {
+                        throw new SBJException("Error occured when tryin to start DAQ output task", ex);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// if the bias was applied by the DAQ device, close it and stop the task. 
+        /// if it was applied by the keithley - leave it on. 
+        /// </summary>
+        private void StopApplyingVoltageIfNeeded()
+        {
+            //
+            // if we applied the bias by the DAQ device, we need to stop the task. 
+            //
+            if (m_sbjController.OutputTask != null)
+            {
+                m_sbjController.OutputTask.Stop();
+                m_sbjController.OutputTask.Dispose();
+            }
+        }
+      
+        #endregion            
     }
 }

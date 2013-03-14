@@ -14,7 +14,8 @@ namespace SBJController
     {
         #region Members
         private const string c_refTriggeredTask = "RefTriggeredTask";
-        private const string c_startTriggeredTask = "StartTriggeredTask";
+        private const string c_refContAOTask = "RefContinuousAOTask";
+        private const string c_refContAITask = "RefContinuousAITask";
         private DAQDeviceType m_daqDeviceType;
 
         #endregion 
@@ -35,7 +36,7 @@ namespace SBJController
             catch (ArgumentException ex)            
             {
                 throw new SBJException(string.Format("The DAQDeviceType {0} is invalid.\n Please change to one of the following: {1}",
-                    Settings.Default.DAQPhysicalChannelName2, GetAvailableDAQDevices(), ex));
+                    Settings.Default.DAQDeviceType, GetAvailableDAQDevices(), ex));
             }
         }
         #endregion 
@@ -140,9 +141,105 @@ namespace SBJController
         }
 
         /// <summary>
+        /// creates a continuous read task that will aquire the data for the IV curves. 
+        /// 1st channel reads the current of the junction, the 2nd reads the output voltage applied on the junction.
+        /// </summary>
+        /// <param name="properties"></param>
+        /// <returns></returns>
+        public Task CreateContinuousAITask(TaskProperties properties)
+        {
+            //
+            // Create anaglog input task with the specified name
+            //
+            Task analogInputTask = new Task(c_refContAITask);
+
+            //
+            // Construct the the physical channel name according to the desired inputs.
+            //
+            StringBuilder physicalChannelName = new StringBuilder();
+
+            foreach (var channel in properties.ActiveChannels)
+            {
+                physicalChannelName.Append(channel.PhysicalName);
+                physicalChannelName.Append(",");
+            }
+
+            //
+            // Remove last ':' from channel name
+            //
+            physicalChannelName.Remove(physicalChannelName.Length - 1, 1);
+
+            //
+            // Define a voltage channel
+            //
+            AIChannel anaglogChannel = analogInputTask.AIChannels.CreateVoltageChannel(physicalChannelName.ToString(), string.Empty, 
+                                                            AITerminalConfiguration.Differential,
+                                                            -10, 10, AIVoltageUnits.Volts);
+            //
+            // Configure sampling timing. the buffer size is large enough for 10 minutes reading
+            //
+            analogInputTask.Timing.ConfigureSampleClock(string.Empty, properties.SampleRate, SampleClockActiveEdge.Rising,
+                                                        SampleQuantityMode.ContinuousSamples, (int)properties.SampleRate * 600);
+            //
+            // Verify the task
+            //
+            analogInputTask.Control(TaskAction.Verify);
+            
+            //
+            // read the data from the buffer from its begining. 
+            //
+            analogInputTask.Stream.ReadRelativeTo = ReadRelativeTo.FirstSample;
+            analogInputTask.Stream.ReadOffset = 0;
+            
+            //
+            // no time limitation for the reading process
+            //
+            analogInputTask.Stream.Timeout = -1;
+            
+            return analogInputTask;
+         }
+
+        /// <summary>
+        /// Create continuous Analog Out Task
+        /// </summary>
+        /// <param name="properties">The properties of the task</param>
+        /// <returns>The task to be activated</returns>
+        public Task CreateContinuousAOTask(ContinuousAOTaskProperties properties)
+        {
+            //
+            // Create analog output task with the specified name
+            //
+            Task analogOutputTask = new Task(c_refContAOTask);
+
+            //
+            // Define a voltage channel
+            //
+            AOChannel analogChannel = analogOutputTask.AOChannels.CreateVoltageChannel(Settings.Default.DAQPhysicalChannelName_IVOutput, 
+                string.Empty, -properties.Amplitude, properties.Amplitude, AOVoltageUnits.Volts);
+
+            //
+            // Configure sampling clock, rate, number of samples
+            //
+            analogOutputTask.Timing.ConfigureSampleClock(string.Empty, properties.SampleRate, SampleClockActiveEdge.Rising,
+                SampleQuantityMode.ContinuousSamples, properties.SamplesPerChannel);
+ 
+            //
+            // allow regeneration of the writing process - that means the output will keep working until we stop or change it. 
+            //
+            analogOutputTask.Stream.WriteRegenerationMode = WriteRegenerationMode.AllowRegeneration;
+
+            //
+            // verify task
+            //
+            analogOutputTask.Control(TaskAction.Verify);
+
+            return analogOutputTask;
+        }
+
+        /// <summary>
         /// Create calibration task
         /// </summary>
-        /// <param name="properties">The properties relevant for teh task</param>
+        /// <param name="properties">The properties relevant for the task</param>
         /// <returns>The task to be activated</returns>
         public Task CreateCalibrationTask(TaskProperties properties)
         {
@@ -279,13 +376,55 @@ namespace SBJController
         #endregion
 
         #region Constructor
-        public TaskProperties(double sampleRate, int samplesPerChannel,IList<IDataChannel> activeChannels)
+        public TaskProperties(double sampleRate, int samplesPerChannel, IList<IDataChannel> activeChannels)
         {
             SampleRate = sampleRate;
             SamplesPerChannel = samplesPerChannel;
             ActiveChannels = activeChannels;
         }
+
+        public TaskProperties(double sampleRate, int samplesPerChannel) 
+        {
+            SampleRate = sampleRate;
+            SamplesPerChannel = samplesPerChannel;
+        }
+
+        public TaskProperties(double sampleRate, IList<IDataChannel> activeChannels)
+        {
+            SampleRate = sampleRate;
+            ActiveChannels = activeChannels;
+        }
         #endregion
     }
+
+    /// <summary>
+    /// Represents a class for continuous analog out task properties
+    /// </summary>
+    class ContinuousAOTaskProperties : TaskProperties
+    {
+        #region Private Members
+        private double m_amplitude;
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Wave amplitude (half peak-to-peak)
+        /// </summary>
+        public double Amplitude
+        {
+            get { return m_amplitude; }
+            private set { m_amplitude = value; }
+        }
+        #endregion
+
+        #region Constructor
+        public ContinuousAOTaskProperties(double sampleRate, int samplesPerChannel, double amplitude)
+            : base(sampleRate, samplesPerChannel)
+        {
+            Amplitude = amplitude;
+        }
+        #endregion
+    }
+
     #endregion
 }
