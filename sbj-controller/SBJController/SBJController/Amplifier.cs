@@ -12,6 +12,8 @@ namespace SBJController
         #region Members
         private int m_gainPower;
         private const string c_changeGainCommand = "R{0}X";
+        private const string c_zeroCheckOffCommand = "C0X";
+        private const string c_autoZeroCorrectCommand = "C2X";
         #endregion
 
         #region Properties
@@ -41,6 +43,12 @@ namespace SBJController
         new public void Connect()
         {
             base.Connect();
+
+            //
+            // Set zero check off and do auto zero correction
+            //
+            Write(String.Format(c_zeroCheckOffCommand), "Error has occured while trying to set zero check off on the Amplifier.");
+            Write(String.Format(c_autoZeroCorrectCommand), "Error has occured while trying to do zero correction on the Amplifier.");   
         }
         /// <summary>
         /// Set gain power to new value
