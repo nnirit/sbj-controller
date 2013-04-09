@@ -99,7 +99,7 @@ namespace SBJController
             //
             // Save this run settings if desired
             //
-            SaveSettingsIfNeeded(settings);
+            SaveSettingsIfNeeded(settings, settings.GeneralSettings.IsFileSavingRequired, settings.GeneralSettings.Path);
 
             //
             // apply initial voltage on the EM
@@ -345,7 +345,7 @@ namespace SBJController
             if (!IV_EMOpenJunction(settings))
             {
                 m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
-                MoveStepsByStepperMotor(StepperDirection.UP, 100);
+                MoveStepsByStepperMotor(StepperDirection.UP, 200);
                 return IV_EMTryOpenJunction(settings);
             }
             return true;
@@ -397,7 +397,7 @@ namespace SBJController
                 //
                 if (numOfSteps == 100)
                 {
-                    m_electroMagnet.Delay = (int)(0.5 * settings.ElectromagnetSettings.EMSlowDelayTime + 0.5 * settings.ElectromagnetSettings.EMFastDelayTime);
+                    m_electroMagnet.Delay = (int)(0.2 * settings.ElectromagnetSettings.EMSlowDelayTime + 0.8 * settings.ElectromagnetSettings.EMFastDelayTime);
                 }
 
                 ////
@@ -428,7 +428,7 @@ namespace SBJController
                     //
                     // if we are under the trigger for some steps in a row, switch to the slowest rate.
                     //
-                    if (rateTriggerCounts > 6)
+                    if (rateTriggerCounts > 8)
                     {
                         m_electroMagnet.Delay = (int)settings.ElectromagnetSettings.EMSlowDelayTime;
                         rateTriggerCounts = -1;
@@ -452,7 +452,7 @@ namespace SBJController
                 //
                 // if we are under the trigger for some steps in a row, the junction is open.
                 //
-                if (underTriggerCounts > 10)
+                if (underTriggerCounts > 4)
                 {
                      m_quitJunctionOpenningOperation = true;
                 }

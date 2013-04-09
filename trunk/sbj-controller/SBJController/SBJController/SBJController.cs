@@ -168,12 +168,12 @@ namespace SBJController
         /// Save this run settings to Params file.
         /// </summary>
         /// <param name="settings"></param>
-        private void SaveSettingsIfNeeded(SBJControllerSettings settings)
+        private void SaveSettingsIfNeeded(object settings, bool IsFileSavingRequired, string path)
         {
             //
             // Verify that saving is required
             //
-            if (settings.GeneralSettings.IsFileSavingRequired == false)
+            if(!IsFileSavingRequired)
             {
                 return;
             }
@@ -181,7 +181,7 @@ namespace SBJController
             //
             // Write the Params.txt file.
             //
-            using (StreamWriter file = new StreamWriter(Path.Combine(settings.GeneralSettings.Path, c_settingsFileName), true))
+            using (StreamWriter file = new StreamWriter(Path.Combine(path, c_settingsFileName), true))
             {
                 file.WriteLine("---------------------------------------------");
                 file.WriteLine(DateTime.Now.ToString());
@@ -602,7 +602,7 @@ namespace SBJController
             //
             // Save this run settings if desired
             //
-            SaveSettingsIfNeeded(settings);
+            SaveSettingsIfNeeded(settings, settings.GeneralSettings.IsFileSavingRequired, settings.GeneralSettings.Path);
 
             //
             //apply initial voltage on the EM
