@@ -199,9 +199,8 @@ namespace SBJController
         /// <param name="dataAquired">The data to write</param>
         /// <param name="fileNumber">The file number</param>
         /// <returns>The final file number in case of any changes (duplicates)</returns>
-        private int SaveData(SBJControllerSettings settings, IList<IDataChannel> activeChannels, IList<IDataChannel> physicalChannels, int fileNumber)
+        private int SaveData(string path, IList<IDataChannel> activeChannels, IList<IDataChannel> physicalChannels, int fileNumber)
         {
-            string path = settings.GeneralSettings.Path;
             int finalNumber = fileNumber;
          
             //
@@ -659,7 +658,7 @@ namespace SBJController
                 // If user asked to stop than exit
                 //
                 isCancelled = (settings.ElectromagnetSettings.IsEMEnable && i > 0) ? 
-                               EMTryObtainShortCircuit(settings, worker, e) : 
+                               EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitVoltage, worker, e) : 
                                TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
                 if (isCancelled)
                 {
@@ -782,7 +781,7 @@ namespace SBJController
                 finalFileNumber++;
                 if (settings.GeneralSettings.IsFileSavingRequired)
                 {
-                    finalFileNumber = SaveData(settings, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+                    finalFileNumber = SaveData(settings.GeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
                 }
 
                 //
@@ -1088,8 +1087,6 @@ namespace SBJController
         [DllImport("IODrive2007.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern double AnalogIn(byte channel);
         #endregion       
-    
- 
     }
 
     internal class Bias

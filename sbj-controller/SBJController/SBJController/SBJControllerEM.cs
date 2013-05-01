@@ -256,9 +256,9 @@ namespace SBJController
         /// <param name="worker"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        private bool EMTryObtainShortCircuit(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        private bool EMTryObtainShortCircuit(int shortCircuitDelayTime, double shortCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
         {
-            switch (EMShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitVoltage, worker, e))
+            switch (EMShortCircuit(shortCircuitDelayTime, shortCircuitVoltage, worker, e))
             {
                 case 0:
                     //
@@ -280,7 +280,7 @@ namespace SBJController
                     //
                     m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
                     MoveStepsByStepperMotor(StepperDirection.DOWN, 100);
-                    return EMTryObtainShortCircuit(settings, worker, e);
+                    return EMTryObtainShortCircuit(shortCircuitDelayTime, shortCircuitVoltage, worker, e);
             }
             return true;
         }
@@ -394,7 +394,7 @@ namespace SBJController
             // 
             m_stepperMotor.Direction = StepperDirection.UP;
             m_stepperMotor.SteppingMode = StepperSteppingMode.FULL;
-            m_stepperMotor.Delay = 25;
+            m_stepperMotor.Delay = m_stepperMotor.MinDelay;
 
             //
             // Open the junction
@@ -414,7 +414,7 @@ namespace SBJController
                 // Move up 5 steps and check the voltage afterwards
                 //
                 m_stepperMotor.MoveMultipleSteps(5);
-                Thread.Sleep(m_stepperMotor.Delay);
+                Thread.Sleep(m_stepperMotor.Delay*20);
                 voltageAfterStepping = Math.Abs(AnalogIn(0));
 
                 //

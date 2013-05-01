@@ -32,5 +32,14 @@ namespace SBJController
         PCI4461 = 1,
         PCI4474 = 2,
         PCI4472 = 3
-    }    
+    }
+
+    /// <summary>
+    /// Stepping device enum
+    /// </summary>
+    public enum SteppingDevice
+    {
+        StepperMotor = 1,
+        ElectroMagnet = 2
+    }
 }

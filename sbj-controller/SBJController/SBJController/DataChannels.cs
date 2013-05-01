@@ -9,6 +9,7 @@ namespace SBJController
     /// The default data channel.
     /// This channel is used to sample data points fron the PCI card direcly.
     /// </summary>
+    [DAQAttribute()]
     public class DefaultDataChannel : SimpleDataChannel, IDataChannel
     {
         private const double c_1G0 = 77.5E-6;
@@ -42,6 +43,7 @@ namespace SBJController
     /// X equals: X = Vsig*cos(theta), where theta is the phase of the lockin and Vsig is proportional to the 
     /// physical signal from the measurement unit and it is the signal to be interperted.
     /// </summary>
+    [DAQAttribute()]
     public class LockInXInternalSourceDataChannel : LockInInternalSourceDataChannel, IDataChannel
     {
         /// <summary>
@@ -62,6 +64,7 @@ namespace SBJController
     /// Y equals: Y = Vsig*sin(theta), where theta is the phase of the lockin and Vsig is proportional to the 
     /// physical signal from the measurement unit and it is the signal to be interperted.
     /// </summary>
+    [DAQAttribute()]
     public class LockInYInternalSourceDataChannel : LockInInternalSourceDataChannel, IDataChannel
     {
         /// <summary>
@@ -83,6 +86,7 @@ namespace SBJController
     /// Please note that in that case the refresh time of the lock in for that channel is only 512Hz.
     /// Sampling X and Y separatley improve accuracy as these channels are updated more frequently.
     /// </summary>
+    [DAQAttribute()]
     public class LockInRInternalSourceChannel : LockInInternalSourceDataChannel, IDataChannel
     {
         /// <summary>
@@ -130,6 +134,7 @@ namespace SBJController
     /// from the measurement one must have both X and Y data channels. These channels complete one another
     /// and only by having both data sets we can take out the signal itself.
     /// </summary>
+    [DAQAttribute()]
     public class LockInXYInternalSourceDataChannel : ComplexDataChannel, IDataChannel
     {
         /// <summary>
@@ -209,6 +214,7 @@ namespace SBJController
     /// Please note that in that case the refresh time of the lock in for that channel is only 512Hz.
     /// Sampling X and Y separatley improve accuracy as these channels are updated more frequently.
     /// </summary>
+    [DAQAttribute()]
     public class LockInRExternalSourceChannel : LockInDataChannel, IDataChannel
     {
         public LockInRExternalSourceChannel(string physicalName, DataConvertorSettings settings)
@@ -259,9 +265,9 @@ namespace SBJController
     /// The Physical Data contains the trace constructed by a certain voltage measurements.
     /// The additional data is the I-V cycles and will be saved but not displayed by the UI
     /// </summary>
+    [IVAttribute()]
     public class IVProcessedDataChannel : ComplexDataChannel, IDataChannel
     {
-        private static double s_1G0 = 77.5E-6;
         public IVProcessedDataChannel(DataConvertorSettings settings)
             : base(settings)
         {
@@ -297,6 +303,7 @@ namespace SBJController
     /// <summary>
     /// This class represents the IV input monitor channel (reads directly the output voltage)
     /// </summary>
+    [IVAttribute()]
     public class IVInputMonitorChannel : SimpleDataChannel, IDataChannel
     {
         public IVInputMonitorChannel(string PhysicalName, DataConvertorSettings settings)
@@ -317,6 +324,7 @@ namespace SBJController
     /// <summary>
     /// This class represents the IV input data channel
     /// </summary>
+    [IVAttribute()]
     public class IVInputDataChannel : SimpleDataChannel, IDataChannel
     {
         public IVInputDataChannel(string physicalName, DataConvertorSettings settings)

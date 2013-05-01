@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using NationalInstruments.DAQmx;
 using System.Drawing;
 using NationalInstruments.UI;
+using NationalInstruments.UI.WindowsForms;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
@@ -31,7 +32,8 @@ namespace SBJController
             m_sbjController.DataAquired += new SBJController.DataAquiredEventHandler(OnDataAquisition);
             this.bottomPropertyGrid.SelectedObject = new Sample();
             this.topPropertyGrid.SelectedObject = new Sample();
-            PopulateChannelsList();
+            PopulateChannelsLists();
+            TryConnectToKeithly();
         }
        
         #endregion
@@ -346,46 +348,20 @@ namespace SBJController
 
         #region IV Cycles Handlers
 
-        private void ivSampleDelayNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
-        {
-            this.ivTimeOfOneCycleNumericEdit.Value = this.ivSampleDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
-            this.ivSampleRateNumericEdit.Value = 1000 / e.NewValue;
-
-            //
-            // the rate must be the AI rate multiplied by 2*n (n is integer, both + and - )
-            // if the reminder is 0 we're good.
-            //// if not we need to fix it
-            ////
-            //double rateInitialValue = 1000 / e.NewValue;
-            //double rateFinalValue = rateInitialValue;
-            //double rateRatioReminder = (rateInitialValue > (double)this.sampleRateNumericUpDown.Value) ?
-            //    ((rateInitialValue / (double)this.sampleRateNumericUpDown.Value) % 2) : (((double)this.sampleRateNumericUpDown.Value / rateInitialValue) % 2);
-
-            //if (rateRatioReminder != 0.00 && rateRatioReminder != 1.000)
-            //{
-            //    if (rateInitialValue > (double)this.sampleRateNumericUpDown.Value)
-            //    {
-            //        rateFinalValue = rateInitialValue - rateRatioReminder;
-            //    }
-            //    else
-            //    {
-            //        rateFinalValue = rateInitialValue - 1 / rateRatioReminder;
-            //    }
-            //    //e.NewValue = 1000 / rateFinalValue;
-            //}
-            //this.ivSampleRateNumericEdit.Value = rateFinalValue;
-
-            
-        }
+        //private void ivSampleDelayNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        //{
+        //    this.ivTimeOfOneCycleNumericEdit.Value = this.ivSampleDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit2.Value;
+        //    this.ivSampleRateNumericEdit.Value = 1000 / e.NewValue;
+        //}
 
         /// <summary>
         /// Fired when the Start IV button is pressed
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ivStartCyclesCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void ivStartStopCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (this.ivStartCyclesCheckBox.Checked)
+            if (this.ivStartStopCheckBox.Checked)
             {
                 //
                 // We were requested to start data acquisition so we must verify
@@ -396,14 +372,10 @@ namespace SBJController
                     //
                     // Change button text and UI appearance
                     //
-                    this.ivStartCyclesCheckBox.Text = "Stop IV Cycles";
-                    startStopCheckBoxButton.Enabled = false;
-                    shortCircuitCheckBoxButton.Enabled = false;
-                    moveUpCheckBoxButton.Enabled = false;
-                    generalSettingsPanel.Enabled = false;
-                    laserSettingsPanel.Enabled = false;
-                    lockInPanel.Enabled = false;
-                    electroMagnetSettingsPanel.Enabled = false;
+                    this.ivStartStopCheckBox.Text = "Stop";
+                    this.ivShortCircuitCheckBox.Enabled = false;
+                    this.ivStepperUpCheckBox.Enabled = false;
+                    this.ivSettingsGroupBox.Enabled = false;
                     ivCyclesBackgroundWorker.RunWorkerAsync();
                 }
                 else
@@ -427,10 +399,10 @@ namespace SBJController
                 if (m_sbjController.OutputTask != null)
                 {
                     m_sbjController.OutputTask.Control(TaskAction.Abort);
-                }      
+                }
                 m_sbjController.QuitJunctionOpenningOperation = true;
                 m_sbjController.StepperMotor.Shutdown();
-            }              
+            }
         }
 
         /// <summary>
@@ -441,7 +413,7 @@ namespace SBJController
         private void ivCyclesBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            m_sbjController.IV_AcquireData(GetSBJControllerSettings(), worker, e);
+            m_sbjController.IV_AcquireData(GetIVSettings(), worker, e);
         }
 
         /// <summary>
@@ -454,15 +426,11 @@ namespace SBJController
             //
             // We've done taking data so we must bring back the UI appearance
             //
-            ivStartCyclesCheckBox.Text = "Start IV Cycles";
-            ivStartCyclesCheckBox.Checked = false;
-            startStopCheckBoxButton.Enabled = true;
-            shortCircuitCheckBoxButton.Enabled = true;
-            moveUpCheckBoxButton.Enabled = true;
-            generalSettingsPanel.Enabled = true;
-            laserSettingsPanel.Enabled = true;
-            lockInPanel.Enabled = true;
-            electroMagnetSettingsPanel.Enabled = true;
+            this.ivStartStopCheckBox.Text = "Start";
+            this.ivStartStopCheckBox.Checked = false;
+            this.ivShortCircuitCheckBox.Enabled = true;
+            this.ivStepperUpCheckBox.Enabled = true;
+            this.ivSettingsGroupBox.Enabled = true;
         }
 
         #endregion
@@ -530,12 +498,11 @@ namespace SBJController
         /// <param name="e"></param>
         private void gainComboBox_ValueChanged(object sender, EventArgs e)
         {
-            int gainPower = int.Parse(this.gainComboBox.Text);
-            m_sbjController.ChangeGain(gainPower);
-            this.triggerConductanceNumericEdit.Value = GetTriggerConductance();
-            this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.biasNumericEdit.Value) * Math.Pow(10, gainPower);            
-            this.emHoldOnMaxConductanceNumericEdit.Value = 100 * GetTriggerConductance();
-            this.emHoldOnMinConductanceNumericEdit.Value = 50 * GetTriggerConductance();
+            GainUpdate(this.biasNumericEdit.Value, int.Parse(this.gainComboBox.Text), 
+                        this.triggerConductanceNumericEdit, this.triggerVoltageNumericEdit);
+
+            this.emHoldOnMaxConductanceNumericEdit.Value = 100 * this.triggerConductanceNumericEdit.Value;
+            this.emHoldOnMinConductanceNumericEdit.Value = 50 * this.triggerConductanceNumericEdit.Value;
         }
 
         /// <summary>
@@ -545,26 +512,13 @@ namespace SBJController
         /// <param name="e"></param>
         private void biasNumericEdit_AfterChangeValue(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
         {
-            //
-            // This event is also fired when the UI loads on start.
-            // At that point sbjController is still null and we need to verify this.
-            //
-            if (m_sbjController != null && this.useKeithleyCheckBox.Checked)
-            {
-                m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
-            }
+            BiasUpdate(this.biasNumericEdit.Value, int.Parse(this.gainComboBox.Text), this.useKeithleyCheckBox.Checked, 
+                        this.triggerConductanceNumericEdit, this.triggerVoltageNumericEdit);
 
-            //
-            // If bias had changed sign it is recommanded to run fix bias again.
-            //
-            if (e.NewValue * e.OldValue < 0)
-            {
-                this.biasErrorLabel.ForeColor = Color.Red;
-            }
-            this.triggerConductanceNumericEdit.Value = GetTriggerConductance();
-            this.triggerVoltageNumericEdit.Value = -this.triggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.biasNumericEdit.Value) * Math.Pow(10, int.Parse(this.gainComboBox.Text));            
             this.emHoldOnMaxVoltageNumericEdit.Value = GetVoltageFromConductnace(this.emHoldOnMaxConductanceNumericEdit.Value); 
         }
+
+
 
         /// <summary>
         /// Enable or Disable the laser 
@@ -608,35 +562,10 @@ namespace SBJController
         /// <param name="e"></param>
         private void browseButton_Click(object sender, EventArgs e)
         {
-            string initialPath = this.pathTextBox.Text;
-            FolderBrowserDialog folderBroswer = new FolderBrowserDialog();
-
-            //
-            // Open the directory that currently written.
-            // If doesn't exist just open the broswer from the current running path.
-            //
-            if (Directory.Exists(this.pathTextBox.Text))
-            {
-                folderBroswer.SelectedPath = this.pathTextBox.Text;
-            }
-            else
-            {
-                folderBroswer.SelectedPath = Environment.CurrentDirectory;
-            }
-            DialogResult dialogResult = folderBroswer.ShowDialog();
-
-            //
-            // Show the selected path.
-            //
-            if (dialogResult == DialogResult.OK)
-            {
-                this.pathTextBox.Text = folderBroswer.SelectedPath;
-            }
-            else
-            {
-                this.pathTextBox.Text = initialPath;
-            }
+            BrowseButtonFunction(this.pathTextBox);
         }    
+
+
 
         //
         // Save to sample log
@@ -977,50 +906,6 @@ namespace SBJController
         }
 
         /// <summary>
-        /// On IV Amplitude change
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ivAmplitudeNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
-        {
-            //
-            // sets the voltage in which we display the trace to be whithing the boundries of +-amplitude.
-            //
-            if (Math.Abs(this.ivVoltageForTheDisplayedTraceNumericEdit.Value) > Math.Abs(this.ivAmplitudeNumericEdit.Value))
-            {
-                this.ivVoltageForTheDisplayedTraceNumericEdit.Value = (this.ivVoltageForTheDisplayedTraceNumericEdit.Value > 0) ? this.ivAmplitudeNumericEdit.Value : (-this.ivAmplitudeNumericEdit.Value);
-            }
-        }
-
-        /// <summary>
-        /// On Voltage for displayed Trace change
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ivVoltageForTheDisplayedTraceNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
-        {
-            //
-            // sets the voltage in which we display the trace to be whithing the boundries of +-amplitude.
-            // this function fires when program starts before there is a vlaue inside amplitude, so we need to exclude that case. 
-            //
-            if ((this.ivAmplitudeNumericEdit.Value!=0) && 
-                (Math.Abs(this.ivVoltageForTheDisplayedTraceNumericEdit.Value) > Math.Abs(this.ivAmplitudeNumericEdit.Value)))
-            {
-                this.ivVoltageForTheDisplayedTraceNumericEdit.Value = (this.ivVoltageForTheDisplayedTraceNumericEdit.Value > 0) ? this.ivAmplitudeNumericEdit.Value : (-this.ivAmplitudeNumericEdit.Value);
-            }
-        }
-
-        /// <summary>
-        /// On samples per cycle change
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ivSamplesPerCycleNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
-        {
-            this.ivTimeOfOneCycleNumericEdit.Value = this.ivSampleDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
-        }
-
-        /// <summary>
         /// Open the folder
         /// </summary>
         /// <param name="sender"></param>
@@ -1029,6 +914,51 @@ namespace SBJController
         {
             System.Diagnostics.Process.Start(this.pathTextBox.Text);
         }
+
+        /// <summary>
+        /// On IV Amplitude change
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivVoltageAmplitudeNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            //
+            // sets the voltage in which we display the trace to be whithing the boundries of +-amplitude.
+            //
+            if (Math.Abs(this.ivVoltageForTraceNumericEdit.Value) > Math.Abs(this.ivVoltageAmplitudeNumericEdit.Value))
+            {
+                this.ivVoltageForTraceNumericEdit.Value = (this.ivVoltageForTraceNumericEdit.Value > 0) ? this.ivVoltageAmplitudeNumericEdit.Value : (-this.ivVoltageAmplitudeNumericEdit.Value);
+            }
+        }
+
+        ///// <summary>
+        ///// On Voltage for displayed Trace change
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //private void ivVoltageForTheDisplayedTraceNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        //{
+        //    //
+        //    // sets the voltage in which we display the trace to be whithing the boundries of +-amplitude.
+        //    // this function fires when program starts before there is a vlaue inside amplitude, so we need to exclude that case. 
+        //    //
+        //    if ((this.ivAmplitudeNumericEdit.Value != 0) &&
+        //        (Math.Abs(this.ivVoltageForTheDisplayedTraceNumericEdit.Value) > Math.Abs(this.ivAmplitudeNumericEdit.Value)))
+        //    {
+        //        this.ivVoltageForTheDisplayedTraceNumericEdit.Value = (this.ivVoltageForTheDisplayedTraceNumericEdit.Value > 0) ? this.ivAmplitudeNumericEdit.Value : (-this.ivAmplitudeNumericEdit.Value);
+        //    }
+        //}
+
+        ///// <summary>
+        ///// On samples per cycle change
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //private void ivSamplesPerCycleNumericEdit_AfterChangeValue_2(object sender, AfterChangeNumericValueEventArgs e)
+        //{
+        //    this.ivTimeOfOneCycleNumericEdit.Value = this.ivSampleDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit2.Value;
+        //}
+
         #endregion
         
         #endregion
@@ -1211,11 +1141,7 @@ namespace SBJController
                                                                                          this.emHoldOnMinConductanceNumericEdit.Value,
                                                                                          this.emHoldOnMinVoltageNumericEdit.Value,
                                                                                          this.emSkipFirstCycleByStepperMotorCheckBox.Checked),
-                                                  new ChannelsSettings(GetActiveChannels()),
-                                                  new IVCurvesSBJControllerSettings(this.ivAmplitudeNumericEdit.Value, 
-                                                                                    (int)this.ivSamplesPerCycleNumericEdit.Value, 
-                                                                                    this.ivSampleDelayNumericEdit.Value, 
-                                                                                    (int)this.ivSampleRateNumericEdit.Value));
+                                                  new ChannelsSettings(GetActiveChannels()));
                                                                          
 
             }
@@ -1224,14 +1150,14 @@ namespace SBJController
         /// <summary>
         /// Get the trigger conductance
         /// </summary>
-        /// <returns></returns>4
-        private double GetTriggerConductance()
+        /// <returns></returns>
+        private double GetTriggerConductance(int gain, double bias)
         {          
             //
             // Critical conductance is set to 3 order of magnitude below the maximum
             // conductance measured at this gain range
             //
-            double maxConductance = m_maxVoltage / Math.Pow(10, int.Parse(this.gainComboBox.Text)) / Math.Abs(this.biasNumericEdit.Value) / m_1G0;
+            double maxConductance = m_maxVoltage / Math.Pow(10, gain) / Math.Abs(bias) / m_1G0;
             return maxConductance / 1000;
         }
 
@@ -1249,7 +1175,16 @@ namespace SBJController
         /// <summary>
         /// Populate the channles list in the UI
         /// </summary>
-        private void PopulateChannelsList()
+        private void PopulateChannelsLists()
+        {
+            PopulateChannelsListOnDAQTab();
+            PopulateChannelsListOnIVTab();
+        }
+
+        /// <summary>
+        /// Populate channels list on thw DAQ tab on the UI
+        /// </summary>
+        private void PopulateChannelsListOnDAQTab()
         {
             List<string> channelTypes = new List<string>();
             List<string> complexChannelTypes = new List<string>();
@@ -1265,18 +1200,21 @@ namespace SBJController
                 {
                     if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
                     {
-                        if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+                        if (type.GetCustomAttributes(false)[0] is DAQAttribute)
                         {
-                            channelTypes.Add(type.Name);
-                        }
-                        else
-                        {
-                            complexChannelTypes.Add(type.Name);
+                            if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+                            {
+                                channelTypes.Add(type.Name);
+                            }
+                            else
+                            {
+                                complexChannelTypes.Add(type.Name);
+                            }
                         }
                     }
                 }
-            }                   
-       
+            }
+
             //
             // In the channles tab only assign the simple data channels
             //
@@ -1296,9 +1234,69 @@ namespace SBJController
             List<string> allAvailableChannels = channelTypes;
             allAvailableChannels.AddRange(complexChannelTypes);
             List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
-            channelsListView.Items.AddRange(channelsToDisplay.ToArray());           
+            channelsListView.Items.AddRange(channelsToDisplay.ToArray());
             channelsListView.Items[channelsListView.Items.IndexOfKey(typeof(DefaultDataChannel).Name)].Checked = true;            
-    }
+        }
+
+        /// <summary>
+        /// Populate channels list on thw IV tab on the UI
+        /// </summary>
+        private void PopulateChannelsListOnIVTab()
+        {
+            List<string> channelTypes = new List<string>();
+            List<string> complexChannelTypes = new List<string>();
+            var typeIDataChannel = typeof(IDataChannel);
+
+            //
+            // A possible data channel is only one which ipmlements IDataChannel
+            // Take only these ones and sort to Simple and Complex data channels lists.
+            //
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypes())
+                {
+                    if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
+                    {
+                        if (type.GetCustomAttributes(false)[0] is IVAttribute)
+                        {
+                            if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+                            {
+                                channelTypes.Add(type.Name);
+                            }
+                            else
+                            {
+                                complexChannelTypes.Add(type.Name);
+                            }
+                        }
+                    }
+                }
+            }
+
+            //
+            // In the channles tab only assign the simple data channels
+            //
+            this.ivChannel0ComboBox.DataSource = channelTypes;
+            this.ivChannel1ComboBox.DataSource = new List<string>(channelTypes);
+            this.ivChannel2ComboBox.DataSource = new List<string>(channelTypes);
+            this.ivChannel3ComboBox.DataSource = new List<string>(channelTypes);
+            
+            //Set the right initial value for the first comboBox
+            this.ivChannel0ComboBox.SelectedItem = typeof(IVInputDataChannel).Name;
+
+            this.ivChannel0CheckBox.Text = Settings.Default.DAQPhysicalChannelName0;
+            this.ivChannel1CheckBox.Text = Settings.Default.DAQPhysicalChannelName1;
+            this.ivChannel2CheckBox.Text = Settings.Default.DAQPhysicalChannelName2;
+            this.ivChannel3CheckBox.Text = Settings.Default.DAQPhysicalChannelName3;
+
+            //
+            // Also populate the channels in the display list
+            //
+            List<string> allAvailableChannels = channelTypes;
+            allAvailableChannels.AddRange(complexChannelTypes);
+            List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
+            ivChannelsListView.Items.AddRange(channelsToDisplay.ToArray());
+            ivChannelsListView.Items[ivChannelsListView.Items.IndexOfKey(typeof(IVProcessedDataChannel).Name)].Checked = true;
+        }
 
         /// <summary>
         /// Creats a list view for the channels
@@ -1328,7 +1326,7 @@ namespace SBJController
 
             DataConvertorSettings dataConvertorSettings =  new DataConvertorSettings(Math.Abs(this.biasNumericEdit.Value), Convert.ToInt32(this.gainComboBox.Text),
                                                                                      this.lockInAcVoltageNumericEdit.Value, Double.Parse(this.sensitivityComboBox.Text), 
-                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value, this.ivVoltageForTheDisplayedTraceNumericEdit.Value);
+                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value, this.ivVoltageForTraceNumericEdit.Value);
             if (channel0CheckBox.Checked)
             {
                 activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(channel0ComboBox.SelectedValue as string)), 
@@ -1445,5 +1443,272 @@ namespace SBJController
         }
       
         #endregion            
+
+        private void ivBrowseButton_Click(object sender, EventArgs e)
+        {
+            BrowseButtonFunction(this.ivPathTextBox);
+        }
+
+        private void ivOpenFolderButton_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start(this.ivPathTextBox.Text);
+        }
+
+        /// <summary>
+        /// Select path for saving file
+        /// </summary>
+        /// <param name="relevantPathTextBox">the active path text box</param>
+        private void BrowseButtonFunction(TextBox relevantPathTextBox)
+        {
+            string initialPath = relevantPathTextBox.Text;
+            FolderBrowserDialog folderBroswer = new FolderBrowserDialog();
+
+            //
+            // Open the directory that currently written.
+            // If doesn't exist just open the broswer from the current running path.
+            //
+            if (Directory.Exists(relevantPathTextBox.Text))
+            {
+                folderBroswer.SelectedPath = relevantPathTextBox.Text;
+            }
+            else
+            {
+                folderBroswer.SelectedPath = Environment.CurrentDirectory;
+            }
+            DialogResult dialogResult = folderBroswer.ShowDialog();
+
+            //
+            // Show the selected path.
+            //
+            if (dialogResult == DialogResult.OK)
+            {
+                relevantPathTextBox.Text = folderBroswer.SelectedPath;
+            }
+            else
+            {
+                relevantPathTextBox.Text = initialPath;
+            }
+        }
+
+        /// <summary>
+        /// updates the bias on the keithley if needed, and the trigger values on the UI
+        /// </summary>
+        /// <param name="isKeithleyUsed"></param>
+        /// <param name="triggerConductance"></param>
+        /// <param name="triggerVoltage"></param>
+        private void BiasUpdate(double bias, int gainPower, bool isKeithleyUsed, NumericEdit triggerConductance, NumericEdit triggerVoltage)
+        {
+            //
+            // This event is also fired when the UI loads on start.
+            // At that point sbjController is still null and we need to verify this.
+            //
+            if (m_sbjController != null && isKeithleyUsed)
+            {
+                m_sbjController.SourceMeter.SetBias(bias);
+            }
+
+            //
+            // update the trigger values
+            //
+            triggerConductance.Value = GetTriggerConductance(gainPower, bias);
+            triggerVoltage.Value = -triggerConductance.Value * m_1G0 * Math.Abs(bias) * Math.Pow(10, gainPower);
+        }
+
+        /// <summary>
+        /// updates the gain on the amplifier, and the trigger values on the UI
+        /// </summary>
+        /// <param name="isKeithleyUsed"></param>
+        /// <param name="triggerConductance"></param>
+        /// <param name="triggerVoltage"></param>
+        private void GainUpdate(double bias, int gainPower, NumericEdit triggerConductance, NumericEdit triggerVoltage)
+        {
+            //
+            // update gain power on the amplifier
+            //
+            m_sbjController.ChangeGain(gainPower);
+
+            //
+            // update the trigger values
+            //
+            triggerConductance.Value = GetTriggerConductance(gainPower, bias);
+            triggerVoltage.Value = -triggerConductance.Value * m_1G0 * Math.Abs(bias) * Math.Pow(10, gainPower);
+        }
+
+        /// <summary>
+        /// Tries to connect to the keithley. If failed, uncheck the "use keithly" checkBox. 
+        /// </summary>
+        private void TryConnectToKeithly()
+        {
+            try
+            {
+                m_sbjController.SourceMeter.Connect();
+            }
+            catch (SBJException)
+            {
+                //
+                // the keithley doesn't connect. 
+                //
+                this.useKeithleyCheckBox.Checked = false;
+            }
+        }
+
+        private void ivStepperMotorRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.ivStepperMotorRadioButton.Checked)
+            {
+                this.ivElectroMagnetRadioButton.Checked = false;
+                this.ivElectroMagnetGroupBox.Enabled = false;
+                this.ivStepperMotorGroupBox.Enabled = true;
+            }
+        }
+
+        private void ivElectroMagnetRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.ivElectroMagnetRadioButton.Checked)
+            {
+                this.ivStepperMotorRadioButton.Checked = false;
+                this.ivElectroMagnetGroupBox.Enabled = true;
+                this.ivStepperMotorGroupBox.Enabled = false;
+            }
+        }
+
+        private void ivPathTextBox_TextChanged(object sender, EventArgs e)
+        {
+            //
+            // The folder in which we save the files has been changed, so we need to set the file number back to zero.
+            //            
+            this.fileNumberNumericUpDown.Value = 0;
+        }
+
+
+        /// <summary>
+        /// IV Tab - get settings from UI
+        /// </summary>
+        /// <returns></returns>
+        private IVSettings GetIVSettings()
+        {
+            //
+            // Using windows forms one must know that UI controls cannot be accessed from a different thread than
+            // the thread the UI was created on. This is why everytime you try and reach a UI control you must
+            // first verify that you are in the right thread.
+            //
+            if (this.InvokeRequired)
+            {
+                //
+                // This tells us that we are not in the safe thread and so this function must be re-invoked
+                // from an appropriate thread.
+                //
+                return (IVSettings)this.Invoke(new Func<IVSettings>(() => GetIVSettings()));
+            }
+            else
+            {
+                //
+                // Apparently this function was called from a safe thread so just carry on with
+                // what we were planning on doing.
+                //
+                return new IVSettings(new IVGeneralSettings(this.ivVoltageAmplitudeNumericEdit.Value, 
+                                                            (int)this.ivSamplesPerCycleNumericEdit.Value, 
+                                                            this.ivOutputUpdateDelayNumericEdit.Value, 
+                                                            (int)this.ivOutputUpdateRateNumericEdit.Value, 
+                                                            this.ivVoltageForTraceNumericEdit.Value, 
+                                                            this.ivTimeOfOneIVCycleNumericEdit.Value, 
+                                                            this.ivGainPoweComboBox.Text, 
+                                                            this.ivTriggerVoltageNumericEdit.Value, 
+                                                            this.ivTriggerConductanceNumericEdit.Value, 
+                                                            (int)this.ivInputSampleRateNumericUpDown.Value, 
+                                                            this.ivFileSavingCheckBox.Checked, 
+                                                            this.ivPathTextBox.Text, 
+                                                            (int)this.ivFileNumberNumericUpDown.Value, 
+                                                            (int)this.ivNumberOfCyclesNumericUpDown.Value, 
+                                                            (double)this.ivShortCircuitVoltageNumericUpDown.Value,
+                                                            (Sample)this.bottomPropertyGrid.SelectedObject,
+                                                            (Sample)this.bottomPropertyGrid.SelectedObject), 
+                                new IVSteppingMethodSettings(GetSteppingDevice(), 
+                                                            (int)this.ivStepperDelayTime1NumericUpDown.Value, 
+                                                            (int)this.ivStepperDelayTime2NumericUpDown.Value, 
+                                                            (int)this.ivEMShortCircuitDelayTimeNumericUpDown.Value, 
+                                                            (int)this.ivEMFastDelayTimeNumericUpDown.Value, 
+                                                            (int)this.ivEMSlowDelayTimeNumericUpDown.Value, 
+                                                            this.ivEMSkipStepperMotorCheckBox.Checked),
+                                new ChannelsSettings(GetActiveChannels()));
+            }
+        }
+
+        /// <summary>
+        /// On IV tab: return what is the requested stepping device
+        /// </summary>
+        /// <returns></returns>
+        private SteppingDevice GetSteppingDevice()
+        {
+            if (this.ivStepperMotorRadioButton.Checked)
+            {
+                return SteppingDevice.StepperMotor;
+            }
+            else
+            {
+                return SteppingDevice.ElectroMagnet;
+            }
+        }
+
+        private void ivGainPoweComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            GainUpdate(this.ivVoltageForTraceNumericEdit.Value, int.Parse(this.ivGainPoweComboBox.Text), 
+                        this.ivTriggerConductanceNumericEdit, this.ivTriggerVoltageNumericEdit);
+        }
+
+        private void ivTriggerConductanceNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            this.ivTriggerVoltageNumericEdit.Value = -this.ivTriggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.ivVoltageForTraceNumericEdit.Value) * Math.Pow(10, int.Parse(this.ivGainPoweComboBox.Text));
+        }
+
+        private void ivSamplesPerCycleNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            this.ivTimeOfOneIVCycleNumericEdit.Value = this.ivOutputUpdateDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
+        }
+
+        private void ivOutputUpdateDelayNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            this.ivTimeOfOneIVCycleNumericEdit.Value = this.ivOutputUpdateDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
+            this.ivOutputUpdateRateNumericEdit.Value = 1000 / e.NewValue;
+        }
+
+        //private void ShortCircuitFunction(CheckBox shortCircuit)
+        //{
+        //    if (shortCir cuitCheckBoxButton.Checked)
+        //    {
+        //        //
+        //        // Short Circuit request.
+        //        // Verify first that the worker is nor busy otherwise this means that it is a double request.
+        //        //
+        //        if (!obtainShortCircuitBackgroundWorker.IsBusy)
+        //        {
+        //            //
+        //            // Change button text and behavior of other related controls
+        //            //
+        //            shortCircuitCheckBoxButton.Text = "Stop";
+        //            startStopCheckBoxButton.Enabled = false;
+        //            moveUpCheckBoxButton.Enabled = false;
+
+        //            //
+        //            // Do work async
+        //            //
+        //            obtainShortCircuitBackgroundWorker.RunWorkerAsync();
+        //        }
+        //        else
+        //        {
+        //            MessageBox.Show("Can not start Short Circuit operation." + Environment.NewLine + "Please try again in few seconds.");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        //
+        //        // If we reached here that means that we were requested to stop the short circuit.
+        //        //
+        //        if (obtainShortCircuitBackgroundWorker.WorkerSupportsCancellation == true)
+        //        {
+        //            obtainShortCircuitBackgroundWorker.CancelAsync();
+        //        }
+        //    }
+        //}
     }
 }

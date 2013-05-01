@@ -14,21 +14,18 @@ namespace SBJController
         public LockInSBJControllerSettings LockInSettings { get; set; }
         public ElectroMagnetSBJControllerSettings ElectromagnetSettings { get; set; }
         public ChannelsSettings ChannelsSettings { get; set; }
-        public IVCurvesSBJControllerSettings IVCurvesSettings { get; set; }
         
         public SBJControllerSettings(GeneralSBJControllerSettings generalSettings,
                                      LaserSBJControllerSettings laserSettings,
                                      LockInSBJControllerSettings lockInSettings,
                                      ElectroMagnetSBJControllerSettings electromagnetSettings,
-                                     ChannelsSettings channelsSettings,
-                                     IVCurvesSBJControllerSettings ivCurvesSettings)
+                                     ChannelsSettings channelsSettings)
         {
             GeneralSettings = generalSettings;
             LaserSettings = laserSettings;
             LockInSettings = lockInSettings;
             ElectromagnetSettings = electromagnetSettings;                        
             ChannelsSettings = channelsSettings;
-            IVCurvesSettings = ivCurvesSettings;
         }
     }
 
@@ -228,27 +225,79 @@ namespace SBJController
         }
     }
 
+    #region IV
     /// <summary>
     /// This class represents the IV settings in the UI
     /// </summary>
-    public class IVCurvesSBJControllerSettings
+    public class IVSettings
     {
-        public double IVAmplitude { get; set; }
-        public int IVSamplesPerCycle { get; set; }
-        public double IVSamplesDelay { get; set; }
-        public int IVSampleRate { get; set; }
+        public IVGeneralSettings IVGeneralSettings { get; set; }
+        public IVSteppingMethodSettings IVSteppingMethodSettings { get; set; }
+        public ChannelsSettings ChannelsSettings { get; set; }
 
-        public IVCurvesSBJControllerSettings(double ivAmplitude, int ivSamplesPerCycle, double ivSamplesDelay, int ivSampleRate)
+        public IVSettings(IVGeneralSettings ivGeneralSettings,
+                            IVSteppingMethodSettings ivSteppingMethodSettings,
+                            ChannelsSettings channelsSettings)
         {
-            IVAmplitude = ivAmplitude;
-            IVSamplesPerCycle = ivSamplesPerCycle;
-            IVSamplesDelay = ivSamplesDelay;
-            IVSampleRate = ivSampleRate;
+            IVGeneralSettings = ivGeneralSettings;
+            IVSteppingMethodSettings = ivSteppingMethodSettings;                        
+            ChannelsSettings = channelsSettings;
+        }
+    }
+  
+    /// <summary>
+    /// This class combines all the general settings on the IV tab
+    /// </summary>
+    public class IVGeneralSettings 
+    {
+        public double VoltageAmplitude { get; set; }
+        public int SamplesPerCycle { get; set; }
+        public double OutputUpdateDelay { get; set; }
+        public int OutputUpdateRate { get; set; }
+        public double VoltageForDisplayedTrace { get; set; }
+        public double TimeForOneIVCycle { get; set; }
+        public string Gain { get; set; }
+        public double TriggerVoltage { get; set; }
+        public double TriggerConductance { get; set; }
+        public int SampleRate { get; set; }
+        public bool IsFileSavingRequired { get; set; }
+        public string Path { get; set; }
+        public int CurrentFileNumber { get; set; }
+        public int TotalNumberOfCycles { get; set; }
+        public double ShortCircuitVoltage { get; set; }
+        public Sample Bottom { get; set; }
+        public Sample Top { get; set; }
+
+        public IVGeneralSettings (double voltageAmplitude, int samplesPerCycle, 
+                                     double outputUpdateDelay, int outputUpdateRate, 
+                                     double voltageForDisplayedTrace, double timeForOneIVCycle,
+                                     string gain, double triggerVoltage,
+                                     double triggerConductance, int sampleRate, bool isFileSavingRequired, 
+                                     string path, int currentFileNumber, int totalNUmberOfCycles, 
+                                     double shortCircuitVoltage,Sample bottom, Sample top)
+        {
+            VoltageAmplitude = voltageAmplitude;
+            SamplesPerCycle = samplesPerCycle;
+            OutputUpdateDelay = outputUpdateDelay;
+            OutputUpdateRate = outputUpdateRate;
+            VoltageForDisplayedTrace = voltageForDisplayedTrace;
+            TimeForOneIVCycle = timeForOneIVCycle;
+            Gain = gain;
+            TriggerConductance = triggerConductance;
+            TriggerVoltage = triggerVoltage;
+            SampleRate = sampleRate;
+            IsFileSavingRequired = isFileSavingRequired;
+            Path = path;
+            CurrentFileNumber = currentFileNumber;
+            TotalNumberOfCycles = totalNUmberOfCycles;
+            ShortCircuitVoltage = shortCircuitVoltage;
+            Bottom = bottom;
+            Top = top;
         }
 
         public override string ToString()
         {
-            StringBuilder toStringResult = new StringBuilder("IV Curves Settings:" + Environment.NewLine);
+            StringBuilder toStringResult = new StringBuilder("IV General Settings:" + Environment.NewLine);
             foreach (var property in this.GetType().GetProperties())
             {
                 toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString() + Environment.NewLine);
@@ -256,4 +305,43 @@ namespace SBJController
             return toStringResult.ToString();
         }
     }
+
+    /// <summary>
+    /// This class combines the settings of the stepping method on the IV tab
+    /// </summary>
+    public class IVSteppingMethodSettings
+    {
+        public SteppingDevice SteppingDevice { get; set; }
+        public int StepperMotorWaitTime1 { get; set; }
+        public int StepperMotorWaitTime2 { get; set; }
+        public int EMShortCircuitDelayTime { get; set; }
+        public int EMFastDelayTime { get; set; }
+        public int EMSlowDelayTime { get; set; }
+        public bool IsEMSkipFirstCycleEnable { get; set; }
+
+        public IVSteppingMethodSettings(SteppingDevice steppingDevice, 
+                                            int stepperMotorWaitTime1, int stepperMotorWaitTime2, 
+                                            int emShortCircuitDelayTime, int emFastDelayTime, 
+                                            int emSlowDelayTime, bool isEMSkipFirstCycleEnable)
+        {
+            SteppingDevice = steppingDevice;
+            StepperMotorWaitTime1 = stepperMotorWaitTime1;
+            StepperMotorWaitTime2 = stepperMotorWaitTime2; 
+            EMShortCircuitDelayTime = emShortCircuitDelayTime;
+            EMFastDelayTime = emFastDelayTime;
+            EMSlowDelayTime = emSlowDelayTime;
+            IsEMSkipFirstCycleEnable = isEMSkipFirstCycleEnable;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder toStringResult = new StringBuilder("IV Stepping Method Settings:" + Environment.NewLine);
+            foreach (var property in this.GetType().GetProperties())
+            {
+                toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString()+ Environment.NewLine);
+            }
+            return toStringResult.ToString();
+        }
+    }
+    #endregion
 }
