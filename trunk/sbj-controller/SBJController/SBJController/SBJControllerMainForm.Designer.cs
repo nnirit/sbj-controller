@@ -36,7 +36,6 @@
             this.operateGroupBox = new System.Windows.Forms.GroupBox();
             this.openFolderButton = new System.Windows.Forms.Button();
             this.fixBiasCheckBoxButton = new System.Windows.Forms.CheckBox();
-            this.ivStartCyclesCheckBox = new System.Windows.Forms.CheckBox();
             this.moveUpCheckBoxButton = new System.Windows.Forms.CheckBox();
             this.startStopCheckBoxButton = new System.Windows.Forms.CheckBox();
             this.shortCircuitCheckBoxButton = new System.Windows.Forms.CheckBox();
@@ -141,22 +140,79 @@
             this.channel2ComboBox = new System.Windows.Forms.ComboBox();
             this.channel1CheckBox = new System.Windows.Forms.CheckBox();
             this.channel2CheckBox = new System.Windows.Forms.CheckBox();
-            this.ivCurvesTabPage = new System.Windows.Forms.TabPage();
-            this.ivCurvesPanel = new System.Windows.Forms.Panel();
-            this.ivTimeOfOneCycleNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
-            this.label8 = new System.Windows.Forms.Label();
-            this.ivVoltageForTheDisplayedTraceNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.ivSampleRateNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.ivAmplitudeNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
-            this.ivSampleDelayNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.ivAcquisition = new System.Windows.Forms.TabPage();
+            this.ivOperateGroupBox = new System.Windows.Forms.GroupBox();
+            this.ivOpenFolderButton = new System.Windows.Forms.Button();
+            this.ivStepperUpCheckBox = new System.Windows.Forms.CheckBox();
+            this.ivStartStopCheckBox = new System.Windows.Forms.CheckBox();
+            this.ivShortCircuitCheckBox = new System.Windows.Forms.CheckBox();
+            this.ivNumberOfCyclesNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.ivNumberOfCyclesLlabel = new System.Windows.Forms.Label();
+            this.ivShortCircuitVoltageNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.ivShortCircuitVoltageLabel = new System.Windows.Forms.Label();
+            this.ivPathTextBox = new System.Windows.Forms.TextBox();
+            this.ivBrowseButton = new System.Windows.Forms.Button();
+            this.ivFileSavingCheckBox = new System.Windows.Forms.CheckBox();
+            this.ivFileNumberLabel = new System.Windows.Forms.Label();
+            this.ivPathLabel = new System.Windows.Forms.Label();
+            this.ivFileNumberNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.ivPlotGroupBox = new System.Windows.Forms.GroupBox();
+            this.ivChannelsListView = new System.Windows.Forms.ListView();
+            this.ivWaveformGraph = new NationalInstruments.UI.WindowsForms.WaveformGraph();
+            this.waveformPlot2 = new NationalInstruments.UI.WaveformPlot();
+            this.xAxis2 = new NationalInstruments.UI.XAxis();
+            this.conductanceAxis = new NationalInstruments.UI.YAxis();
+            this.ivSettingsGroupBox = new System.Windows.Forms.GroupBox();
+            this.ivGeneralTabControl = new System.Windows.Forms.TabControl();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.ivGeneralSettingsPanel = new System.Windows.Forms.Panel();
+            this.ivVoltageForTraceNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.ivVoltageForTraceLabel = new System.Windows.Forms.Label();
+            this.ivTimeOfOneIVCycleNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.ivTimeOfIVCycleLabel = new System.Windows.Forms.Label();
+            this.ivOutputUpdateDelayLabel = new System.Windows.Forms.Label();
+            this.ivOutputUpdateRateNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.ivSamplesPerCycleLabel = new System.Windows.Forms.Label();
+            this.ivVoltageAmplitudeLabel = new System.Windows.Forms.Label();
+            this.ivOutputUpdateRateLabel = new System.Windows.Forms.Label();
+            this.ivVoltageAmplitudeNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.ivOutputUpdateDelayNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
             this.ivSamplesPerCycleNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.ivGainPoweComboBox = new System.Windows.Forms.ComboBox();
+            this.ivInputSampleRateNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.ivTriggerVoltageNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.ivTriggerVoltageLabel = new System.Windows.Forms.Label();
+            this.ivTriggerConductanceNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.ivTriggerConductanceLabel = new System.Windows.Forms.Label();
+            this.ivInputSampleRateLabel = new System.Windows.Forms.Label();
+            this.ivGainPowerLabel = new System.Windows.Forms.Label();
+            this.ivSteppingMethodTabPage = new System.Windows.Forms.TabPage();
+            this.ivSteppingMethodPanel = new System.Windows.Forms.Panel();
+            this.ivElectroMagnetRadioButton = new System.Windows.Forms.RadioButton();
+            this.ivElectroMagnetGroupBox = new System.Windows.Forms.GroupBox();
+            this.ivEMSkipStepperMotorCheckBox = new System.Windows.Forms.CheckBox();
+            this.ivEMShortCircuitDelayTimeLabel = new System.Windows.Forms.Label();
+            this.ivEMShortCircuitDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.ivEMSlowDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.ivEMSlowDelayTimeLabel = new System.Windows.Forms.Label();
+            this.ivEMFastDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.ivEMFastDelayTimeLabel = new System.Windows.Forms.Label();
+            this.ivStepperMotorRadioButton = new System.Windows.Forms.RadioButton();
+            this.ivStepperMotorGroupBox = new System.Windows.Forms.GroupBox();
+            this.ivStepperDelayTime2NumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.ivStepperDelayTime1NumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.ivStepperDelayTime2Label = new System.Windows.Forms.Label();
+            this.ivStepperDelayTime1Label = new System.Windows.Forms.Label();
+            this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.ivChannelsPanel = new System.Windows.Forms.Panel();
+            this.ivChannel1ComboBox = new System.Windows.Forms.ComboBox();
+            this.ivChannel3ComboBox = new System.Windows.Forms.ComboBox();
+            this.ivChannel0CheckBox = new System.Windows.Forms.CheckBox();
+            this.ivChannel3CheckBox = new System.Windows.Forms.CheckBox();
+            this.ivChannel0ComboBox = new System.Windows.Forms.ComboBox();
+            this.ivChannel2ComboBox = new System.Windows.Forms.ComboBox();
+            this.ivChannel1CheckBox = new System.Windows.Forms.CheckBox();
+            this.ivChannel2CheckBox = new System.Windows.Forms.CheckBox();
             this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
             this.electroMagnetUserControl2 = new ElectroMagnetUserControl();
@@ -212,14 +268,37 @@
             ((System.ComponentModel.ISupportInitialize)(this.emFastDelayTimeNumericUpDown)).BeginInit();
             this.channelsConfigurationTabPage.SuspendLayout();
             this.channelsSettingsPanel.SuspendLayout();
-            this.ivCurvesTabPage.SuspendLayout();
-            this.ivCurvesPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ivTimeOfOneCycleNumericEdit)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.ivVoltageForTheDisplayedTraceNumericEdit)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.ivSampleRateNumericEdit)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.ivAmplitudeNumericEdit)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.ivSampleDelayNumericEdit)).BeginInit();
+            this.ivAcquisition.SuspendLayout();
+            this.ivOperateGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ivNumberOfCyclesNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivShortCircuitVoltageNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivFileNumberNumericUpDown)).BeginInit();
+            this.ivPlotGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ivWaveformGraph)).BeginInit();
+            this.ivSettingsGroupBox.SuspendLayout();
+            this.ivGeneralTabControl.SuspendLayout();
+            this.tabPage2.SuspendLayout();
+            this.ivGeneralSettingsPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ivVoltageForTraceNumericEdit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivTimeOfOneIVCycleNumericEdit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivOutputUpdateRateNumericEdit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivVoltageAmplitudeNumericEdit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivOutputUpdateDelayNumericEdit)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivSamplesPerCycleNumericEdit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivInputSampleRateNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivTriggerVoltageNumericEdit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivTriggerConductanceNumericEdit)).BeginInit();
+            this.ivSteppingMethodTabPage.SuspendLayout();
+            this.ivSteppingMethodPanel.SuspendLayout();
+            this.ivElectroMagnetGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ivEMShortCircuitDelayTimeNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivEMSlowDelayTimeNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivEMFastDelayTimeNumericUpDown)).BeginInit();
+            this.ivStepperMotorGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ivStepperDelayTime2NumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivStepperDelayTime1NumericUpDown)).BeginInit();
+            this.tabPage7.SuspendLayout();
+            this.ivChannelsPanel.SuspendLayout();
             this.controlPanelsTabPage.SuspendLayout();
             this.electroMagnetGroupBox.SuspendLayout();
             this.stepperMotorGroupBox.SuspendLayout();
@@ -235,6 +314,7 @@
             // controllerTabControl
             // 
             this.controllerTabControl.Controls.Add(this.dataAquisitionTabPage);
+            this.controllerTabControl.Controls.Add(this.ivAcquisition);
             this.controllerTabControl.Controls.Add(this.controlPanelsTabPage);
             this.controllerTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.controllerTabControl.Location = new System.Drawing.Point(0, 0);
@@ -290,7 +370,6 @@
             this.operateGroupBox.AutoSize = true;
             this.operateGroupBox.Controls.Add(this.openFolderButton);
             this.operateGroupBox.Controls.Add(this.fixBiasCheckBoxButton);
-            this.operateGroupBox.Controls.Add(this.ivStartCyclesCheckBox);
             this.operateGroupBox.Controls.Add(this.moveUpCheckBoxButton);
             this.operateGroupBox.Controls.Add(this.startStopCheckBoxButton);
             this.operateGroupBox.Controls.Add(this.shortCircuitCheckBoxButton);
@@ -339,21 +418,6 @@
             this.fixBiasCheckBoxButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.fixBiasCheckBoxButton.UseVisualStyleBackColor = true;
             this.fixBiasCheckBoxButton.CheckedChanged += new System.EventHandler(this.fixBiasCheckBoxButton_CheckedChanged);
-            // 
-            // ivStartCyclesCheckBox
-            // 
-            this.ivStartCyclesCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
-            this.ivStartCyclesCheckBox.AutoSize = true;
-            this.ivStartCyclesCheckBox.ForeColor = System.Drawing.Color.Black;
-            this.ivStartCyclesCheckBox.Location = new System.Drawing.Point(456, 142);
-            this.ivStartCyclesCheckBox.MinimumSize = new System.Drawing.Size(74, 23);
-            this.ivStartCyclesCheckBox.Name = "ivStartCyclesCheckBox";
-            this.ivStartCyclesCheckBox.Size = new System.Drawing.Size(86, 23);
-            this.ivStartCyclesCheckBox.TabIndex = 28;
-            this.ivStartCyclesCheckBox.Text = "Start IV Cycles";
-            this.ivStartCyclesCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.ivStartCyclesCheckBox.UseVisualStyleBackColor = true;
-            this.ivStartCyclesCheckBox.CheckedChanged += new System.EventHandler(this.ivStartCyclesCheckBox_CheckedChanged);
             // 
             // moveUpCheckBoxButton
             // 
@@ -586,7 +650,7 @@
             this.samplePropertiesGroupBox.Controls.Add(this.saveSamplesParamsButton);
             this.samplePropertiesGroupBox.Controls.Add(this.samplePropertiesTabControl);
             this.samplePropertiesGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.samplePropertiesGroupBox.Location = new System.Drawing.Point(546, 364);
+            this.samplePropertiesGroupBox.Location = new System.Drawing.Point(553, 364);
             this.samplePropertiesGroupBox.Name = "samplePropertiesGroupBox";
             this.samplePropertiesGroupBox.Size = new System.Drawing.Size(178, 247);
             this.samplePropertiesGroupBox.TabIndex = 20;
@@ -689,7 +753,6 @@
             this.SettingsTabControl.Controls.Add(this.laserSettingsTabPage);
             this.SettingsTabControl.Controls.Add(this.LockInSettingsTabPage);
             this.SettingsTabControl.Controls.Add(this.ElectroMagnetTabPage);
-            this.SettingsTabControl.Controls.Add(this.ivCurvesTabPage);
             this.SettingsTabControl.Controls.Add(this.channelsConfigurationTabPage);
             this.SettingsTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SettingsTabControl.Location = new System.Drawing.Point(3, 16);
@@ -742,6 +805,8 @@
             // useKeithleyCheckBox
             // 
             this.useKeithleyCheckBox.AutoSize = true;
+            this.useKeithleyCheckBox.Checked = true;
+            this.useKeithleyCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.useKeithleyCheckBox.ForeColor = System.Drawing.Color.Black;
             this.useKeithleyCheckBox.Location = new System.Drawing.Point(7, 6);
             this.useKeithleyCheckBox.Name = "useKeithleyCheckBox";
@@ -1428,7 +1493,7 @@
             this.emHoldOnMinConductanceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
             this.emHoldOnMinConductanceNumericEdit.Location = new System.Drawing.Point(145, 109);
             this.emHoldOnMinConductanceNumericEdit.Name = "emHoldOnMinConductanceNumericEdit";
-            this.emHoldOnMinConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0D, 20D);
+            this.emHoldOnMinConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0D, 2000D);
             this.emHoldOnMinConductanceNumericEdit.Size = new System.Drawing.Size(77, 20);
             this.emHoldOnMinConductanceNumericEdit.TabIndex = 14;
             this.emHoldOnMinConductanceNumericEdit.Value = 0.7D;
@@ -1475,7 +1540,7 @@
             this.emHoldOnMaxConductanceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
             this.emHoldOnMaxConductanceNumericEdit.Location = new System.Drawing.Point(145, 49);
             this.emHoldOnMaxConductanceNumericEdit.Name = "emHoldOnMaxConductanceNumericEdit";
-            this.emHoldOnMaxConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0D, 20D);
+            this.emHoldOnMaxConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0D, 2000D);
             this.emHoldOnMaxConductanceNumericEdit.Size = new System.Drawing.Size(77, 20);
             this.emHoldOnMaxConductanceNumericEdit.TabIndex = 9;
             this.emHoldOnMaxConductanceNumericEdit.Value = 1.3D;
@@ -1733,180 +1798,930 @@
             this.channel2CheckBox.UseVisualStyleBackColor = true;
             this.channel2CheckBox.CheckedChanged += new System.EventHandler(this.channel2CheckBox_CheckedChanged);
             // 
-            // ivCurvesTabPage
+            // ivAcquisition
             // 
-            this.ivCurvesTabPage.Controls.Add(this.ivCurvesPanel);
-            this.ivCurvesTabPage.Location = new System.Drawing.Point(4, 22);
-            this.ivCurvesTabPage.Name = "ivCurvesTabPage";
-            this.ivCurvesTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.ivCurvesTabPage.Size = new System.Drawing.Size(520, 202);
-            this.ivCurvesTabPage.TabIndex = 4;
-            this.ivCurvesTabPage.Text = "IV Curves";
-            this.ivCurvesTabPage.UseVisualStyleBackColor = true;
+            this.ivAcquisition.Controls.Add(this.ivOperateGroupBox);
+            this.ivAcquisition.Controls.Add(this.ivPlotGroupBox);
+            this.ivAcquisition.Controls.Add(this.ivWaveformGraph);
+            this.ivAcquisition.Controls.Add(this.ivSettingsGroupBox);
+            this.ivAcquisition.Location = new System.Drawing.Point(4, 22);
+            this.ivAcquisition.Name = "ivAcquisition";
+            this.ivAcquisition.Padding = new System.Windows.Forms.Padding(3);
+            this.ivAcquisition.Size = new System.Drawing.Size(741, 798);
+            this.ivAcquisition.TabIndex = 2;
+            this.ivAcquisition.Text = "IV Acquisition";
+            this.ivAcquisition.UseVisualStyleBackColor = true;
             // 
-            // ivCurvesPanel
+            // ivOperateGroupBox
             // 
-            this.ivCurvesPanel.Controls.Add(this.ivTimeOfOneCycleNumericEdit);
-            this.ivCurvesPanel.Controls.Add(this.label8);
-            this.ivCurvesPanel.Controls.Add(this.ivVoltageForTheDisplayedTraceNumericEdit);
-            this.ivCurvesPanel.Controls.Add(this.label7);
-            this.ivCurvesPanel.Controls.Add(this.label6);
-            this.ivCurvesPanel.Controls.Add(this.label5);
-            this.ivCurvesPanel.Controls.Add(this.label4);
-            this.ivCurvesPanel.Controls.Add(this.ivSampleRateNumericEdit);
-            this.ivCurvesPanel.Controls.Add(this.label3);
-            this.ivCurvesPanel.Controls.Add(this.label2);
-            this.ivCurvesPanel.Controls.Add(this.label1);
-            this.ivCurvesPanel.Controls.Add(this.ivAmplitudeNumericEdit);
-            this.ivCurvesPanel.Controls.Add(this.ivSampleDelayNumericEdit);
-            this.ivCurvesPanel.Controls.Add(this.ivSamplesPerCycleNumericEdit);
-            this.ivCurvesPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ivCurvesPanel.Location = new System.Drawing.Point(3, 3);
-            this.ivCurvesPanel.Name = "ivCurvesPanel";
-            this.ivCurvesPanel.Size = new System.Drawing.Size(514, 196);
-            this.ivCurvesPanel.TabIndex = 24;
+            this.ivOperateGroupBox.AutoSize = true;
+            this.ivOperateGroupBox.Controls.Add(this.ivOpenFolderButton);
+            this.ivOperateGroupBox.Controls.Add(this.ivStepperUpCheckBox);
+            this.ivOperateGroupBox.Controls.Add(this.ivStartStopCheckBox);
+            this.ivOperateGroupBox.Controls.Add(this.ivShortCircuitCheckBox);
+            this.ivOperateGroupBox.Controls.Add(this.ivNumberOfCyclesNumericUpDown);
+            this.ivOperateGroupBox.Controls.Add(this.ivNumberOfCyclesLlabel);
+            this.ivOperateGroupBox.Controls.Add(this.ivShortCircuitVoltageNumericUpDown);
+            this.ivOperateGroupBox.Controls.Add(this.ivShortCircuitVoltageLabel);
+            this.ivOperateGroupBox.Controls.Add(this.ivPathTextBox);
+            this.ivOperateGroupBox.Controls.Add(this.ivBrowseButton);
+            this.ivOperateGroupBox.Controls.Add(this.ivFileSavingCheckBox);
+            this.ivOperateGroupBox.Controls.Add(this.ivFileNumberLabel);
+            this.ivOperateGroupBox.Controls.Add(this.ivPathLabel);
+            this.ivOperateGroupBox.Controls.Add(this.ivFileNumberNumericUpDown);
+            this.ivOperateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.ivOperateGroupBox.ForeColor = System.Drawing.Color.Red;
+            this.ivOperateGroupBox.Location = new System.Drawing.Point(3, 611);
+            this.ivOperateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
+            this.ivOperateGroupBox.Name = "ivOperateGroupBox";
+            this.ivOperateGroupBox.Size = new System.Drawing.Size(735, 184);
+            this.ivOperateGroupBox.TabIndex = 27;
+            this.ivOperateGroupBox.TabStop = false;
+            this.ivOperateGroupBox.Text = "Operate";
             // 
-            // ivTimeOfOneCycleNumericEdit
+            // ivOpenFolderButton
             // 
-            this.ivTimeOfOneCycleNumericEdit.BackColor = System.Drawing.SystemColors.Control;
-            this.ivTimeOfOneCycleNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(0);
-            this.ivTimeOfOneCycleNumericEdit.InteractionMode = NationalInstruments.UI.NumericEditInteractionModes.Indicator;
-            this.ivTimeOfOneCycleNumericEdit.Location = new System.Drawing.Point(152, 128);
-            this.ivTimeOfOneCycleNumericEdit.Name = "ivTimeOfOneCycleNumericEdit";
-            this.ivTimeOfOneCycleNumericEdit.Size = new System.Drawing.Size(78, 20);
-            this.ivTimeOfOneCycleNumericEdit.TabIndex = 33;
-            this.ivTimeOfOneCycleNumericEdit.Value = 500D;
+            this.ivOpenFolderButton.ForeColor = System.Drawing.Color.Black;
+            this.ivOpenFolderButton.Location = new System.Drawing.Point(530, 44);
+            this.ivOpenFolderButton.Name = "ivOpenFolderButton";
+            this.ivOpenFolderButton.Size = new System.Drawing.Size(74, 23);
+            this.ivOpenFolderButton.TabIndex = 29;
+            this.ivOpenFolderButton.Text = "Open Folder";
+            this.ivOpenFolderButton.UseVisualStyleBackColor = true;
+            this.ivOpenFolderButton.Click += new System.EventHandler(this.ivOpenFolderButton_Click);
             // 
-            // label8
+            // ivStepperUpCheckBox
             // 
-            this.label8.AutoSize = true;
-            this.label8.ForeColor = System.Drawing.Color.Black;
-            this.label8.Location = new System.Drawing.Point(17, 130);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(129, 13);
-            this.label8.TabIndex = 32;
-            this.label8.Text = "Time of One IV Cycle [ms]";
+            this.ivStepperUpCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
+            this.ivStepperUpCheckBox.AutoSize = true;
+            this.ivStepperUpCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.ivStepperUpCheckBox.Location = new System.Drawing.Point(365, 142);
+            this.ivStepperUpCheckBox.MinimumSize = new System.Drawing.Size(74, 23);
+            this.ivStepperUpCheckBox.Name = "ivStepperUpCheckBox";
+            this.ivStepperUpCheckBox.Size = new System.Drawing.Size(74, 23);
+            this.ivStepperUpCheckBox.TabIndex = 17;
+            this.ivStepperUpCheckBox.Text = "Stepper Up";
+            this.ivStepperUpCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.ivStepperUpCheckBox.UseVisualStyleBackColor = true;
+            this.ivStepperUpCheckBox.CheckedChanged += new System.EventHandler(this.moveUpCheckBox_CheckedChanged);
             // 
-            // ivVoltageForTheDisplayedTraceNumericEdit
+            // ivStartStopCheckBox
             // 
-            this.ivVoltageForTheDisplayedTraceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(3);
-            this.ivVoltageForTheDisplayedTraceNumericEdit.Location = new System.Drawing.Point(425, 20);
-            this.ivVoltageForTheDisplayedTraceNumericEdit.Name = "ivVoltageForTheDisplayedTraceNumericEdit";
-            this.ivVoltageForTheDisplayedTraceNumericEdit.Size = new System.Drawing.Size(78, 20);
-            this.ivVoltageForTheDisplayedTraceNumericEdit.TabIndex = 31;
-            this.ivVoltageForTheDisplayedTraceNumericEdit.Value = 0.08D;
-            this.ivVoltageForTheDisplayedTraceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivVoltageForTheDisplayedTraceNumericEdit_AfterChangeValue);
+            this.ivStartStopCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
+            this.ivStartStopCheckBox.AutoSize = true;
+            this.ivStartStopCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.ivStartStopCheckBox.Location = new System.Drawing.Point(273, 108);
+            this.ivStartStopCheckBox.MinimumSize = new System.Drawing.Size(74, 23);
+            this.ivStartStopCheckBox.Name = "ivStartStopCheckBox";
+            this.ivStartStopCheckBox.Size = new System.Drawing.Size(74, 23);
+            this.ivStartStopCheckBox.TabIndex = 16;
+            this.ivStartStopCheckBox.Text = "Start";
+            this.ivStartStopCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.ivStartStopCheckBox.UseVisualStyleBackColor = true;
+            this.ivStartStopCheckBox.CheckedChanged += new System.EventHandler(this.ivStartStopCheckBox_CheckedChanged);
             // 
-            // label7
+            // ivShortCircuitCheckBox
             // 
-            this.label7.AutoSize = true;
-            this.label7.ForeColor = System.Drawing.Color.Black;
-            this.label7.Location = new System.Drawing.Point(246, 23);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(173, 13);
-            this.label7.TabIndex = 30;
-            this.label7.Text = "Voltage for the  displayed Trace [V]";
+            this.ivShortCircuitCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
+            this.ivShortCircuitCheckBox.AutoSize = true;
+            this.ivShortCircuitCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.ivShortCircuitCheckBox.Location = new System.Drawing.Point(273, 142);
+            this.ivShortCircuitCheckBox.MinimumSize = new System.Drawing.Size(74, 23);
+            this.ivShortCircuitCheckBox.Name = "ivShortCircuitCheckBox";
+            this.ivShortCircuitCheckBox.Size = new System.Drawing.Size(74, 23);
+            this.ivShortCircuitCheckBox.TabIndex = 15;
+            this.ivShortCircuitCheckBox.Text = "Short Circuit";
+            this.ivShortCircuitCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.ivShortCircuitCheckBox.UseVisualStyleBackColor = true;
+            this.ivShortCircuitCheckBox.CheckedChanged += new System.EventHandler(this.shortCircuitButton_CheckedChanged);
             // 
-            // label6
+            // ivNumberOfCyclesNumericUpDown
             // 
-            this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.ForeColor = System.Drawing.Color.Red;
-            this.label6.Location = new System.Drawing.Point(11, 164);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(89, 13);
-            this.label6.TabIndex = 29;
-            this.label6.Text = "* Please Note:";
+            this.ivNumberOfCyclesNumericUpDown.Location = new System.Drawing.Point(150, 111);
+            this.ivNumberOfCyclesNumericUpDown.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            this.ivNumberOfCyclesNumericUpDown.Name = "ivNumberOfCyclesNumericUpDown";
+            this.ivNumberOfCyclesNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.ivNumberOfCyclesNumericUpDown.TabIndex = 14;
+            this.ivNumberOfCyclesNumericUpDown.Value = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
             // 
-            // label5
+            // ivNumberOfCyclesLlabel
             // 
-            this.label5.AutoSize = true;
-            this.label5.ForeColor = System.Drawing.Color.Black;
-            this.label5.Location = new System.Drawing.Point(99, 164);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(343, 13);
-            this.label5.TabIndex = 28;
-            this.label5.Text = "IV curves will be obtained only by pressing the \"Start IV Cycles\" Button.";
+            this.ivNumberOfCyclesLlabel.AutoSize = true;
+            this.ivNumberOfCyclesLlabel.ForeColor = System.Drawing.Color.Black;
+            this.ivNumberOfCyclesLlabel.Location = new System.Drawing.Point(7, 113);
+            this.ivNumberOfCyclesLlabel.Name = "ivNumberOfCyclesLlabel";
+            this.ivNumberOfCyclesLlabel.Size = new System.Drawing.Size(90, 13);
+            this.ivNumberOfCyclesLlabel.TabIndex = 13;
+            this.ivNumberOfCyclesLlabel.Text = "Number of Cycles";
             // 
-            // label4
+            // ivShortCircuitVoltageNumericUpDown
             // 
-            this.label4.AutoSize = true;
-            this.label4.ForeColor = System.Drawing.Color.Black;
-            this.label4.Location = new System.Drawing.Point(17, 72);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(94, 13);
-            this.label4.TabIndex = 27;
-            this.label4.Text = "Sample Delay [ms]";
+            this.ivShortCircuitVoltageNumericUpDown.DecimalPlaces = 1;
+            this.ivShortCircuitVoltageNumericUpDown.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.ivShortCircuitVoltageNumericUpDown.Location = new System.Drawing.Point(150, 145);
+            this.ivShortCircuitVoltageNumericUpDown.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.ivShortCircuitVoltageNumericUpDown.Minimum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            -2147483648});
+            this.ivShortCircuitVoltageNumericUpDown.Name = "ivShortCircuitVoltageNumericUpDown";
+            this.ivShortCircuitVoltageNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.ivShortCircuitVoltageNumericUpDown.TabIndex = 12;
+            this.ivShortCircuitVoltageNumericUpDown.Value = new decimal(new int[] {
+            99,
+            0,
+            0,
+            65536});
             // 
-            // ivSampleRateNumericEdit
+            // ivShortCircuitVoltageLabel
             // 
-            this.ivSampleRateNumericEdit.BackColor = System.Drawing.SystemColors.Control;
-            this.ivSampleRateNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(0);
-            this.ivSampleRateNumericEdit.InteractionMode = NationalInstruments.UI.NumericEditInteractionModes.Indicator;
-            this.ivSampleRateNumericEdit.Location = new System.Drawing.Point(134, 99);
-            this.ivSampleRateNumericEdit.Name = "ivSampleRateNumericEdit";
-            this.ivSampleRateNumericEdit.Size = new System.Drawing.Size(78, 20);
-            this.ivSampleRateNumericEdit.TabIndex = 26;
-            this.ivSampleRateNumericEdit.Value = 2500D;
+            this.ivShortCircuitVoltageLabel.AutoSize = true;
+            this.ivShortCircuitVoltageLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivShortCircuitVoltageLabel.Location = new System.Drawing.Point(7, 147);
+            this.ivShortCircuitVoltageLabel.Name = "ivShortCircuitVoltageLabel";
+            this.ivShortCircuitVoltageLabel.Size = new System.Drawing.Size(119, 13);
+            this.ivShortCircuitVoltageLabel.TabIndex = 11;
+            this.ivShortCircuitVoltageLabel.Text = "Short Circuit Voltage [V]";
             // 
-            // label3
+            // ivPathTextBox
             // 
-            this.label3.AutoSize = true;
-            this.label3.ForeColor = System.Drawing.Color.Black;
-            this.label3.Location = new System.Drawing.Point(17, 44);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(95, 13);
-            this.label3.TabIndex = 25;
-            this.label3.Text = "Samples Per Cycle";
+            this.ivPathTextBox.Location = new System.Drawing.Point(39, 46);
+            this.ivPathTextBox.Name = "ivPathTextBox";
+            this.ivPathTextBox.Size = new System.Drawing.Size(400, 20);
+            this.ivPathTextBox.TabIndex = 9;
+            this.ivPathTextBox.Text = "C:\\sbj\\Measurements";
+            this.ivPathTextBox.TextChanged += new System.EventHandler(this.ivPathTextBox_TextChanged);
             // 
-            // label2
+            // ivBrowseButton
             // 
-            this.label2.AutoSize = true;
-            this.label2.ForeColor = System.Drawing.Color.Black;
-            this.label2.Location = new System.Drawing.Point(17, 16);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(69, 13);
-            this.label2.TabIndex = 24;
-            this.label2.Text = "Amplitude [V]";
+            this.ivBrowseButton.ForeColor = System.Drawing.Color.Black;
+            this.ivBrowseButton.Location = new System.Drawing.Point(450, 44);
+            this.ivBrowseButton.Name = "ivBrowseButton";
+            this.ivBrowseButton.Size = new System.Drawing.Size(74, 23);
+            this.ivBrowseButton.TabIndex = 10;
+            this.ivBrowseButton.Text = "Browse";
+            this.ivBrowseButton.UseVisualStyleBackColor = true;
+            this.ivBrowseButton.Click += new System.EventHandler(this.ivBrowseButton_Click);
             // 
-            // label1
+            // ivFileSavingCheckBox
             // 
-            this.label1.AutoSize = true;
-            this.label1.ForeColor = System.Drawing.Color.Black;
-            this.label1.Location = new System.Drawing.Point(17, 100);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(90, 13);
-            this.label1.TabIndex = 23;
-            this.label1.Text = "Sample Rate [Hz]";
+            this.ivFileSavingCheckBox.AutoSize = true;
+            this.ivFileSavingCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.ivFileSavingCheckBox.Location = new System.Drawing.Point(10, 23);
+            this.ivFileSavingCheckBox.Name = "ivFileSavingCheckBox";
+            this.ivFileSavingCheckBox.Size = new System.Drawing.Size(78, 17);
+            this.ivFileSavingCheckBox.TabIndex = 5;
+            this.ivFileSavingCheckBox.Text = "File Saving";
+            this.ivFileSavingCheckBox.UseVisualStyleBackColor = true;
             // 
-            // ivAmplitudeNumericEdit
+            // ivFileNumberLabel
             // 
-            this.ivAmplitudeNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(3);
-            this.ivAmplitudeNumericEdit.Location = new System.Drawing.Point(134, 15);
-            this.ivAmplitudeNumericEdit.Name = "ivAmplitudeNumericEdit";
-            this.ivAmplitudeNumericEdit.Size = new System.Drawing.Size(78, 20);
-            this.ivAmplitudeNumericEdit.TabIndex = 20;
-            this.ivAmplitudeNumericEdit.Value = 0.1D;
-            this.ivAmplitudeNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivAmplitudeNumericEdit_AfterChangeValue);
+            this.ivFileNumberLabel.AutoSize = true;
+            this.ivFileNumberLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivFileNumberLabel.Location = new System.Drawing.Point(7, 79);
+            this.ivFileNumberLabel.Name = "ivFileNumberLabel";
+            this.ivFileNumberLabel.Size = new System.Drawing.Size(63, 13);
+            this.ivFileNumberLabel.TabIndex = 6;
+            this.ivFileNumberLabel.Text = "File Number";
             // 
-            // ivSampleDelayNumericEdit
+            // ivPathLabel
             // 
-            this.ivSampleDelayNumericEdit.Location = new System.Drawing.Point(134, 71);
-            this.ivSampleDelayNumericEdit.Name = "ivSampleDelayNumericEdit";
-            this.ivSampleDelayNumericEdit.Size = new System.Drawing.Size(78, 20);
-            this.ivSampleDelayNumericEdit.TabIndex = 22;
-            this.ivSampleDelayNumericEdit.Value = 0.4D;
-            this.ivSampleDelayNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivSampleDelayNumericEdit_AfterChangeValue);
+            this.ivPathLabel.AutoSize = true;
+            this.ivPathLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivPathLabel.Location = new System.Drawing.Point(7, 49);
+            this.ivPathLabel.Name = "ivPathLabel";
+            this.ivPathLabel.Size = new System.Drawing.Size(29, 13);
+            this.ivPathLabel.TabIndex = 8;
+            this.ivPathLabel.Text = "Path";
+            // 
+            // ivFileNumberNumericUpDown
+            // 
+            this.ivFileNumberNumericUpDown.Location = new System.Drawing.Point(150, 77);
+            this.ivFileNumberNumericUpDown.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            this.ivFileNumberNumericUpDown.Name = "ivFileNumberNumericUpDown";
+            this.ivFileNumberNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.ivFileNumberNumericUpDown.TabIndex = 7;
+            // 
+            // ivPlotGroupBox
+            // 
+            this.ivPlotGroupBox.Controls.Add(this.ivChannelsListView);
+            this.ivPlotGroupBox.ForeColor = System.Drawing.Color.Red;
+            this.ivPlotGroupBox.Location = new System.Drawing.Point(493, 13);
+            this.ivPlotGroupBox.Name = "ivPlotGroupBox";
+            this.ivPlotGroupBox.Size = new System.Drawing.Size(235, 339);
+            this.ivPlotGroupBox.TabIndex = 26;
+            this.ivPlotGroupBox.TabStop = false;
+            this.ivPlotGroupBox.Text = "Plots";
+            // 
+            // ivChannelsListView
+            // 
+            this.ivChannelsListView.CheckBoxes = true;
+            this.ivChannelsListView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ivChannelsListView.Location = new System.Drawing.Point(3, 16);
+            this.ivChannelsListView.Name = "ivChannelsListView";
+            this.ivChannelsListView.Size = new System.Drawing.Size(229, 320);
+            this.ivChannelsListView.TabIndex = 25;
+            this.ivChannelsListView.UseCompatibleStateImageBehavior = false;
+            this.ivChannelsListView.View = System.Windows.Forms.View.List;
+            // 
+            // ivWaveformGraph
+            // 
+            this.ivWaveformGraph.CaptionBackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.ivWaveformGraph.CaptionFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ivWaveformGraph.CaptionForeColor = System.Drawing.SystemColors.ControlText;
+            this.ivWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY) 
+            | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint) 
+            | NationalInstruments.UI.GraphInteractionModes.PanX) 
+            | NationalInstruments.UI.GraphInteractionModes.PanY) 
+            | NationalInstruments.UI.GraphInteractionModes.DragCursor) 
+            | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption) 
+            | NationalInstruments.UI.GraphInteractionModes.EditRange)));
+            this.ivWaveformGraph.Location = new System.Drawing.Point(13, 16);
+            this.ivWaveformGraph.Name = "ivWaveformGraph";
+            this.ivWaveformGraph.PlotAreaColor = System.Drawing.Color.LightGray;
+            this.ivWaveformGraph.Plots.AddRange(new NationalInstruments.UI.WaveformPlot[] {
+            this.waveformPlot2});
+            this.ivWaveformGraph.Size = new System.Drawing.Size(467, 339);
+            this.ivWaveformGraph.TabIndex = 23;
+            this.ivWaveformGraph.XAxes.AddRange(new NationalInstruments.UI.XAxis[] {
+            this.xAxis2});
+            this.ivWaveformGraph.YAxes.AddRange(new NationalInstruments.UI.YAxis[] {
+            this.conductanceAxis});
+            // 
+            // waveformPlot2
+            // 
+            this.waveformPlot2.LineColor = System.Drawing.Color.Red;
+            this.waveformPlot2.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
+            this.waveformPlot2.ToolTipsEnabled = true;
+            this.waveformPlot2.XAxis = this.xAxis2;
+            this.waveformPlot2.YAxis = this.conductanceAxis;
+            // 
+            // xAxis2
+            // 
+            this.xAxis2.Caption = "IV Cycles";
+            this.xAxis2.Range = new NationalInstruments.UI.Range(0D, 10000D);
+            // 
+            // conductanceAxis
+            // 
+            this.conductanceAxis.Caption = "Conductance [G0]";
+            // 
+            // ivSettingsGroupBox
+            // 
+            this.ivSettingsGroupBox.AutoSize = true;
+            this.ivSettingsGroupBox.Controls.Add(this.ivGeneralTabControl);
+            this.ivSettingsGroupBox.ForeColor = System.Drawing.Color.Red;
+            this.ivSettingsGroupBox.Location = new System.Drawing.Point(3, 369);
+            this.ivSettingsGroupBox.MinimumSize = new System.Drawing.Size(521, 200);
+            this.ivSettingsGroupBox.Name = "ivSettingsGroupBox";
+            this.ivSettingsGroupBox.Size = new System.Drawing.Size(735, 236);
+            this.ivSettingsGroupBox.TabIndex = 24;
+            this.ivSettingsGroupBox.TabStop = false;
+            this.ivSettingsGroupBox.Text = "Settings";
+            // 
+            // ivGeneralTabControl
+            // 
+            this.ivGeneralTabControl.Controls.Add(this.tabPage2);
+            this.ivGeneralTabControl.Controls.Add(this.ivSteppingMethodTabPage);
+            this.ivGeneralTabControl.Controls.Add(this.tabPage7);
+            this.ivGeneralTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ivGeneralTabControl.Location = new System.Drawing.Point(3, 16);
+            this.ivGeneralTabControl.Name = "ivGeneralTabControl";
+            this.ivGeneralTabControl.SelectedIndex = 0;
+            this.ivGeneralTabControl.Size = new System.Drawing.Size(729, 217);
+            this.ivGeneralTabControl.TabIndex = 17;
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Controls.Add(this.ivGeneralSettingsPanel);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(721, 191);
+            this.tabPage2.TabIndex = 0;
+            this.tabPage2.Text = "General";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // ivGeneralSettingsPanel
+            // 
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivVoltageForTraceNumericEdit);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivVoltageForTraceLabel);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivTimeOfOneIVCycleNumericEdit);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivTimeOfIVCycleLabel);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivOutputUpdateDelayLabel);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivOutputUpdateRateNumericEdit);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivSamplesPerCycleLabel);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivVoltageAmplitudeLabel);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivOutputUpdateRateLabel);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivVoltageAmplitudeNumericEdit);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivOutputUpdateDelayNumericEdit);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivSamplesPerCycleNumericEdit);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivGainPoweComboBox);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivInputSampleRateNumericUpDown);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivTriggerVoltageNumericEdit);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivTriggerVoltageLabel);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivTriggerConductanceNumericEdit);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivTriggerConductanceLabel);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivInputSampleRateLabel);
+            this.ivGeneralSettingsPanel.Controls.Add(this.ivGainPowerLabel);
+            this.ivGeneralSettingsPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.ivGeneralSettingsPanel.Location = new System.Drawing.Point(3, -8);
+            this.ivGeneralSettingsPanel.MinimumSize = new System.Drawing.Size(0, 151);
+            this.ivGeneralSettingsPanel.Name = "ivGeneralSettingsPanel";
+            this.ivGeneralSettingsPanel.Size = new System.Drawing.Size(715, 196);
+            this.ivGeneralSettingsPanel.TabIndex = 16;
+            // 
+            // ivVoltageForTraceNumericEdit
+            // 
+            this.ivVoltageForTraceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(3);
+            this.ivVoltageForTraceNumericEdit.Location = new System.Drawing.Point(194, 145);
+            this.ivVoltageForTraceNumericEdit.Name = "ivVoltageForTraceNumericEdit";
+            this.ivVoltageForTraceNumericEdit.Size = new System.Drawing.Size(78, 20);
+            this.ivVoltageForTraceNumericEdit.TabIndex = 69;
+            this.ivVoltageForTraceNumericEdit.Value = 0.1D;
+            // 
+            // ivVoltageForTraceLabel
+            // 
+            this.ivVoltageForTraceLabel.AutoSize = true;
+            this.ivVoltageForTraceLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivVoltageForTraceLabel.Location = new System.Drawing.Point(15, 148);
+            this.ivVoltageForTraceLabel.Name = "ivVoltageForTraceLabel";
+            this.ivVoltageForTraceLabel.Size = new System.Drawing.Size(173, 13);
+            this.ivVoltageForTraceLabel.TabIndex = 68;
+            this.ivVoltageForTraceLabel.Text = "Voltage for the  displayed Trace [V]";
+            // 
+            // ivTimeOfOneIVCycleNumericEdit
+            // 
+            this.ivTimeOfOneIVCycleNumericEdit.BackColor = System.Drawing.SystemColors.Control;
+            this.ivTimeOfOneIVCycleNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(0);
+            this.ivTimeOfOneIVCycleNumericEdit.InteractionMode = NationalInstruments.UI.NumericEditInteractionModes.Indicator;
+            this.ivTimeOfOneIVCycleNumericEdit.Location = new System.Drawing.Point(455, 145);
+            this.ivTimeOfOneIVCycleNumericEdit.Name = "ivTimeOfOneIVCycleNumericEdit";
+            this.ivTimeOfOneIVCycleNumericEdit.Size = new System.Drawing.Size(78, 20);
+            this.ivTimeOfOneIVCycleNumericEdit.TabIndex = 67;
+            this.ivTimeOfOneIVCycleNumericEdit.Value = 50D;
+            // 
+            // ivTimeOfIVCycleLabel
+            // 
+            this.ivTimeOfIVCycleLabel.AutoSize = true;
+            this.ivTimeOfIVCycleLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivTimeOfIVCycleLabel.Location = new System.Drawing.Point(312, 147);
+            this.ivTimeOfIVCycleLabel.Name = "ivTimeOfIVCycleLabel";
+            this.ivTimeOfIVCycleLabel.Size = new System.Drawing.Size(129, 13);
+            this.ivTimeOfIVCycleLabel.TabIndex = 66;
+            this.ivTimeOfIVCycleLabel.Text = "Time of One IV Cycle [ms]";
+            // 
+            // ivOutputUpdateDelayLabel
+            // 
+            this.ivOutputUpdateDelayLabel.AutoSize = true;
+            this.ivOutputUpdateDelayLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivOutputUpdateDelayLabel.Location = new System.Drawing.Point(312, 89);
+            this.ivOutputUpdateDelayLabel.Name = "ivOutputUpdateDelayLabel";
+            this.ivOutputUpdateDelayLabel.Size = new System.Drawing.Size(129, 13);
+            this.ivOutputUpdateDelayLabel.TabIndex = 65;
+            this.ivOutputUpdateDelayLabel.Text = "Output Update Delay [ms]";
+            // 
+            // ivOutputUpdateRateNumericEdit
+            // 
+            this.ivOutputUpdateRateNumericEdit.BackColor = System.Drawing.SystemColors.Control;
+            this.ivOutputUpdateRateNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(0);
+            this.ivOutputUpdateRateNumericEdit.InteractionMode = NationalInstruments.UI.NumericEditInteractionModes.Indicator;
+            this.ivOutputUpdateRateNumericEdit.Location = new System.Drawing.Point(455, 114);
+            this.ivOutputUpdateRateNumericEdit.Name = "ivOutputUpdateRateNumericEdit";
+            this.ivOutputUpdateRateNumericEdit.Size = new System.Drawing.Size(78, 20);
+            this.ivOutputUpdateRateNumericEdit.TabIndex = 64;
+            this.ivOutputUpdateRateNumericEdit.Value = 10000D;
+            // 
+            // ivSamplesPerCycleLabel
+            // 
+            this.ivSamplesPerCycleLabel.AutoSize = true;
+            this.ivSamplesPerCycleLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivSamplesPerCycleLabel.Location = new System.Drawing.Point(312, 61);
+            this.ivSamplesPerCycleLabel.Name = "ivSamplesPerCycleLabel";
+            this.ivSamplesPerCycleLabel.Size = new System.Drawing.Size(95, 13);
+            this.ivSamplesPerCycleLabel.TabIndex = 63;
+            this.ivSamplesPerCycleLabel.Text = "Samples Per Cycle";
+            // 
+            // ivVoltageAmplitudeLabel
+            // 
+            this.ivVoltageAmplitudeLabel.AutoSize = true;
+            this.ivVoltageAmplitudeLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivVoltageAmplitudeLabel.Location = new System.Drawing.Point(312, 33);
+            this.ivVoltageAmplitudeLabel.Name = "ivVoltageAmplitudeLabel";
+            this.ivVoltageAmplitudeLabel.Size = new System.Drawing.Size(108, 13);
+            this.ivVoltageAmplitudeLabel.TabIndex = 62;
+            this.ivVoltageAmplitudeLabel.Text = "Voltage Amplitude [V]";
+            // 
+            // ivOutputUpdateRateLabel
+            // 
+            this.ivOutputUpdateRateLabel.AutoSize = true;
+            this.ivOutputUpdateRateLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivOutputUpdateRateLabel.Location = new System.Drawing.Point(312, 117);
+            this.ivOutputUpdateRateLabel.Name = "ivOutputUpdateRateLabel";
+            this.ivOutputUpdateRateLabel.Size = new System.Drawing.Size(125, 13);
+            this.ivOutputUpdateRateLabel.TabIndex = 61;
+            this.ivOutputUpdateRateLabel.Text = "Output Update Rate [Hz]";
+            // 
+            // ivVoltageAmplitudeNumericEdit
+            // 
+            this.ivVoltageAmplitudeNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(3);
+            this.ivVoltageAmplitudeNumericEdit.Location = new System.Drawing.Point(455, 29);
+            this.ivVoltageAmplitudeNumericEdit.Name = "ivVoltageAmplitudeNumericEdit";
+            this.ivVoltageAmplitudeNumericEdit.Size = new System.Drawing.Size(78, 20);
+            this.ivVoltageAmplitudeNumericEdit.TabIndex = 58;
+            this.ivVoltageAmplitudeNumericEdit.Value = 0.2D;
+            this.ivVoltageAmplitudeNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivVoltageAmplitudeNumericEdit_AfterChangeValue);
+            // 
+            // ivOutputUpdateDelayNumericEdit
+            // 
+            this.ivOutputUpdateDelayNumericEdit.Location = new System.Drawing.Point(455, 85);
+            this.ivOutputUpdateDelayNumericEdit.Name = "ivOutputUpdateDelayNumericEdit";
+            this.ivOutputUpdateDelayNumericEdit.Size = new System.Drawing.Size(78, 20);
+            this.ivOutputUpdateDelayNumericEdit.TabIndex = 60;
+            this.ivOutputUpdateDelayNumericEdit.Value = 0.1D;
+            this.ivOutputUpdateDelayNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivOutputUpdateDelayNumericEdit_AfterChangeValue);
             // 
             // ivSamplesPerCycleNumericEdit
             // 
             this.ivSamplesPerCycleNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(0);
-            this.ivSamplesPerCycleNumericEdit.Location = new System.Drawing.Point(134, 43);
+            this.ivSamplesPerCycleNumericEdit.Location = new System.Drawing.Point(455, 56);
             this.ivSamplesPerCycleNumericEdit.Name = "ivSamplesPerCycleNumericEdit";
             this.ivSamplesPerCycleNumericEdit.Size = new System.Drawing.Size(78, 20);
-            this.ivSamplesPerCycleNumericEdit.TabIndex = 21;
-            this.ivSamplesPerCycleNumericEdit.Value = 1250D;
+            this.ivSamplesPerCycleNumericEdit.TabIndex = 59;
+            this.ivSamplesPerCycleNumericEdit.Value = 500D;
             this.ivSamplesPerCycleNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivSamplesPerCycleNumericEdit_AfterChangeValue);
+            // 
+            // ivGainPoweComboBox
+            // 
+            this.ivGainPoweComboBox.DisplayMember = "3";
+            this.ivGainPoweComboBox.FormattingEnabled = true;
+            this.ivGainPoweComboBox.Items.AddRange(new object[] {
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10"});
+            this.ivGainPoweComboBox.Location = new System.Drawing.Point(195, 55);
+            this.ivGainPoweComboBox.Name = "ivGainPoweComboBox";
+            this.ivGainPoweComboBox.Size = new System.Drawing.Size(75, 21);
+            this.ivGainPoweComboBox.TabIndex = 18;
+            this.ivGainPoweComboBox.Text = "5";
+            this.ivGainPoweComboBox.SelectedIndexChanged += new System.EventHandler(this.ivGainPoweComboBox_SelectedIndexChanged);
+            // 
+            // ivInputSampleRateNumericUpDown
+            // 
+            this.ivInputSampleRateNumericUpDown.Location = new System.Drawing.Point(195, 29);
+            this.ivInputSampleRateNumericUpDown.Maximum = new decimal(new int[] {
+            40000,
+            0,
+            0,
+            0});
+            this.ivInputSampleRateNumericUpDown.Name = "ivInputSampleRateNumericUpDown";
+            this.ivInputSampleRateNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.ivInputSampleRateNumericUpDown.TabIndex = 7;
+            this.ivInputSampleRateNumericUpDown.Value = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            // 
+            // ivTriggerVoltageNumericEdit
+            // 
+            this.ivTriggerVoltageNumericEdit.Enabled = false;
+            this.ivTriggerVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2, true);
+            this.ivTriggerVoltageNumericEdit.Location = new System.Drawing.Point(195, 85);
+            this.ivTriggerVoltageNumericEdit.Name = "ivTriggerVoltageNumericEdit";
+            this.ivTriggerVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
+            this.ivTriggerVoltageNumericEdit.TabIndex = 11;
+            this.ivTriggerVoltageNumericEdit.Value = -0.01D;
+            // 
+            // ivTriggerVoltageLabel
+            // 
+            this.ivTriggerVoltageLabel.AutoSize = true;
+            this.ivTriggerVoltageLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivTriggerVoltageLabel.Location = new System.Drawing.Point(13, 88);
+            this.ivTriggerVoltageLabel.Name = "ivTriggerVoltageLabel";
+            this.ivTriggerVoltageLabel.Size = new System.Drawing.Size(95, 13);
+            this.ivTriggerVoltageLabel.TabIndex = 10;
+            this.ivTriggerVoltageLabel.Text = "Trigger Voltage [V]";
+            // 
+            // ivTriggerConductanceNumericEdit
+            // 
+            this.ivTriggerConductanceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2, true);
+            this.ivTriggerConductanceNumericEdit.Location = new System.Drawing.Point(195, 114);
+            this.ivTriggerConductanceNumericEdit.Name = "ivTriggerConductanceNumericEdit";
+            this.ivTriggerConductanceNumericEdit.Size = new System.Drawing.Size(75, 20);
+            this.ivTriggerConductanceNumericEdit.TabIndex = 9;
+            this.ivTriggerConductanceNumericEdit.Value = 0.0129D;
+            this.ivTriggerConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivTriggerConductanceNumericEdit_AfterChangeValue);
+            // 
+            // ivTriggerConductanceLabel
+            // 
+            this.ivTriggerConductanceLabel.AutoSize = true;
+            this.ivTriggerConductanceLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivTriggerConductanceLabel.Location = new System.Drawing.Point(13, 118);
+            this.ivTriggerConductanceLabel.Name = "ivTriggerConductanceLabel";
+            this.ivTriggerConductanceLabel.Size = new System.Drawing.Size(130, 13);
+            this.ivTriggerConductanceLabel.TabIndex = 8;
+            this.ivTriggerConductanceLabel.Text = "Trigger Conductance [G0]";
+            // 
+            // ivInputSampleRateLabel
+            // 
+            this.ivInputSampleRateLabel.AutoSize = true;
+            this.ivInputSampleRateLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivInputSampleRateLabel.Location = new System.Drawing.Point(13, 30);
+            this.ivInputSampleRateLabel.Name = "ivInputSampleRateLabel";
+            this.ivInputSampleRateLabel.Size = new System.Drawing.Size(117, 13);
+            this.ivInputSampleRateLabel.TabIndex = 6;
+            this.ivInputSampleRateLabel.Text = "Input Sample Rate [Hz]";
+            // 
+            // ivGainPowerLabel
+            // 
+            this.ivGainPowerLabel.AutoSize = true;
+            this.ivGainPowerLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivGainPowerLabel.Location = new System.Drawing.Point(13, 58);
+            this.ivGainPowerLabel.Name = "ivGainPowerLabel";
+            this.ivGainPowerLabel.Size = new System.Drawing.Size(62, 13);
+            this.ivGainPowerLabel.TabIndex = 2;
+            this.ivGainPowerLabel.Text = "Gain Power";
+            // 
+            // ivSteppingMethodTabPage
+            // 
+            this.ivSteppingMethodTabPage.Controls.Add(this.ivSteppingMethodPanel);
+            this.ivSteppingMethodTabPage.Location = new System.Drawing.Point(4, 22);
+            this.ivSteppingMethodTabPage.Name = "ivSteppingMethodTabPage";
+            this.ivSteppingMethodTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.ivSteppingMethodTabPage.Size = new System.Drawing.Size(721, 191);
+            this.ivSteppingMethodTabPage.TabIndex = 3;
+            this.ivSteppingMethodTabPage.Text = "Stepping Method";
+            this.ivSteppingMethodTabPage.UseVisualStyleBackColor = true;
+            // 
+            // ivSteppingMethodPanel
+            // 
+            this.ivSteppingMethodPanel.Controls.Add(this.ivElectroMagnetRadioButton);
+            this.ivSteppingMethodPanel.Controls.Add(this.ivElectroMagnetGroupBox);
+            this.ivSteppingMethodPanel.Controls.Add(this.ivStepperMotorRadioButton);
+            this.ivSteppingMethodPanel.Controls.Add(this.ivStepperMotorGroupBox);
+            this.ivSteppingMethodPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ivSteppingMethodPanel.Location = new System.Drawing.Point(3, 3);
+            this.ivSteppingMethodPanel.Name = "ivSteppingMethodPanel";
+            this.ivSteppingMethodPanel.Size = new System.Drawing.Size(715, 185);
+            this.ivSteppingMethodPanel.TabIndex = 3;
+            // 
+            // ivElectroMagnetRadioButton
+            // 
+            this.ivElectroMagnetRadioButton.AutoSize = true;
+            this.ivElectroMagnetRadioButton.ForeColor = System.Drawing.Color.Black;
+            this.ivElectroMagnetRadioButton.Location = new System.Drawing.Point(263, 16);
+            this.ivElectroMagnetRadioButton.Name = "ivElectroMagnetRadioButton";
+            this.ivElectroMagnetRadioButton.Size = new System.Drawing.Size(94, 17);
+            this.ivElectroMagnetRadioButton.TabIndex = 24;
+            this.ivElectroMagnetRadioButton.Text = "ElectroMagnet";
+            this.ivElectroMagnetRadioButton.UseVisualStyleBackColor = true;
+            this.ivElectroMagnetRadioButton.CheckedChanged += new System.EventHandler(this.ivElectroMagnetRadioButton_CheckedChanged);
+            // 
+            // ivElectroMagnetGroupBox
+            // 
+            this.ivElectroMagnetGroupBox.Controls.Add(this.ivEMSkipStepperMotorCheckBox);
+            this.ivElectroMagnetGroupBox.Controls.Add(this.ivEMShortCircuitDelayTimeLabel);
+            this.ivElectroMagnetGroupBox.Controls.Add(this.ivEMShortCircuitDelayTimeNumericUpDown);
+            this.ivElectroMagnetGroupBox.Controls.Add(this.ivEMSlowDelayTimeNumericUpDown);
+            this.ivElectroMagnetGroupBox.Controls.Add(this.ivEMSlowDelayTimeLabel);
+            this.ivElectroMagnetGroupBox.Controls.Add(this.ivEMFastDelayTimeNumericUpDown);
+            this.ivElectroMagnetGroupBox.Controls.Add(this.ivEMFastDelayTimeLabel);
+            this.ivElectroMagnetGroupBox.Enabled = false;
+            this.ivElectroMagnetGroupBox.Location = new System.Drawing.Point(263, 29);
+            this.ivElectroMagnetGroupBox.Name = "ivElectroMagnetGroupBox";
+            this.ivElectroMagnetGroupBox.Size = new System.Drawing.Size(269, 141);
+            this.ivElectroMagnetGroupBox.TabIndex = 25;
+            this.ivElectroMagnetGroupBox.TabStop = false;
+            // 
+            // ivEMSkipStepperMotorCheckBox
+            // 
+            this.ivEMSkipStepperMotorCheckBox.AutoSize = true;
+            this.ivEMSkipStepperMotorCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.ivEMSkipStepperMotorCheckBox.Location = new System.Drawing.Point(20, 113);
+            this.ivEMSkipStepperMotorCheckBox.Name = "ivEMSkipStepperMotorCheckBox";
+            this.ivEMSkipStepperMotorCheckBox.Size = new System.Drawing.Size(182, 17);
+            this.ivEMSkipStepperMotorCheckBox.TabIndex = 13;
+            this.ivEMSkipStepperMotorCheckBox.Text = "Skip First Cycle by Stepper Motor";
+            this.ivEMSkipStepperMotorCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // ivEMShortCircuitDelayTimeLabel
+            // 
+            this.ivEMShortCircuitDelayTimeLabel.AutoSize = true;
+            this.ivEMShortCircuitDelayTimeLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivEMShortCircuitDelayTimeLabel.Location = new System.Drawing.Point(16, 18);
+            this.ivEMShortCircuitDelayTimeLabel.Name = "ivEMShortCircuitDelayTimeLabel";
+            this.ivEMShortCircuitDelayTimeLabel.Size = new System.Drawing.Size(142, 13);
+            this.ivEMShortCircuitDelayTimeLabel.TabIndex = 7;
+            this.ivEMShortCircuitDelayTimeLabel.Text = "Short Circuit Delay Time [ms]";
+            // 
+            // ivEMShortCircuitDelayTimeNumericUpDown
+            // 
+            this.ivEMShortCircuitDelayTimeNumericUpDown.Location = new System.Drawing.Point(167, 15);
+            this.ivEMShortCircuitDelayTimeNumericUpDown.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.ivEMShortCircuitDelayTimeNumericUpDown.Minimum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            this.ivEMShortCircuitDelayTimeNumericUpDown.Name = "ivEMShortCircuitDelayTimeNumericUpDown";
+            this.ivEMShortCircuitDelayTimeNumericUpDown.Size = new System.Drawing.Size(87, 20);
+            this.ivEMShortCircuitDelayTimeNumericUpDown.TabIndex = 6;
+            this.ivEMShortCircuitDelayTimeNumericUpDown.Value = new decimal(new int[] {
+            50,
+            0,
+            0,
+            0});
+            // 
+            // ivEMSlowDelayTimeNumericUpDown
+            // 
+            this.ivEMSlowDelayTimeNumericUpDown.Location = new System.Drawing.Point(167, 78);
+            this.ivEMSlowDelayTimeNumericUpDown.Maximum = new decimal(new int[] {
+            276447232,
+            23283,
+            0,
+            0});
+            this.ivEMSlowDelayTimeNumericUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.ivEMSlowDelayTimeNumericUpDown.Name = "ivEMSlowDelayTimeNumericUpDown";
+            this.ivEMSlowDelayTimeNumericUpDown.Size = new System.Drawing.Size(87, 20);
+            this.ivEMSlowDelayTimeNumericUpDown.TabIndex = 5;
+            this.ivEMSlowDelayTimeNumericUpDown.Value = new decimal(new int[] {
+            200,
+            0,
+            0,
+            0});
+            // 
+            // ivEMSlowDelayTimeLabel
+            // 
+            this.ivEMSlowDelayTimeLabel.AutoSize = true;
+            this.ivEMSlowDelayTimeLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivEMSlowDelayTimeLabel.Location = new System.Drawing.Point(16, 80);
+            this.ivEMSlowDelayTimeLabel.Name = "ivEMSlowDelayTimeLabel";
+            this.ivEMSlowDelayTimeLabel.Size = new System.Drawing.Size(108, 13);
+            this.ivEMSlowDelayTimeLabel.TabIndex = 4;
+            this.ivEMSlowDelayTimeLabel.Text = "Slow Delay Time [ms]";
+            // 
+            // ivEMFastDelayTimeNumericUpDown
+            // 
+            this.ivEMFastDelayTimeNumericUpDown.Location = new System.Drawing.Point(167, 47);
+            this.ivEMFastDelayTimeNumericUpDown.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.ivEMFastDelayTimeNumericUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.ivEMFastDelayTimeNumericUpDown.Name = "ivEMFastDelayTimeNumericUpDown";
+            this.ivEMFastDelayTimeNumericUpDown.Size = new System.Drawing.Size(87, 20);
+            this.ivEMFastDelayTimeNumericUpDown.TabIndex = 3;
+            this.ivEMFastDelayTimeNumericUpDown.Value = new decimal(new int[] {
+            15,
+            0,
+            0,
+            0});
+            // 
+            // ivEMFastDelayTimeLabel
+            // 
+            this.ivEMFastDelayTimeLabel.AutoSize = true;
+            this.ivEMFastDelayTimeLabel.ForeColor = System.Drawing.Color.Black;
+            this.ivEMFastDelayTimeLabel.Location = new System.Drawing.Point(16, 49);
+            this.ivEMFastDelayTimeLabel.Name = "ivEMFastDelayTimeLabel";
+            this.ivEMFastDelayTimeLabel.Size = new System.Drawing.Size(105, 13);
+            this.ivEMFastDelayTimeLabel.TabIndex = 2;
+            this.ivEMFastDelayTimeLabel.Text = "Fast Delay Time [ms]";
+            // 
+            // ivStepperMotorRadioButton
+            // 
+            this.ivStepperMotorRadioButton.AutoSize = true;
+            this.ivStepperMotorRadioButton.Checked = true;
+            this.ivStepperMotorRadioButton.ForeColor = System.Drawing.Color.Black;
+            this.ivStepperMotorRadioButton.Location = new System.Drawing.Point(6, 16);
+            this.ivStepperMotorRadioButton.Name = "ivStepperMotorRadioButton";
+            this.ivStepperMotorRadioButton.Size = new System.Drawing.Size(92, 17);
+            this.ivStepperMotorRadioButton.TabIndex = 22;
+            this.ivStepperMotorRadioButton.TabStop = true;
+            this.ivStepperMotorRadioButton.Text = "Stepper Motor";
+            this.ivStepperMotorRadioButton.UseVisualStyleBackColor = true;
+            this.ivStepperMotorRadioButton.CheckedChanged += new System.EventHandler(this.ivStepperMotorRadioButton_CheckedChanged);
+            // 
+            // ivStepperMotorGroupBox
+            // 
+            this.ivStepperMotorGroupBox.Controls.Add(this.ivStepperDelayTime2NumericUpDown);
+            this.ivStepperMotorGroupBox.Controls.Add(this.ivStepperDelayTime1NumericUpDown);
+            this.ivStepperMotorGroupBox.Controls.Add(this.ivStepperDelayTime2Label);
+            this.ivStepperMotorGroupBox.Controls.Add(this.ivStepperDelayTime1Label);
+            this.ivStepperMotorGroupBox.Location = new System.Drawing.Point(6, 29);
+            this.ivStepperMotorGroupBox.Name = "ivStepperMotorGroupBox";
+            this.ivStepperMotorGroupBox.Size = new System.Drawing.Size(239, 141);
+            this.ivStepperMotorGroupBox.TabIndex = 23;
+            this.ivStepperMotorGroupBox.TabStop = false;
+            // 
+            // ivStepperDelayTime2NumericUpDown
+            // 
+            this.ivStepperDelayTime2NumericUpDown.Increment = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.ivStepperDelayTime2NumericUpDown.Location = new System.Drawing.Point(137, 52);
+            this.ivStepperDelayTime2NumericUpDown.Maximum = new decimal(new int[] {
+            500,
+            0,
+            0,
+            0});
+            this.ivStepperDelayTime2NumericUpDown.Name = "ivStepperDelayTime2NumericUpDown";
+            this.ivStepperDelayTime2NumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.ivStepperDelayTime2NumericUpDown.TabIndex = 21;
+            this.ivStepperDelayTime2NumericUpDown.Value = new decimal(new int[] {
+            40,
+            0,
+            0,
+            0});
+            // 
+            // ivStepperDelayTime1NumericUpDown
+            // 
+            this.ivStepperDelayTime1NumericUpDown.Increment = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.ivStepperDelayTime1NumericUpDown.Location = new System.Drawing.Point(137, 22);
+            this.ivStepperDelayTime1NumericUpDown.Maximum = new decimal(new int[] {
+            500,
+            0,
+            0,
+            0});
+            this.ivStepperDelayTime1NumericUpDown.Name = "ivStepperDelayTime1NumericUpDown";
+            this.ivStepperDelayTime1NumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.ivStepperDelayTime1NumericUpDown.TabIndex = 19;
+            this.ivStepperDelayTime1NumericUpDown.Value = new decimal(new int[] {
+            40,
+            0,
+            0,
+            0});
+            // 
+            // ivStepperDelayTime2Label
+            // 
+            this.ivStepperDelayTime2Label.AutoSize = true;
+            this.ivStepperDelayTime2Label.ForeColor = System.Drawing.Color.Black;
+            this.ivStepperDelayTime2Label.Location = new System.Drawing.Point(14, 55);
+            this.ivStepperDelayTime2Label.Name = "ivStepperDelayTime2Label";
+            this.ivStepperDelayTime2Label.Size = new System.Drawing.Size(103, 13);
+            this.ivStepperDelayTime2Label.TabIndex = 20;
+            this.ivStepperDelayTime2Label.Text = "Delay Time 2 [msec]";
+            // 
+            // ivStepperDelayTime1Label
+            // 
+            this.ivStepperDelayTime1Label.AutoSize = true;
+            this.ivStepperDelayTime1Label.ForeColor = System.Drawing.Color.Black;
+            this.ivStepperDelayTime1Label.Location = new System.Drawing.Point(14, 25);
+            this.ivStepperDelayTime1Label.Name = "ivStepperDelayTime1Label";
+            this.ivStepperDelayTime1Label.Size = new System.Drawing.Size(103, 13);
+            this.ivStepperDelayTime1Label.TabIndex = 18;
+            this.ivStepperDelayTime1Label.Text = "Delay Time 1 [msec]";
+            // 
+            // tabPage7
+            // 
+            this.tabPage7.Controls.Add(this.ivChannelsPanel);
+            this.tabPage7.Location = new System.Drawing.Point(4, 22);
+            this.tabPage7.Name = "tabPage7";
+            this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage7.Size = new System.Drawing.Size(721, 191);
+            this.tabPage7.TabIndex = 4;
+            this.tabPage7.Text = "Channels";
+            this.tabPage7.UseVisualStyleBackColor = true;
+            // 
+            // ivChannelsPanel
+            // 
+            this.ivChannelsPanel.Controls.Add(this.ivChannel1ComboBox);
+            this.ivChannelsPanel.Controls.Add(this.ivChannel3ComboBox);
+            this.ivChannelsPanel.Controls.Add(this.ivChannel0CheckBox);
+            this.ivChannelsPanel.Controls.Add(this.ivChannel3CheckBox);
+            this.ivChannelsPanel.Controls.Add(this.ivChannel0ComboBox);
+            this.ivChannelsPanel.Controls.Add(this.ivChannel2ComboBox);
+            this.ivChannelsPanel.Controls.Add(this.ivChannel1CheckBox);
+            this.ivChannelsPanel.Controls.Add(this.ivChannel2CheckBox);
+            this.ivChannelsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ivChannelsPanel.Location = new System.Drawing.Point(3, 3);
+            this.ivChannelsPanel.Name = "ivChannelsPanel";
+            this.ivChannelsPanel.Size = new System.Drawing.Size(715, 185);
+            this.ivChannelsPanel.TabIndex = 8;
+            // 
+            // ivChannel1ComboBox
+            // 
+            this.ivChannel1ComboBox.FormattingEnabled = true;
+            this.ivChannel1ComboBox.Location = new System.Drawing.Point(107, 33);
+            this.ivChannel1ComboBox.Name = "ivChannel1ComboBox";
+            this.ivChannel1ComboBox.Size = new System.Drawing.Size(202, 21);
+            this.ivChannel1ComboBox.TabIndex = 3;
+            // 
+            // ivChannel3ComboBox
+            // 
+            this.ivChannel3ComboBox.FormattingEnabled = true;
+            this.ivChannel3ComboBox.Location = new System.Drawing.Point(107, 87);
+            this.ivChannel3ComboBox.Name = "ivChannel3ComboBox";
+            this.ivChannel3ComboBox.Size = new System.Drawing.Size(202, 21);
+            this.ivChannel3ComboBox.TabIndex = 7;
+            // 
+            // ivChannel0CheckBox
+            // 
+            this.ivChannel0CheckBox.AutoSize = true;
+            this.ivChannel0CheckBox.Checked = true;
+            this.ivChannel0CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ivChannel0CheckBox.ForeColor = System.Drawing.Color.Black;
+            this.ivChannel0CheckBox.Location = new System.Drawing.Point(7, 8);
+            this.ivChannel0CheckBox.Name = "ivChannel0CheckBox";
+            this.ivChannel0CheckBox.Size = new System.Drawing.Size(71, 17);
+            this.ivChannel0CheckBox.TabIndex = 0;
+            this.ivChannel0CheckBox.Text = "Dev1/ai0";
+            this.ivChannel0CheckBox.UseVisualStyleBackColor = true;
+            // 
+            // ivChannel3CheckBox
+            // 
+            this.ivChannel3CheckBox.AutoSize = true;
+            this.ivChannel3CheckBox.ForeColor = System.Drawing.Color.Black;
+            this.ivChannel3CheckBox.Location = new System.Drawing.Point(7, 89);
+            this.ivChannel3CheckBox.Name = "ivChannel3CheckBox";
+            this.ivChannel3CheckBox.Size = new System.Drawing.Size(71, 17);
+            this.ivChannel3CheckBox.TabIndex = 6;
+            this.ivChannel3CheckBox.Text = "Dev1/ai3";
+            this.ivChannel3CheckBox.UseVisualStyleBackColor = true;
+            // 
+            // ivChannel0ComboBox
+            // 
+            this.ivChannel0ComboBox.FormattingEnabled = true;
+            this.ivChannel0ComboBox.Location = new System.Drawing.Point(107, 6);
+            this.ivChannel0ComboBox.Name = "ivChannel0ComboBox";
+            this.ivChannel0ComboBox.Size = new System.Drawing.Size(202, 21);
+            this.ivChannel0ComboBox.TabIndex = 1;
+            // 
+            // ivChannel2ComboBox
+            // 
+            this.ivChannel2ComboBox.FormattingEnabled = true;
+            this.ivChannel2ComboBox.Location = new System.Drawing.Point(107, 60);
+            this.ivChannel2ComboBox.Name = "ivChannel2ComboBox";
+            this.ivChannel2ComboBox.Size = new System.Drawing.Size(202, 21);
+            this.ivChannel2ComboBox.TabIndex = 5;
+            // 
+            // ivChannel1CheckBox
+            // 
+            this.ivChannel1CheckBox.AutoSize = true;
+            this.ivChannel1CheckBox.Checked = true;
+            this.ivChannel1CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ivChannel1CheckBox.ForeColor = System.Drawing.Color.Black;
+            this.ivChannel1CheckBox.Location = new System.Drawing.Point(7, 35);
+            this.ivChannel1CheckBox.Name = "ivChannel1CheckBox";
+            this.ivChannel1CheckBox.Size = new System.Drawing.Size(71, 17);
+            this.ivChannel1CheckBox.TabIndex = 2;
+            this.ivChannel1CheckBox.Text = "Dev1/ai1";
+            this.ivChannel1CheckBox.UseVisualStyleBackColor = true;
+            // 
+            // ivChannel2CheckBox
+            // 
+            this.ivChannel2CheckBox.AutoSize = true;
+            this.ivChannel2CheckBox.ForeColor = System.Drawing.Color.Black;
+            this.ivChannel2CheckBox.Location = new System.Drawing.Point(7, 62);
+            this.ivChannel2CheckBox.Name = "ivChannel2CheckBox";
+            this.ivChannel2CheckBox.Size = new System.Drawing.Size(71, 17);
+            this.ivChannel2CheckBox.TabIndex = 4;
+            this.ivChannel2CheckBox.Text = "Dev1/ai2";
+            this.ivChannel2CheckBox.UseVisualStyleBackColor = true;
             // 
             // controlPanelsTabPage
             // 
@@ -2050,15 +2865,44 @@
             this.channelsConfigurationTabPage.ResumeLayout(false);
             this.channelsSettingsPanel.ResumeLayout(false);
             this.channelsSettingsPanel.PerformLayout();
-            this.ivCurvesTabPage.ResumeLayout(false);
-            this.ivCurvesPanel.ResumeLayout(false);
-            this.ivCurvesPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ivTimeOfOneCycleNumericEdit)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.ivVoltageForTheDisplayedTraceNumericEdit)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.ivSampleRateNumericEdit)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.ivAmplitudeNumericEdit)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.ivSampleDelayNumericEdit)).EndInit();
+            this.ivAcquisition.ResumeLayout(false);
+            this.ivAcquisition.PerformLayout();
+            this.ivOperateGroupBox.ResumeLayout(false);
+            this.ivOperateGroupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ivNumberOfCyclesNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivShortCircuitVoltageNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivFileNumberNumericUpDown)).EndInit();
+            this.ivPlotGroupBox.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.ivWaveformGraph)).EndInit();
+            this.ivSettingsGroupBox.ResumeLayout(false);
+            this.ivGeneralTabControl.ResumeLayout(false);
+            this.tabPage2.ResumeLayout(false);
+            this.ivGeneralSettingsPanel.ResumeLayout(false);
+            this.ivGeneralSettingsPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ivVoltageForTraceNumericEdit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivTimeOfOneIVCycleNumericEdit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivOutputUpdateRateNumericEdit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivVoltageAmplitudeNumericEdit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivOutputUpdateDelayNumericEdit)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivSamplesPerCycleNumericEdit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivInputSampleRateNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivTriggerVoltageNumericEdit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivTriggerConductanceNumericEdit)).EndInit();
+            this.ivSteppingMethodTabPage.ResumeLayout(false);
+            this.ivSteppingMethodPanel.ResumeLayout(false);
+            this.ivSteppingMethodPanel.PerformLayout();
+            this.ivElectroMagnetGroupBox.ResumeLayout(false);
+            this.ivElectroMagnetGroupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ivEMShortCircuitDelayTimeNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivEMSlowDelayTimeNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivEMFastDelayTimeNumericUpDown)).EndInit();
+            this.ivStepperMotorGroupBox.ResumeLayout(false);
+            this.ivStepperMotorGroupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ivStepperDelayTime2NumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivStepperDelayTime1NumericUpDown)).EndInit();
+            this.tabPage7.ResumeLayout(false);
+            this.ivChannelsPanel.ResumeLayout(false);
+            this.ivChannelsPanel.PerformLayout();
             this.controlPanelsTabPage.ResumeLayout(false);
             this.electroMagnetGroupBox.ResumeLayout(false);
             this.stepperMotorGroupBox.ResumeLayout(false);
@@ -2186,26 +3030,82 @@
         private System.Windows.Forms.ListView channelsListView;
         private NationalInstruments.UI.WindowsForms.NumericEdit mixerReductionFactorNumericEdit;
         private System.Windows.Forms.Label acVoltageReductionFactorLabel;
-        private System.Windows.Forms.TabPage ivCurvesTabPage;
-        private System.Windows.Forms.Panel ivCurvesPanel;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
-        private NationalInstruments.UI.WindowsForms.NumericEdit ivAmplitudeNumericEdit;
-        private NationalInstruments.UI.WindowsForms.NumericEdit ivSampleDelayNumericEdit;
-        private NationalInstruments.UI.WindowsForms.NumericEdit ivSamplesPerCycleNumericEdit;
-        private System.Windows.Forms.Label label4;
-        private NationalInstruments.UI.WindowsForms.NumericEdit ivSampleRateNumericEdit;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.CheckBox ivStartCyclesCheckBox;
         private System.ComponentModel.BackgroundWorker ivCyclesBackgroundWorker;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label label5;
-        private NationalInstruments.UI.WindowsForms.NumericEdit ivVoltageForTheDisplayedTraceNumericEdit;
-        private System.Windows.Forms.Label label7;
         private System.Windows.Forms.CheckBox useKeithleyCheckBox;
-        private NationalInstruments.UI.WindowsForms.NumericEdit ivTimeOfOneCycleNumericEdit;
-        private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Button openFolderButton;
+        private System.Windows.Forms.TabPage ivAcquisition;
+        private System.Windows.Forms.GroupBox ivOperateGroupBox;
+        private System.Windows.Forms.Button ivOpenFolderButton;
+        private System.Windows.Forms.CheckBox ivStepperUpCheckBox;
+        private System.Windows.Forms.CheckBox ivStartStopCheckBox;
+        private System.Windows.Forms.CheckBox ivShortCircuitCheckBox;
+        private System.Windows.Forms.NumericUpDown ivNumberOfCyclesNumericUpDown;
+        private System.Windows.Forms.Label ivNumberOfCyclesLlabel;
+        private System.Windows.Forms.NumericUpDown ivShortCircuitVoltageNumericUpDown;
+        private System.Windows.Forms.Label ivShortCircuitVoltageLabel;
+        private System.Windows.Forms.TextBox ivPathTextBox;
+        private System.Windows.Forms.Button ivBrowseButton;
+        private System.Windows.Forms.CheckBox ivFileSavingCheckBox;
+        private System.Windows.Forms.Label ivFileNumberLabel;
+        private System.Windows.Forms.Label ivPathLabel;
+        private System.Windows.Forms.NumericUpDown ivFileNumberNumericUpDown;
+        private System.Windows.Forms.GroupBox ivPlotGroupBox;
+        private System.Windows.Forms.ListView ivChannelsListView;
+        private NationalInstruments.UI.WindowsForms.WaveformGraph ivWaveformGraph;
+        private NationalInstruments.UI.WaveformPlot waveformPlot2;
+        private NationalInstruments.UI.XAxis xAxis2;
+        private NationalInstruments.UI.YAxis conductanceAxis;
+        private System.Windows.Forms.GroupBox ivSettingsGroupBox;
+        private System.Windows.Forms.TabControl ivGeneralTabControl;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.Panel ivGeneralSettingsPanel;
+        private System.Windows.Forms.ComboBox ivGainPoweComboBox;
+        private System.Windows.Forms.NumericUpDown ivInputSampleRateNumericUpDown;
+        private NationalInstruments.UI.WindowsForms.NumericEdit ivTriggerVoltageNumericEdit;
+        private System.Windows.Forms.Label ivTriggerVoltageLabel;
+        private NationalInstruments.UI.WindowsForms.NumericEdit ivTriggerConductanceNumericEdit;
+        private System.Windows.Forms.Label ivTriggerConductanceLabel;
+        private System.Windows.Forms.Label ivInputSampleRateLabel;
+        private System.Windows.Forms.Label ivGainPowerLabel;
+        private System.Windows.Forms.TabPage ivSteppingMethodTabPage;
+        private System.Windows.Forms.Panel ivSteppingMethodPanel;
+        private System.Windows.Forms.CheckBox ivEMSkipStepperMotorCheckBox;
+        private System.Windows.Forms.Label ivEMShortCircuitDelayTimeLabel;
+        private System.Windows.Forms.NumericUpDown ivEMShortCircuitDelayTimeNumericUpDown;
+        private System.Windows.Forms.NumericUpDown ivEMSlowDelayTimeNumericUpDown;
+        private System.Windows.Forms.Label ivEMSlowDelayTimeLabel;
+        private System.Windows.Forms.NumericUpDown ivEMFastDelayTimeNumericUpDown;
+        private System.Windows.Forms.Label ivEMFastDelayTimeLabel;
+        private System.Windows.Forms.TabPage tabPage7;
+        private System.Windows.Forms.Panel ivChannelsPanel;
+        private System.Windows.Forms.ComboBox ivChannel1ComboBox;
+        private System.Windows.Forms.ComboBox ivChannel3ComboBox;
+        private System.Windows.Forms.CheckBox ivChannel0CheckBox;
+        private System.Windows.Forms.CheckBox ivChannel3CheckBox;
+        private System.Windows.Forms.ComboBox ivChannel0ComboBox;
+        private System.Windows.Forms.ComboBox ivChannel2ComboBox;
+        private System.Windows.Forms.CheckBox ivChannel1CheckBox;
+        private System.Windows.Forms.CheckBox ivChannel2CheckBox;
+        private NationalInstruments.UI.WindowsForms.NumericEdit ivVoltageForTraceNumericEdit;
+        private System.Windows.Forms.Label ivVoltageForTraceLabel;
+        private NationalInstruments.UI.WindowsForms.NumericEdit ivTimeOfOneIVCycleNumericEdit;
+        private System.Windows.Forms.Label ivTimeOfIVCycleLabel;
+        private System.Windows.Forms.Label ivOutputUpdateDelayLabel;
+        private NationalInstruments.UI.WindowsForms.NumericEdit ivOutputUpdateRateNumericEdit;
+        private System.Windows.Forms.Label ivSamplesPerCycleLabel;
+        private System.Windows.Forms.Label ivVoltageAmplitudeLabel;
+        private System.Windows.Forms.Label ivOutputUpdateRateLabel;
+        private NationalInstruments.UI.WindowsForms.NumericEdit ivVoltageAmplitudeNumericEdit;
+        private NationalInstruments.UI.WindowsForms.NumericEdit ivOutputUpdateDelayNumericEdit;
+        private NationalInstruments.UI.WindowsForms.NumericEdit ivSamplesPerCycleNumericEdit;
+        private System.Windows.Forms.RadioButton ivElectroMagnetRadioButton;
+        private System.Windows.Forms.GroupBox ivElectroMagnetGroupBox;
+        private System.Windows.Forms.RadioButton ivStepperMotorRadioButton;
+        private System.Windows.Forms.GroupBox ivStepperMotorGroupBox;
+        private System.Windows.Forms.NumericUpDown ivStepperDelayTime2NumericUpDown;
+        private System.Windows.Forms.NumericUpDown ivStepperDelayTime1NumericUpDown;
+        private System.Windows.Forms.Label ivStepperDelayTime2Label;
+        private System.Windows.Forms.Label ivStepperDelayTime1Label;
                          
     }
 }

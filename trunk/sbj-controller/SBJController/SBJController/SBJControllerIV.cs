@@ -18,6 +18,7 @@ namespace SBJController
         private FunctionGenerator m_functionGenerator;
         private AnalogSingleChannelWriter writer;
         private AnalogMultiChannelReader reader;
+        private delegate bool IV_EMOpenJunctionMethodDelegate(IVSettings settings);
         #endregion
 
         #region Properties
@@ -78,19 +79,19 @@ namespace SBJController
         }
 
         /// <summary>
-        /// 
+        /// Do Cycles of closing and opening the junction, while measuring IVs
         /// </summary>
         /// <param name="settings"></param>
         /// <param name="worker"></param>
         /// <param name="e"></param>
-        public void IV_AcquireData(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        public void IV_AcquireData(IVSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             bool isCancelled = false;
-            int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
+            int finalFileNumber = settings.IVGeneralSettings.CurrentFileNumber;
             double[,] dataAcquired;
             List<IDataChannel> physicalChannels = new List<IDataChannel>();
 
-            if (!settings.ElectromagnetSettings.IsEMEnable)
+            if (settings.IVSteppingMethodSettings.SteppingDevice != SteppingDevice.ElectroMagnet)
             {
                 MessageBox.Show("Please enable the ElectroMagnet in order to acquire IV curves.");
                 return;
@@ -99,12 +100,12 @@ namespace SBJController
             //
             // Save this run settings if desired
             //
-            SaveSettingsIfNeeded(settings, settings.GeneralSettings.IsFileSavingRequired, settings.GeneralSettings.Path);
+            SaveSettingsIfNeeded(settings, settings.IVGeneralSettings.IsFileSavingRequired, settings.IVGeneralSettings.Path);
 
             //
-            // apply initial voltage on the EM
+            // apply initial voltage on the EM if needed
             //
-            ApplyVoltageOnElectroMagnetIfNeeded(settings.ElectromagnetSettings.IsEMEnable);
+            ApplyVoltageOnElectroMagnetIfNeeded(settings.IVSteppingMethodSettings.SteppingDevice == SteppingDevice.ElectroMagnet);
 
             
             //
@@ -121,7 +122,7 @@ namespace SBJController
             //
             // Main loop for data aquisition
             //
-            for (int i = 0; i < settings.GeneralSettings.TotalNumberOfCycles; i++)
+            for (int i = 0; i < settings.IVGeneralSettings.TotalNumberOfCycles; i++)
             {
                 //
                 // Cancel the operatin if user asked for
@@ -133,10 +134,11 @@ namespace SBJController
                 }
 
                 //
-                // if EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
+                // if we use EM, and we are asked to skip the first cycle (that is done by the stepper motor), 
                 // move on to the next cycle.
                 //
-                if (i == 0 && settings.ElectromagnetSettings.IsEMEnable && settings.ElectromagnetSettings.IsEMSkipFirstCycleEnable)
+                if (i == 0 && settings.IVSteppingMethodSettings.SteppingDevice == SteppingDevice.ElectroMagnet 
+                            && settings.IVSteppingMethodSettings.IsEMSkipFirstCycleEnable)
                 {
                     m_stepperMotor.Shutdown();
                     continue;
@@ -150,12 +152,12 @@ namespace SBJController
 
                 //
                 // Reach to contact before we start openning the junction
-                // If EM is enabled and we're after the first cycle, use the EM.
+                // If we use EM and we're after the first cycle, use the EM.
                 // If user asked to stop than exit
                 //
-                isCancelled = (settings.ElectromagnetSettings.IsEMEnable && i > 0) ?
-                               EMTryObtainShortCircuit(settings, worker, e) :
-                               TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                isCancelled = (settings.IVSteppingMethodSettings.SteppingDevice == SteppingDevice.ElectroMagnet && i > 0) ?
+                               EMTryObtainShortCircuit(settings.IVSteppingMethodSettings.EMShortCircuitDelayTime, settings.IVGeneralSettings.ShortCircuitVoltage, worker, e) :
+                               TryObtainShortCircuit(settings.IVGeneralSettings.ShortCircuitVoltage, worker, e);
                 if (isCancelled)
                 {
                     break;
@@ -166,21 +168,21 @@ namespace SBJController
                 // And also this is the time to switch the laser on.
                 //
                 int gainPower;
-                Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
+                Int32.TryParse(settings.IVGeneralSettings.Gain, out gainPower);
                 m_amplifier.ChangeGain(gainPower);
 
                 //
                 // Start openning the junction.
                 // If EM is enabled and we're after the first cycle, use the EM.
                 //
-                if (settings.ElectromagnetSettings.IsEMEnable)
+                if (settings.IVSteppingMethodSettings.SteppingDevice == SteppingDevice.ElectroMagnet)
                 {
                     if (i == 0)
                     {
                         //
                         // we are on the first cycle and wish to open the junction by the stepper motor.
                         //
-                        ObtainOpenJunctionByStepperMotor(settings.GeneralSettings.TriggerVoltage, worker, e);
+                        ObtainOpenJunctionByStepperMotor(settings.IVGeneralSettings.TriggerVoltage, worker, e);
 
                         //
                         // from now on we will be using the electroMagnet, so lets turn the stepper motor off and move to the next cycle
@@ -288,9 +290,9 @@ namespace SBJController
                 // Save data if needed
                 //
                 finalFileNumber++;
-                if (settings.GeneralSettings.IsFileSavingRequired)
+                if (settings.IVGeneralSettings.IsFileSavingRequired)
                 {
-                    finalFileNumber = SaveData(settings, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+                    finalFileNumber = SaveData(settings.IVGeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
                 }
 
                 //
@@ -305,7 +307,7 @@ namespace SBJController
             //
             // Finish the measurement properly
             //
-            if (settings.ElectromagnetSettings.IsEMEnable)
+            if (settings.IVSteppingMethodSettings.SteppingDevice == SteppingDevice.ElectroMagnet)
             {
                 m_electroMagnet.Shutdown();
             }
@@ -323,9 +325,9 @@ namespace SBJController
         /// Open the junction asynchronously by the ElectroMagnet for IV measurements
         /// </summary>
         /// <param name="settings"></param>
-        private void IV_EMBeginOpenJunction(SBJControllerSettings settings)
+        private void IV_EMBeginOpenJunction(IVSettings settings)
         {
-            EMOpenJunctionMethodDelegate emOpenJunctionDelegate = new EMOpenJunctionMethodDelegate(IV_EMTryOpenJunction);
+            IV_EMOpenJunctionMethodDelegate emOpenJunctionDelegate = new IV_EMOpenJunctionMethodDelegate(IV_EMTryOpenJunction);
             AsyncCallback callback = new AsyncCallback(IV_EMEndOpenJunction);
             IAsyncResult asyncResult = emOpenJunctionDelegate.BeginInvoke(settings, callback, emOpenJunctionDelegate);
         }
@@ -336,7 +338,7 @@ namespace SBJController
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        private bool IV_EMTryOpenJunction(SBJControllerSettings settings)
+        private bool IV_EMTryOpenJunction(IVSettings settings)
         {
             //
             // if the EM reached voltage 0 without opening the junction, 
@@ -356,7 +358,7 @@ namespace SBJController
         /// If min voltage exceeded without the junction being opened, return false. 
         /// </summary>
         /// <param name="settings">The settings to be used to open the junction</param>
-        private bool IV_EMOpenJunction(SBJControllerSettings settings)
+        private bool IV_EMOpenJunction(IVSettings settings)
         {
             int underTriggerCounts = 0;
             int numOfSteps = 0;
@@ -368,7 +370,7 @@ namespace SBJController
             // And configure the first setpper delay (shorter) - faster movement
             //
             m_electroMagnet.Direction = StepperDirection.UP;
-            m_electroMagnet.Delay = settings.ElectromagnetSettings.EMFastDelayTime;
+            m_electroMagnet.Delay = settings.IVSteppingMethodSettings.EMFastDelayTime;
 
             //
             // Read the initial voltgae before we've done anything
@@ -397,7 +399,7 @@ namespace SBJController
                 //
                 if (numOfSteps == 100)
                 {
-                    m_electroMagnet.Delay = (int)(0.2 * settings.ElectromagnetSettings.EMSlowDelayTime + 0.8 * settings.ElectromagnetSettings.EMFastDelayTime);
+                    m_electroMagnet.Delay = (int)(0.2 * settings.IVSteppingMethodSettings.EMSlowDelayTime + 0.8 * settings.IVSteppingMethodSettings.EMFastDelayTime);
                 }
 
                 ////
@@ -430,7 +432,7 @@ namespace SBJController
                     //
                     if (rateTriggerCounts > 8)
                     {
-                        m_electroMagnet.Delay = (int)settings.ElectromagnetSettings.EMSlowDelayTime;
+                        m_electroMagnet.Delay = (int)settings.IVSteppingMethodSettings.EMSlowDelayTime;
                         rateTriggerCounts = -1;
                     }
                 }
@@ -440,7 +442,7 @@ namespace SBJController
                 // check if the voltage is under the trigger. Count how many times in a row it happens.
                 // correct the trigger by the preamp offset
                 //
-                if (numOfSteps > 200 && Math.Abs(currentVoltage) < (Math.Abs(settings.GeneralSettings.TriggerVoltage)+c_preAmpOffset))
+                if (numOfSteps > 200 && Math.Abs(currentVoltage) < (Math.Abs(settings.IVGeneralSettings.TriggerVoltage)+c_preAmpOffset))
                 {
                     underTriggerCounts++;
                 }
@@ -476,12 +478,12 @@ namespace SBJController
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        private Task GetContinuousAITask(SBJControllerSettings settings)
+        private Task GetContinuousAITask(IVSettings settings)
         {
             //
             // get the properties required for the input task
             //
-            TaskProperties inputTaskProperties = new TaskProperties(settings.IVCurvesSettings.IVSampleRate, 
+            TaskProperties inputTaskProperties = new TaskProperties(settings.IVGeneralSettings.SampleRate, 
                                                                     settings.ChannelsSettings.ActiveChannels);
 
             //
@@ -495,14 +497,14 @@ namespace SBJController
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        private Task GetContinuousAOTask(SBJControllerSettings settings)
+        private Task GetContinuousAOTask(IVSettings settings)
         {
             //
             // get the properties required for the output task
             //
-            ContinuousAOTaskProperties outputProperties = new ContinuousAOTaskProperties(settings.IVCurvesSettings.IVSampleRate,
-                                                                                         settings.IVCurvesSettings.IVSamplesPerCycle,
-                                                                                         settings.IVCurvesSettings.IVAmplitude);
+            ContinuousAOTaskProperties outputProperties = new ContinuousAOTaskProperties(settings.IVGeneralSettings.OutputUpdateRate,
+                                                                                         settings.IVGeneralSettings.SamplesPerCycle,
+                                                                                         settings.IVGeneralSettings.VoltageAmplitude);
             //
             // return the output task
             //
@@ -514,14 +516,14 @@ namespace SBJController
         /// </summary>
         /// <param name="task">The output task that the writer will belong to</param>
         /// <param name="settings">The UI settings</param>
-        private void InitiateOutputWriter(Task task, SBJControllerSettings settings)
+        private void InitiateOutputWriter(Task task, IVSettings settings)
         {
             //
             // generate output arrays
             //
-            m_functionGenerator = new FunctionGenerator(settings.IVCurvesSettings.IVSamplesPerCycle,
-                                                        settings.IVCurvesSettings.IVAmplitude,
-                                                        settings.GeneralSettings.Bias);
+            m_functionGenerator = new FunctionGenerator(settings.IVGeneralSettings.SamplesPerCycle,
+                                                        settings.IVGeneralSettings.VoltageAmplitude,
+                                                        settings.IVGeneralSettings.VoltageAmplitude);
 
             //
             // create the writer of the output task
