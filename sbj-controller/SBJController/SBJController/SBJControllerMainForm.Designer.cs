@@ -159,12 +159,12 @@
             this.ivPlotGroupBox = new System.Windows.Forms.GroupBox();
             this.ivChannelsListView = new System.Windows.Forms.ListView();
             this.ivWaveformGraph = new NationalInstruments.UI.WindowsForms.WaveformGraph();
-            this.waveformPlot2 = new NationalInstruments.UI.WaveformPlot();
+            this.ivWaveformPlot = new NationalInstruments.UI.WaveformPlot();
             this.xAxis2 = new NationalInstruments.UI.XAxis();
             this.conductanceAxis = new NationalInstruments.UI.YAxis();
             this.ivSettingsGroupBox = new System.Windows.Forms.GroupBox();
             this.ivGeneralTabControl = new System.Windows.Forms.TabControl();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.ivGeneralSettingsTabPage = new System.Windows.Forms.TabPage();
             this.ivGeneralSettingsPanel = new System.Windows.Forms.Panel();
             this.ivVoltageForTraceNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
             this.ivVoltageForTraceLabel = new System.Windows.Forms.Label();
@@ -203,7 +203,7 @@
             this.ivStepperDelayTime1NumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.ivStepperDelayTime2Label = new System.Windows.Forms.Label();
             this.ivStepperDelayTime1Label = new System.Windows.Forms.Label();
-            this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.ivChannelsTabPage = new System.Windows.Forms.TabPage();
             this.ivChannelsPanel = new System.Windows.Forms.Panel();
             this.ivChannel1ComboBox = new System.Windows.Forms.ComboBox();
             this.ivChannel3ComboBox = new System.Windows.Forms.ComboBox();
@@ -215,9 +215,9 @@
             this.ivChannel2CheckBox = new System.Windows.Forms.CheckBox();
             this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
-            this.electroMagnetUserControl2 = new ElectroMagnetUserControl();
+            this.electroMagnetUserControl2 = new SBJController.ElectroMagnetUserControl();
             this.stepperMotorGroupBox = new System.Windows.Forms.GroupBox();
-            this.stepperMotorUserControl1 = new StepperMotorUserControl();
+            this.stepperMotorUserControl1 = new SBJController.StepperMotorUserControl();
             this.aquireDataBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.stepperUpBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.fixBiasBackgroundWorker = new System.ComponentModel.BackgroundWorker();
@@ -277,7 +277,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.ivWaveformGraph)).BeginInit();
             this.ivSettingsGroupBox.SuspendLayout();
             this.ivGeneralTabControl.SuspendLayout();
-            this.tabPage2.SuspendLayout();
+            this.ivGeneralSettingsTabPage.SuspendLayout();
             this.ivGeneralSettingsPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ivVoltageForTraceNumericEdit)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivTimeOfOneIVCycleNumericEdit)).BeginInit();
@@ -297,7 +297,7 @@
             this.ivStepperMotorGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ivStepperDelayTime2NumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivStepperDelayTime1NumericUpDown)).BeginInit();
-            this.tabPage7.SuspendLayout();
+            this.ivChannelsTabPage.SuspendLayout();
             this.ivChannelsPanel.SuspendLayout();
             this.controlPanelsTabPage.SuspendLayout();
             this.electroMagnetGroupBox.SuspendLayout();
@@ -2061,7 +2061,7 @@
             this.ivWaveformGraph.Name = "ivWaveformGraph";
             this.ivWaveformGraph.PlotAreaColor = System.Drawing.Color.LightGray;
             this.ivWaveformGraph.Plots.AddRange(new NationalInstruments.UI.WaveformPlot[] {
-            this.waveformPlot2});
+            this.ivWaveformPlot});
             this.ivWaveformGraph.Size = new System.Drawing.Size(467, 339);
             this.ivWaveformGraph.TabIndex = 23;
             this.ivWaveformGraph.XAxes.AddRange(new NationalInstruments.UI.XAxis[] {
@@ -2069,13 +2069,13 @@
             this.ivWaveformGraph.YAxes.AddRange(new NationalInstruments.UI.YAxis[] {
             this.conductanceAxis});
             // 
-            // waveformPlot2
+            // ivWaveformPlot
             // 
-            this.waveformPlot2.LineColor = System.Drawing.Color.Red;
-            this.waveformPlot2.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
-            this.waveformPlot2.ToolTipsEnabled = true;
-            this.waveformPlot2.XAxis = this.xAxis2;
-            this.waveformPlot2.YAxis = this.conductanceAxis;
+            this.ivWaveformPlot.LineColor = System.Drawing.Color.Red;
+            this.ivWaveformPlot.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
+            this.ivWaveformPlot.ToolTipsEnabled = true;
+            this.ivWaveformPlot.XAxis = this.xAxis2;
+            this.ivWaveformPlot.YAxis = this.conductanceAxis;
             // 
             // xAxis2
             // 
@@ -2101,9 +2101,9 @@
             // 
             // ivGeneralTabControl
             // 
-            this.ivGeneralTabControl.Controls.Add(this.tabPage2);
+            this.ivGeneralTabControl.Controls.Add(this.ivGeneralSettingsTabPage);
             this.ivGeneralTabControl.Controls.Add(this.ivSteppingMethodTabPage);
-            this.ivGeneralTabControl.Controls.Add(this.tabPage7);
+            this.ivGeneralTabControl.Controls.Add(this.ivChannelsTabPage);
             this.ivGeneralTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ivGeneralTabControl.Location = new System.Drawing.Point(3, 16);
             this.ivGeneralTabControl.Name = "ivGeneralTabControl";
@@ -2111,16 +2111,16 @@
             this.ivGeneralTabControl.Size = new System.Drawing.Size(729, 217);
             this.ivGeneralTabControl.TabIndex = 17;
             // 
-            // tabPage2
+            // ivGeneralSettingsTabPage
             // 
-            this.tabPage2.Controls.Add(this.ivGeneralSettingsPanel);
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(721, 191);
-            this.tabPage2.TabIndex = 0;
-            this.tabPage2.Text = "General";
-            this.tabPage2.UseVisualStyleBackColor = true;
+            this.ivGeneralSettingsTabPage.Controls.Add(this.ivGeneralSettingsPanel);
+            this.ivGeneralSettingsTabPage.Location = new System.Drawing.Point(4, 22);
+            this.ivGeneralSettingsTabPage.Name = "ivGeneralSettingsTabPage";
+            this.ivGeneralSettingsTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.ivGeneralSettingsTabPage.Size = new System.Drawing.Size(721, 191);
+            this.ivGeneralSettingsTabPage.TabIndex = 0;
+            this.ivGeneralSettingsTabPage.Text = "General";
+            this.ivGeneralSettingsTabPage.UseVisualStyleBackColor = true;
             // 
             // ivGeneralSettingsPanel
             // 
@@ -2616,16 +2616,16 @@
             this.ivStepperDelayTime1Label.TabIndex = 18;
             this.ivStepperDelayTime1Label.Text = "Delay Time 1 [msec]";
             // 
-            // tabPage7
+            // ivChannelsTabPage
             // 
-            this.tabPage7.Controls.Add(this.ivChannelsPanel);
-            this.tabPage7.Location = new System.Drawing.Point(4, 22);
-            this.tabPage7.Name = "tabPage7";
-            this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage7.Size = new System.Drawing.Size(721, 191);
-            this.tabPage7.TabIndex = 4;
-            this.tabPage7.Text = "Channels";
-            this.tabPage7.UseVisualStyleBackColor = true;
+            this.ivChannelsTabPage.Controls.Add(this.ivChannelsPanel);
+            this.ivChannelsTabPage.Location = new System.Drawing.Point(4, 22);
+            this.ivChannelsTabPage.Name = "ivChannelsTabPage";
+            this.ivChannelsTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.ivChannelsTabPage.Size = new System.Drawing.Size(721, 191);
+            this.ivChannelsTabPage.TabIndex = 4;
+            this.ivChannelsTabPage.Text = "Channels";
+            this.ivChannelsTabPage.UseVisualStyleBackColor = true;
             // 
             // ivChannelsPanel
             // 
@@ -2876,7 +2876,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.ivWaveformGraph)).EndInit();
             this.ivSettingsGroupBox.ResumeLayout(false);
             this.ivGeneralTabControl.ResumeLayout(false);
-            this.tabPage2.ResumeLayout(false);
+            this.ivGeneralSettingsTabPage.ResumeLayout(false);
             this.ivGeneralSettingsPanel.ResumeLayout(false);
             this.ivGeneralSettingsPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ivVoltageForTraceNumericEdit)).EndInit();
@@ -2900,7 +2900,7 @@
             this.ivStepperMotorGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ivStepperDelayTime2NumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivStepperDelayTime1NumericUpDown)).EndInit();
-            this.tabPage7.ResumeLayout(false);
+            this.ivChannelsTabPage.ResumeLayout(false);
             this.ivChannelsPanel.ResumeLayout(false);
             this.ivChannelsPanel.PerformLayout();
             this.controlPanelsTabPage.ResumeLayout(false);
@@ -3052,12 +3052,12 @@
         private System.Windows.Forms.GroupBox ivPlotGroupBox;
         private System.Windows.Forms.ListView ivChannelsListView;
         private NationalInstruments.UI.WindowsForms.WaveformGraph ivWaveformGraph;
-        private NationalInstruments.UI.WaveformPlot waveformPlot2;
+        private NationalInstruments.UI.WaveformPlot ivWaveformPlot;
         private NationalInstruments.UI.XAxis xAxis2;
         private NationalInstruments.UI.YAxis conductanceAxis;
         private System.Windows.Forms.GroupBox ivSettingsGroupBox;
         private System.Windows.Forms.TabControl ivGeneralTabControl;
-        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.TabPage ivGeneralSettingsTabPage;
         private System.Windows.Forms.Panel ivGeneralSettingsPanel;
         private System.Windows.Forms.ComboBox ivGainPoweComboBox;
         private System.Windows.Forms.NumericUpDown ivInputSampleRateNumericUpDown;
@@ -3076,7 +3076,7 @@
         private System.Windows.Forms.Label ivEMSlowDelayTimeLabel;
         private System.Windows.Forms.NumericUpDown ivEMFastDelayTimeNumericUpDown;
         private System.Windows.Forms.Label ivEMFastDelayTimeLabel;
-        private System.Windows.Forms.TabPage tabPage7;
+        private System.Windows.Forms.TabPage ivChannelsTabPage;
         private System.Windows.Forms.Panel ivChannelsPanel;
         private System.Windows.Forms.ComboBox ivChannel1ComboBox;
         private System.Windows.Forms.ComboBox ivChannel3ComboBox;
