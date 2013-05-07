@@ -573,8 +573,6 @@ namespace SBJController
             BrowseButtonFunction(this.pathTextBox);
         }    
 
-
-
         //
         // Save to sample log
         //
@@ -1234,7 +1232,8 @@ namespace SBJController
             this.channel2ComboBox.DataSource = new List<string>(channelTypes);
             this.channel3ComboBox.DataSource = new List<string>(channelTypes);
 
-            this.channel0CheckBox.Text = Settings.Default.DAQPhysicalChannelName0;
+            
+            //this.channel0CheckBox.Text = Settings.Default.DAQPhysicalChannelName0;
             this.channel1CheckBox.Text = Settings.Default.DAQPhysicalChannelName1;
             this.channel2CheckBox.Text = Settings.Default.DAQPhysicalChannelName2;
             this.channel3CheckBox.Text = Settings.Default.DAQPhysicalChannelName3;
@@ -1409,6 +1408,334 @@ namespace SBJController
       
         #endregion            
 
+        #region Calibration
+
+        private void StartStopCalibrationcheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (calibrationStartStopCheckBox.Checked)
+            {
+                //
+                // We were requested to start data acquisition so we must verify
+                // first that the worker is free for doing the job.
+                //
+                if (!calibrationBackGroundWorker.IsBusy)
+                {
+                    //
+                    // Change button text and UI appearance
+                    //
+                    calibrationStartStopCheckBox.Text = "Stop";
+                    calibrationShortCircuitCkeckBox.Enabled = false;
+                    calibrationStepperUpCheckBox.Enabled = false;
+                    generalSettingsPanel.Enabled = false;
+                    calibrationBackGroundWorker.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Can not start data aquisition operation." + Environment.NewLine + "Please try again in few seconds.");
+                }
+            }
+            else
+            {
+                //
+                // We were requested to stop data acquisition process
+                //
+                if (aquireDataBackgroundWorker.WorkerSupportsCancellation == true)
+                {
+                    aquireDataBackgroundWorker.CancelAsync();
+                }
+                if (m_sbjController.Task != null)
+                {
+                    m_sbjController.Task.Control(TaskAction.Abort);
+                }
+                m_sbjController.QuitJunctionOpenningOperation = true;
+                m_sbjController.StepperMotor.Shutdown();
+            }
+        }
+
+        private void calibrationBackGroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //
+            // We've done taking data so we must bring the UI appearance
+            //
+            calibrationStartStopCheckBox.Text = "Start";
+            calibrationStartStopCheckBox.Checked = false;
+            calibrationShortCircuitCkeckBox.Enabled = true;
+            calibrationStepperUpCheckBox.Enabled = true;
+            generalSettingsPanel.Enabled = true;
+
+            //
+            // if we applied the bias by the DAQ device, we need to stop the task. 
+            //
+            m_sbjController.StopApplyingVoltageIfNeeded();
+        }
+
+        private void calibrationBackGroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            m_sbjController.AquireCalibrationData(GetCalibrationSBJControllerSettings(), worker, e);
+        }
+
+        private SBJControllerSettingsForCalibration GetCalibrationSBJControllerSettings()
+        {
+            //
+            // Using windows forms one must know that UI controls cannot be accessed from a different thread than
+            // the thread the UI was created on. This is why everytime you try and reach a UI control you must
+            // first verify that you are in the right thread.
+            //
+            if (this.InvokeRequired)
+            {
+                //
+                // This tells us that we are not in the safe thread and so this function must be re-invoked
+                // from an appropriate thread.
+                //
+                return (SBJControllerSettingsForCalibration)this.Invoke(new Func<SBJControllerSettingsForCalibration>(() => GetCalibrationSBJControllerSettings()));
+            }
+            else
+            {
+                //
+                // Apparently this function was called from a safe thread so just carry on with
+                // what we were planning on doing.
+                //
+                return new SBJControllerSettingsForCalibration(new CalibrationSBJControllerSettings(this.calibrationBiasNumericEdit.Value,
+                                                                                                    this.calibrationGainPowerComboBox.Text,
+                                                                                                    this.calibrationTriggerVoltageNumericEdit.Value,
+                                                                                                    this.calibrationTriggerConductanceNumericEdit.Value,
+                                                                                                    this.calibrationSavingFilesCheckBox.Checked,
+                                                                                                    (int)this.calibrationSampleRateNumericEdit.Value,
+                                                                                                    (int)this.calibrationTotalSamplesNumericUpDown.Value,
+                                                                                                    (int)this.calibrationPreTriggerSampleNumericUpDown.Value,
+                                                                                                    this.calibrationPathTextBox.Text,
+                                                                                                    (int)this.calibrationCycleNumberNumericUpDown.Value,
+                                                                                                    (int)this.calibrationNumberOfCyclesNumericUpDown.Value,
+                                                                                                    (double)this.calibrationShortCircuitVoltageumericUpDown.Value,
+                                                                                                    this.calibrationEnableElectroMagnetCheckBox.Checked,
+                                                                                                    this.calibrationKeithleyCheckBox.Checked),
+                                                               new ElectroMagnetSBJControllerSettings(this.enableElectroMagnetCheckBox.Checked,
+                                                                                                    (int)this.emShortCircuitDelayTimeNumericUpDown.Value,
+                                                                                                    (int)this.emFastDelayTimeNumericUpDown.Value,
+                                                                                                    (int)this.emSlowDelayTimeNumericUpDown.Value,
+                                                                                                    this.emHoldOnToConductanceRangeCheckBox.Checked,
+                                                                                                    this.emHoldOnMaxConductanceNumericEdit.Value,
+                                                                                                    this.emHoldOnMaxVoltageNumericEdit.Value,
+                                                                                                    this.emHoldOnMinConductanceNumericEdit.Value,
+                                                                                                    this.emHoldOnMinVoltageNumericEdit.Value,
+                                                                                                    this.emSkipFirstCycleByStepperMotorCheckBox.Checked),
+                                                               new ChannelsSettings(GetActiveChannels()));
+
+            }
+        }
+
+        /// <summary>
+        /// Update UI parameters once bias is changed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationbiasNumericEdit_AfterChangeValue(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
+        {
+            BiasUpdate(this.calibrationBiasNumericEdit.Value, int.Parse(this.calibrationGainPowerComboBox.Text), this.calibrationKeithleyCheckBox.Checked,
+                        this.calibrationTriggerConductanceNumericEdit, this.calibrationTriggerVoltageNumericEdit);
+        }
+       
+        /// <summary>
+        /// On gain changed. Make sure amplifier is updated accordingly and other UI parameters as well.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationGainComboBox_ValueChanged(object sender, EventArgs e)
+        {
+            GainUpdate(this.calibrationBiasNumericEdit.Value, int.Parse(this.calibrationGainPowerComboBox.Text),
+                        this.calibrationTriggerConductanceNumericEdit, this.calibrationTriggerVoltageNumericEdit);
+        }
+        
+        /// <summary>
+        /// On tirgger conductance change.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationTriggerConductanceNumericEdit_AfterChangeValue(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
+        {
+            this.calibrationTriggerVoltageNumericEdit.Value = -this.calibrationTriggerVoltageNumericEdit.Value * m_1G0 * Math.Abs(this.calibrationBiasNumericEdit.Value) * Math.Pow(10, int.Parse(this.calibrationGainPowerComboBox.Text));
+        }
+        
+        /// <summary>
+        /// On number of samples changed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationTotalSamplesNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            //
+            // the total number of samples was changed - the trigger usually should be after 85% of the samples.
+            //
+            calibrationPreTriggerSampleNumericUpDown.Value = (decimal)0.85 * calibrationTotalSamplesNumericUpDown.Value;
+        }
+        
+        /// <summary>
+        /// Enable or disable the ElectroMagnet
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationEnableElectroMagnetCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            //
+            // Update the appearance of other UI related parameters.
+            //
+            this.calibrationEMFastDelayTimeLabel.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
+            this.calibrationEMFastDelayTimeNumericUpDown.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
+            this.calibrationEMSlowDelayTimeLabel.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
+            this.calibrationEMSlowDelayTimeNumericUpDown.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
+            this.calibrationEMShortCircuitDelayTimeLabel.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
+            this.calibrationEMShortCircuitDelayTimeNumericUpDown.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
+            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
+        }
+        
+        /// <summary>
+        /// Update UI appearnce when channels are checked \ unchecked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationChannel1ComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (calibrationChannel1CheckBox.Checked)
+            {
+                UpdateChannelsToDisplayListView();
+            }
+        }
+        
+        /// <summary>
+        /// Update channels appearance
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationChannel1CheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateChannelsToDisplayListView();
+        }
+      
+        /// <summary>
+        /// On path changed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationPathTextBox_TextChanged(object sender, EventArgs e)
+        {
+            //
+            // The folder in which we save the files has been changed, so we need to set the file number back to zero.
+            //            
+            this.calibrationCycleNumberNumericUpDown.Value = 0;
+        }
+        
+        /// <summary>
+        /// Select path for saving files
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationBrowseButton_Click(object sender, EventArgs e)
+        {
+            BrowseButtonFunction(this.calibrationPathTextBox);
+        }
+
+        /// <summary>
+        /// Fired when short circuit button is pressed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationShortCircuitButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (calibrationShortCircuitCkeckBox.Checked)
+            {
+                //
+                // Short Circuit request.
+                // Verify first that the worker is nor busy otherwise this means that it is a double request.
+                //
+                if (!obtainShortCircuitBackgroundWorker.IsBusy)
+                {
+                    //
+                    // Change button text and behavior of other related controls
+                    //
+                    calibrationShortCircuitCkeckBox.Text = "Stop";
+                    calibrationStartStopCheckBox.Enabled = false;
+                    calibrationStepperUpCheckBox.Enabled = false;
+
+                    //
+                    // Do work async
+                    //
+                    obtainShortCircuitBackgroundWorker.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Can not start Short Circuit operation." + Environment.NewLine + "Please try again in few seconds.");
+                }
+            }
+            else
+            {
+                //
+                // If we reached here that means that we were requested to stop the short circuit.
+                //
+                if (obtainShortCircuitBackgroundWorker.WorkerSupportsCancellation == true)
+                {
+                    obtainShortCircuitBackgroundWorker.CancelAsync();
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Open the folder
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationOpenFolderButton_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start(this.calibrationPathTextBox.Text);
+        }
+
+        /// <summary>
+        /// Fired when the stepper is requested to move up.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.calibrationStepperUpCheckBox.Checked)
+            {
+                if (!stepperUpBackgroundWorker.IsBusy)
+                {
+                    //
+                    // Change button text
+                    //
+                    this.calibrationStepperUpCheckBox.Text = "Stop";
+                    this.calibrationShortCircuitCkeckBox.Enabled = false;
+                    this.calibrationStartStopCheckBox.Enabled = false;
+                    this.stepperUpBackgroundWorker.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Can not start move stepper up." + Environment.NewLine + "Please try again in few seconds.");
+                }
+            }
+            else
+            {
+                this.stepperUpBackgroundWorker.CancelAsync();
+            }
+        }
+        
+        /// <summary>
+        /// Connect to the keithley if the use keithley checkBox is checked.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CalibrationUseKeithleyCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.calibrationKeithleyCheckBox.Checked)
+            {
+                m_sbjController.SourceMeter.Connect();
+                m_sbjController.SourceMeter.SetBias(this.calibrationBiasNumericEdit.Value);
+            }
+        }
+
+        #endregion
+
         private void ivBrowseButton_Click(object sender, EventArgs e)
         {
             BrowseButtonFunction(this.ivPathTextBox);
@@ -1544,7 +1871,6 @@ namespace SBJController
             //            
             this.fileNumberNumericUpDown.Value = 0;
         }
-
 
         /// <summary>
         /// IV Tab - get settings from UI

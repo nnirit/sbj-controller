@@ -639,4 +639,24 @@ namespace SBJController
             m_ivTraceVoltage = ivTraceVoltage;
         }
     }
+
+    public class CalibrationDataChannel : SimpleDataChannel, IDataChannel
+    {
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="physicalName">The physical channels on the PCI board. e.g: Dev1\AI0</param>
+        /// <param name="settings"></param>
+        public CalibrationDataChannel(string physicalName, DataConvertorSettings settings)
+            : base(physicalName, settings)
+        {
+            Name = "CalibrationDataChannel";
+        }
+
+        internal override double ConvertVoltageToPhysicalValue(double rawVoltageValue)
+        {
+            return Math.Abs(rawVoltageValue) / Math.Pow(10, DataConvertionSettings.Gain);
+        }
+    }
 }

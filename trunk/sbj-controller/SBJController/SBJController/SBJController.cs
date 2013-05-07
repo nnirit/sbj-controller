@@ -3,7 +3,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.Office.Interop.Excel;
+//TODO: delete this note
+//using Microsoft.Office.Interop.Excel;
 using NationalInstruments.DAQmx;
 using SBJController.Properties;
 using System.Text;
@@ -39,11 +40,13 @@ namespace SBJController
         #endregion
 
         #region Properties
+        
         public Task Task
         {
             get { return m_task; }
             set { m_task = value; }
         }
+        
         public bool QuitJunctionOpenningOperation
         {
             get { return m_quitJunctionOpenningOperation; }
@@ -99,7 +102,8 @@ namespace SBJController
         /// <exception cref="SBJException">Incase connection to one of the external components was unsuccessful</exception>
         private void InitializeComponents()
         {
-            m_amplifier.Connect();            
+            //TODO: undo this note
+            //m_amplifier.Connect();            
         }
 
         /// <summary>
@@ -1323,90 +1327,91 @@ namespace SBJController
         /// <param name="top">The top data</param>
         public void WriteToSamplesLog(Sample bottom, Sample top)
         {
-            //
-            // Try and open excel file
-            //
-            Application xlsLogBook = new Application();
-            if (xlsLogBook == null)
-            {
-                throw new SBJException("Excel is not installed on current machine.");
-            }
+            //TODO: undo this note
+            ////
+            //// Try and open excel file
+            ////
+            //Application xlsLogBook = new Application();
+            //if (xlsLogBook == null)
+            //{
+            //    throw new SBJException("Excel is not installed on current machine.");
+            //}
 
-            //
-            // Get the excel file from the settings file
-            //
-            string logBookPath = Settings.Default.SamplesLogBookPath;
-            if (!File.Exists(logBookPath))
-            {
-                throw new SBJException(string.Format("Can't find sample's logbook on path: {0}.", logBookPath));
-            }
+            ////
+            //// Get the excel file from the settings file
+            ////
+            //string logBookPath = Settings.Default.SamplesLogBookPath;
+            //if (!File.Exists(logBookPath))
+            //{
+            //    throw new SBJException(string.Format("Can't find sample's logbook on path: {0}.", logBookPath));
+            //}
 
-            //
-            // Open the first workbook and sheet
-            // 
-            Workbook workbook = xlsLogBook.Workbooks.Open(logBookPath,  Type.Missing,
-                                                          false, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing);
-            Worksheet worksheet = workbook.ActiveSheet as Worksheet;
+            ////
+            //// Open the first workbook and sheet
+            //// 
+            //Workbook workbook = xlsLogBook.Workbooks.Open(logBookPath,  Type.Missing,
+            //                                              false, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing);
+            //Worksheet worksheet = workbook.ActiveSheet as Worksheet;
 
-            //
-            // Find the first empty row that is free for editing
-            //
-            int lastUsedRow = worksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell, Type.Missing).Row;
-            int freeRow = lastUsedRow + 1;
+            ////
+            //// Find the first empty row that is free for editing
+            ////
+            //int lastUsedRow = worksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell, Type.Missing).Row;
+            //int freeRow = lastUsedRow + 1;
 
-            //
-            // Write the data
-            //
-            worksheet.Cells[freeRow, 1] = DateTime.Now.ToShortDateString();
-            worksheet.Cells[freeRow, 2] = bottom.ID;
-            worksheet.Cells[freeRow, 3] = bottom.FirstLayerMetal.ToString();
-            worksheet.Cells[freeRow, 4] = bottom.FirstLayerThickness;
-            worksheet.Cells[freeRow, 5] = bottom.SecondLayerMetal.ToString();
-            worksheet.Cells[freeRow, 6] = bottom.SecondLayerThickness;
-            worksheet.Cells[freeRow, 7] = bottom.ElectrodeWidth;
-            worksheet.Cells[freeRow, 8] = bottom.Molecule;
-            worksheet.Cells[freeRow, 9] = bottom.Solvent;
-            worksheet.Cells[freeRow, 10] = bottom.Dry;
-            worksheet.Cells[freeRow, 11] = bottom.Piranha;
-            worksheet.Cells[freeRow, 12] = bottom.Refabricated;
-            worksheet.Cells[freeRow, 13] = bottom.Comments;
+            ////
+            //// Write the data
+            ////
+            //worksheet.Cells[freeRow, 1] = DateTime.Now.ToShortDateString();
+            //worksheet.Cells[freeRow, 2] = bottom.ID;
+            //worksheet.Cells[freeRow, 3] = bottom.FirstLayerMetal.ToString();
+            //worksheet.Cells[freeRow, 4] = bottom.FirstLayerThickness;
+            //worksheet.Cells[freeRow, 5] = bottom.SecondLayerMetal.ToString();
+            //worksheet.Cells[freeRow, 6] = bottom.SecondLayerThickness;
+            //worksheet.Cells[freeRow, 7] = bottom.ElectrodeWidth;
+            //worksheet.Cells[freeRow, 8] = bottom.Molecule;
+            //worksheet.Cells[freeRow, 9] = bottom.Solvent;
+            //worksheet.Cells[freeRow, 10] = bottom.Dry;
+            //worksheet.Cells[freeRow, 11] = bottom.Piranha;
+            //worksheet.Cells[freeRow, 12] = bottom.Refabricated;
+            //worksheet.Cells[freeRow, 13] = bottom.Comments;
 
-            //
-            // Now write the top data
-            //
-            worksheet.Cells[freeRow, 14] = top.ID;
-            worksheet.Cells[freeRow, 15] = top.FirstLayerMetal.ToString();
-            worksheet.Cells[freeRow, 16] = top.FirstLayerThickness;
-            worksheet.Cells[freeRow, 17] = top.SecondLayerMetal.ToString();
-            worksheet.Cells[freeRow, 18] = top.SecondLayerThickness;
-            worksheet.Cells[freeRow, 19] = top.ElectrodeWidth;
-            worksheet.Cells[freeRow, 20] = top.Molecule;
-            worksheet.Cells[freeRow, 21] = top.Solvent;
-            worksheet.Cells[freeRow, 22] = top.Dry;
-            worksheet.Cells[freeRow, 23] = top.Piranha;
-            worksheet.Cells[freeRow, 24] = top.Refabricated;
-            worksheet.Cells[freeRow, 25] = top.Comments;
+            ////
+            //// Now write the top data
+            ////
+            //worksheet.Cells[freeRow, 14] = top.ID;
+            //worksheet.Cells[freeRow, 15] = top.FirstLayerMetal.ToString();
+            //worksheet.Cells[freeRow, 16] = top.FirstLayerThickness;
+            //worksheet.Cells[freeRow, 17] = top.SecondLayerMetal.ToString();
+            //worksheet.Cells[freeRow, 18] = top.SecondLayerThickness;
+            //worksheet.Cells[freeRow, 19] = top.ElectrodeWidth;
+            //worksheet.Cells[freeRow, 20] = top.Molecule;
+            //worksheet.Cells[freeRow, 21] = top.Solvent;
+            //worksheet.Cells[freeRow, 22] = top.Dry;
+            //worksheet.Cells[freeRow, 23] = top.Piranha;
+            //worksheet.Cells[freeRow, 24] = top.Refabricated;
+            //worksheet.Cells[freeRow, 25] = top.Comments;
 
-            //
-            // Use this code to save the file for the forst time.
-            //
-            //workbook.SaveAs(logBookPath, 51, null, null, null, null, XlSaveAsAccessMode.xlNoChange, null, null, null, null, null);
+            ////
+            //// Use this code to save the file for the forst time.
+            ////
+            ////workbook.SaveAs(logBookPath, 51, null, null, null, null, XlSaveAsAccessMode.xlNoChange, null, null, null, null, null);
 
-            //
-            // Save and exit. Free resources as this is a COM object and we don't want the excel.exe process to hang.
-            //
-            workbook.Save();
-            workbook.Close(true, Type.Missing, Type.Missing);            
-            xlsLogBook.Quit();
-            Marshal.ReleaseComObject(workbook);
-            Marshal.ReleaseComObject(worksheet);
-            Marshal.ReleaseComObject(xlsLogBook);
+            ////
+            //// Save and exit. Free resources as this is a COM object and we don't want the excel.exe process to hang.
+            ////
+            //workbook.Save();
+            //workbook.Close(true, Type.Missing, Type.Missing);            
+            //xlsLogBook.Quit();
+            //Marshal.ReleaseComObject(workbook);
+            //Marshal.ReleaseComObject(worksheet);
+            //Marshal.ReleaseComObject(xlsLogBook);
         }
 
         /// <summary>
@@ -1414,21 +1419,22 @@ namespace SBJController
         /// </summary>
         public void OpenSamplesLog()
         {
-            Microsoft.Office.Interop.Excel.Application xlsLogBook = new Microsoft.Office.Interop.Excel.Application();
-            if (xlsLogBook == null)
-            {
-                throw new SBJException("Excel is not installed on current machine.");
-            }
-            string logBookPath = Settings.Default.SamplesLogBookPath;
-            Workbook workbook = xlsLogBook.Workbooks.Open(logBookPath, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing, Type.Missing,
-                                                          Type.Missing);
-            xlsLogBook.Visible = true;
+            //TODO: undo this note
+            //Microsoft.Office.Interop.Excel.Application xlsLogBook = new Microsoft.Office.Interop.Excel.Application();
+            //if (xlsLogBook == null)
+            //{
+            //    throw new SBJException("Excel is not installed on current machine.");
+            //}
+            //string logBookPath = Settings.Default.SamplesLogBookPath;
+            //Workbook workbook = xlsLogBook.Workbooks.Open(logBookPath, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing, Type.Missing,
+            //                                              Type.Missing);
+            //xlsLogBook.Visible = true;
         }
 
         /// <summary>
@@ -1448,7 +1454,8 @@ namespace SBJController
         /// <exception cref="SBJException"></exception>
         public void ChangeGain(int gain)
         {
-            m_amplifier.ChangeGain(gain);
+            //TODO: undo this note
+            //m_amplifier.ChangeGain(gain);
         }
 
         /// <summary>
