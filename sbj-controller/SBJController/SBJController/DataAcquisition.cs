@@ -138,11 +138,10 @@ namespace SBJController
 
             return analogInputTask;
           
-        }
+        }        
 
         /// <summary>
-        /// creates a continuous read task that will aquire the data for the IV curves. 
-        /// 1st channel reads the current of the junction, the 2nd reads the output voltage applied on the junction.
+        /// Creates a continuous read task.
         /// </summary>
         /// <param name="properties"></param>
         /// <returns></returns>
@@ -172,8 +171,8 @@ namespace SBJController
             //
             // Define a voltage channel
             //
-            AIChannel anaglogChannel = analogInputTask.AIChannels.CreateVoltageChannel(physicalChannelName.ToString(), string.Empty, 
-                                                            AITerminalConfiguration.Differential,
+            AIChannel anaglogChannel = analogInputTask.AIChannels.CreateVoltageChannel(physicalChannelName.ToString(), string.Empty,
+                                                            GetAITerminalConfiguration(),
                                                             -10, 10, AIVoltageUnits.Volts);
             //
             // Configure sampling timing. the buffer size is large enough for 10 minutes reading
@@ -186,9 +185,9 @@ namespace SBJController
             analogInputTask.Control(TaskAction.Verify);
             
             //
-            // read the data from the buffer from its begining. 
+            // read the data from the buffer from the last read point.
             //
-            analogInputTask.Stream.ReadRelativeTo = ReadRelativeTo.FirstSample;
+            analogInputTask.Stream.ReadRelativeTo = ReadRelativeTo.CurrentReadPosition;
             analogInputTask.Stream.ReadOffset = 0;
             
             //

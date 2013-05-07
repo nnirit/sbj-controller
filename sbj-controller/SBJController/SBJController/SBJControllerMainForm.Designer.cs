@@ -34,6 +34,7 @@
             this.plotGroupBox = new System.Windows.Forms.GroupBox();
             this.channelsListView = new System.Windows.Forms.ListView();
             this.operateGroupBox = new System.Windows.Forms.GroupBox();
+            this.manualStartCheckBoxButton = new System.Windows.Forms.CheckBox();
             this.openFolderButton = new System.Windows.Forms.Button();
             this.fixBiasCheckBoxButton = new System.Windows.Forms.CheckBox();
             this.moveUpCheckBoxButton = new System.Windows.Forms.CheckBox();
@@ -215,13 +216,18 @@
             this.ivChannel2CheckBox = new System.Windows.Forms.CheckBox();
             this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
-            this.electroMagnetUserControl2 = new SBJController.ElectroMagnetUserControl();
+            this.electroMagnetUserControl2 = new ElectroMagnetUserControl();
             this.stepperMotorGroupBox = new System.Windows.Forms.GroupBox();
-            this.stepperMotorUserControl1 = new SBJController.StepperMotorUserControl();
+            this.stepperMotorUserControl1 = new StepperMotorUserControl();
             this.aquireDataBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.stepperUpBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.fixBiasBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.ivCyclesBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.manualStartBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.laserAmplitudeWNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.laserAmplitudeWLabel = new System.Windows.Forms.Label();
+            this.laseAmplitudeOnSampleNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.laserAmplitudeOnSampleLabel = new System.Windows.Forms.Label();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
             this.plotGroupBox.SuspendLayout();
@@ -302,6 +308,8 @@
             this.controlPanelsTabPage.SuspendLayout();
             this.electroMagnetGroupBox.SuspendLayout();
             this.stepperMotorGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeWNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.laseAmplitudeOnSampleNumericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // obtainShortCircuitBackgroundWorker
@@ -309,7 +317,7 @@
             this.obtainShortCircuitBackgroundWorker.WorkerReportsProgress = true;
             this.obtainShortCircuitBackgroundWorker.WorkerSupportsCancellation = true;
             this.obtainShortCircuitBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.obtainShortCircuitBackgroundWorker_DoWork);
-            this.obtainShortCircuitBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.obtainSHortCircuitBackgroundWorker_RunWorkerCompleted);
+            this.obtainShortCircuitBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.obtainShortCircuitBackgroundWorker_RunWorkerCompleted);
             // 
             // controllerTabControl
             // 
@@ -368,6 +376,7 @@
             // operateGroupBox
             // 
             this.operateGroupBox.AutoSize = true;
+            this.operateGroupBox.Controls.Add(this.manualStartCheckBoxButton);
             this.operateGroupBox.Controls.Add(this.openFolderButton);
             this.operateGroupBox.Controls.Add(this.fixBiasCheckBoxButton);
             this.operateGroupBox.Controls.Add(this.moveUpCheckBoxButton);
@@ -393,12 +402,27 @@
             this.operateGroupBox.TabStop = false;
             this.operateGroupBox.Text = "Operate";
             // 
+            // manualStartCheckBoxButton
+            // 
+            this.manualStartCheckBoxButton.Appearance = System.Windows.Forms.Appearance.Button;
+            this.manualStartCheckBoxButton.AutoSize = true;
+            this.manualStartCheckBoxButton.ForeColor = System.Drawing.Color.Black;
+            this.manualStartCheckBoxButton.Location = new System.Drawing.Point(273, 142);
+            this.manualStartCheckBoxButton.MinimumSize = new System.Drawing.Size(77, 23);
+            this.manualStartCheckBoxButton.Name = "manualStartCheckBoxButton";
+            this.manualStartCheckBoxButton.Size = new System.Drawing.Size(77, 23);
+            this.manualStartCheckBoxButton.TabIndex = 30;
+            this.manualStartCheckBoxButton.Text = "Manual Start";
+            this.manualStartCheckBoxButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.manualStartCheckBoxButton.UseVisualStyleBackColor = true;
+            this.manualStartCheckBoxButton.CheckedChanged += new System.EventHandler(this.manualStartCheckBox_CheckedChanged);
+            // 
             // openFolderButton
             // 
             this.openFolderButton.ForeColor = System.Drawing.Color.Black;
-            this.openFolderButton.Location = new System.Drawing.Point(530, 44);
+            this.openFolderButton.Location = new System.Drawing.Point(533, 44);
             this.openFolderButton.Name = "openFolderButton";
-            this.openFolderButton.Size = new System.Drawing.Size(74, 23);
+            this.openFolderButton.Size = new System.Drawing.Size(77, 23);
             this.openFolderButton.TabIndex = 29;
             this.openFolderButton.Text = "Open Folder";
             this.openFolderButton.UseVisualStyleBackColor = true;
@@ -409,10 +433,10 @@
             this.fixBiasCheckBoxButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.fixBiasCheckBoxButton.AutoSize = true;
             this.fixBiasCheckBoxButton.ForeColor = System.Drawing.Color.Black;
-            this.fixBiasCheckBoxButton.Location = new System.Drawing.Point(365, 108);
-            this.fixBiasCheckBoxButton.MinimumSize = new System.Drawing.Size(74, 23);
+            this.fixBiasCheckBoxButton.Location = new System.Drawing.Point(450, 142);
+            this.fixBiasCheckBoxButton.MinimumSize = new System.Drawing.Size(77, 23);
             this.fixBiasCheckBoxButton.Name = "fixBiasCheckBoxButton";
-            this.fixBiasCheckBoxButton.Size = new System.Drawing.Size(74, 23);
+            this.fixBiasCheckBoxButton.Size = new System.Drawing.Size(77, 23);
             this.fixBiasCheckBoxButton.TabIndex = 18;
             this.fixBiasCheckBoxButton.Text = "Fix Bias";
             this.fixBiasCheckBoxButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -425,9 +449,9 @@
             this.moveUpCheckBoxButton.AutoSize = true;
             this.moveUpCheckBoxButton.ForeColor = System.Drawing.Color.Black;
             this.moveUpCheckBoxButton.Location = new System.Drawing.Point(365, 142);
-            this.moveUpCheckBoxButton.MinimumSize = new System.Drawing.Size(74, 23);
+            this.moveUpCheckBoxButton.MinimumSize = new System.Drawing.Size(77, 23);
             this.moveUpCheckBoxButton.Name = "moveUpCheckBoxButton";
-            this.moveUpCheckBoxButton.Size = new System.Drawing.Size(74, 23);
+            this.moveUpCheckBoxButton.Size = new System.Drawing.Size(77, 23);
             this.moveUpCheckBoxButton.TabIndex = 17;
             this.moveUpCheckBoxButton.Text = "Stepper Up";
             this.moveUpCheckBoxButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -440,9 +464,9 @@
             this.startStopCheckBoxButton.AutoSize = true;
             this.startStopCheckBoxButton.ForeColor = System.Drawing.Color.Black;
             this.startStopCheckBoxButton.Location = new System.Drawing.Point(273, 108);
-            this.startStopCheckBoxButton.MinimumSize = new System.Drawing.Size(74, 23);
+            this.startStopCheckBoxButton.MinimumSize = new System.Drawing.Size(77, 23);
             this.startStopCheckBoxButton.Name = "startStopCheckBoxButton";
-            this.startStopCheckBoxButton.Size = new System.Drawing.Size(74, 23);
+            this.startStopCheckBoxButton.Size = new System.Drawing.Size(77, 23);
             this.startStopCheckBoxButton.TabIndex = 16;
             this.startStopCheckBoxButton.Text = "Start";
             this.startStopCheckBoxButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -454,10 +478,10 @@
             this.shortCircuitCheckBoxButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.shortCircuitCheckBoxButton.AutoSize = true;
             this.shortCircuitCheckBoxButton.ForeColor = System.Drawing.Color.Black;
-            this.shortCircuitCheckBoxButton.Location = new System.Drawing.Point(273, 142);
-            this.shortCircuitCheckBoxButton.MinimumSize = new System.Drawing.Size(74, 23);
+            this.shortCircuitCheckBoxButton.Location = new System.Drawing.Point(365, 108);
+            this.shortCircuitCheckBoxButton.MinimumSize = new System.Drawing.Size(77, 23);
             this.shortCircuitCheckBoxButton.Name = "shortCircuitCheckBoxButton";
-            this.shortCircuitCheckBoxButton.Size = new System.Drawing.Size(74, 23);
+            this.shortCircuitCheckBoxButton.Size = new System.Drawing.Size(77, 23);
             this.shortCircuitCheckBoxButton.TabIndex = 15;
             this.shortCircuitCheckBoxButton.Text = "Short Circuit";
             this.shortCircuitCheckBoxButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -543,7 +567,7 @@
             this.browseButton.ForeColor = System.Drawing.Color.Black;
             this.browseButton.Location = new System.Drawing.Point(450, 44);
             this.browseButton.Name = "browseButton";
-            this.browseButton.Size = new System.Drawing.Size(74, 23);
+            this.browseButton.Size = new System.Drawing.Size(77, 23);
             this.browseButton.TabIndex = 10;
             this.browseButton.Text = "Browse";
             this.browseButton.UseVisualStyleBackColor = true;
@@ -597,13 +621,13 @@
             this.traceWaveformGraph.CaptionBackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.traceWaveformGraph.CaptionFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.traceWaveformGraph.CaptionForeColor = System.Drawing.SystemColors.ControlText;
-            this.traceWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY) 
-            | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint) 
-            | NationalInstruments.UI.GraphInteractionModes.PanX) 
-            | NationalInstruments.UI.GraphInteractionModes.PanY) 
-            | NationalInstruments.UI.GraphInteractionModes.DragCursor) 
-            | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption) 
-            | NationalInstruments.UI.GraphInteractionModes.EditRange)));
+            this.traceWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY)
+                        | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint)
+                        | NationalInstruments.UI.GraphInteractionModes.PanX)
+                        | NationalInstruments.UI.GraphInteractionModes.PanY)
+                        | NationalInstruments.UI.GraphInteractionModes.DragCursor)
+                        | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption)
+                        | NationalInstruments.UI.GraphInteractionModes.EditRange)));
             this.traceWaveformGraph.Location = new System.Drawing.Point(21, 16);
             this.traceWaveformGraph.Name = "traceWaveformGraph";
             this.traceWaveformGraph.PlotAreaColor = System.Drawing.Color.LightGray;
@@ -620,7 +644,6 @@
             // waveformPlot1
             // 
             this.waveformPlot1.LineColor = System.Drawing.Color.Red;
-            this.waveformPlot1.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
             this.waveformPlot1.ToolTipsEnabled = true;
             this.waveformPlot1.XAxis = this.xAxis1;
             this.waveformPlot1.YAxis = this.yAxis1;
@@ -628,7 +651,7 @@
             // xAxis1
             // 
             this.xAxis1.Caption = "Time [sec E-4]";
-            this.xAxis1.Range = new NationalInstruments.UI.Range(0D, 10000D);
+            this.xAxis1.Range = new NationalInstruments.UI.Range(0, 10000);
             // 
             // yAxis1
             // 
@@ -639,12 +662,12 @@
             this.yAxis2.Caption = "LockIn Signal";
             this.yAxis2.CaptionPosition = NationalInstruments.UI.YAxisPosition.Right;
             this.yAxis2.Position = NationalInstruments.UI.YAxisPosition.Right;
-            this.yAxis2.Range = new NationalInstruments.UI.Range(-10D, 10D);
+            this.yAxis2.Range = new NationalInstruments.UI.Range(-10, 10);
             // 
             // samplePropertiesGroupBox
             // 
-            this.samplePropertiesGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.samplePropertiesGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
             this.samplePropertiesGroupBox.AutoSize = true;
             this.samplePropertiesGroupBox.Controls.Add(this.openLogBookButton);
             this.samplePropertiesGroupBox.Controls.Add(this.saveSamplesParamsButton);
@@ -818,12 +841,12 @@
             // 
             // biasErrorNumericEdit
             // 
-            this.biasErrorNumericEdit.CoercionInterval = 0.01D;
+            this.biasErrorNumericEdit.CoercionInterval = 0.01;
             this.biasErrorNumericEdit.Enabled = false;
             this.biasErrorNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(4);
             this.biasErrorNumericEdit.Location = new System.Drawing.Point(147, 59);
             this.biasErrorNumericEdit.Name = "biasErrorNumericEdit";
-            this.biasErrorNumericEdit.Range = new NationalInstruments.UI.Range(-2D, 2D);
+            this.biasErrorNumericEdit.Range = new NationalInstruments.UI.Range(-2, 2);
             this.biasErrorNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.biasErrorNumericEdit.TabIndex = 20;
             // 
@@ -969,7 +992,7 @@
             this.triggerVoltageNumericEdit.Name = "triggerVoltageNumericEdit";
             this.triggerVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.triggerVoltageNumericEdit.TabIndex = 11;
-            this.triggerVoltageNumericEdit.Value = -0.01D;
+            this.triggerVoltageNumericEdit.Value = -0.01;
             // 
             // triggerVoltageLabel
             // 
@@ -988,7 +1011,7 @@
             this.triggerConductanceNumericEdit.Name = "triggerConductanceNumericEdit";
             this.triggerConductanceNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.triggerConductanceNumericEdit.TabIndex = 9;
-            this.triggerConductanceNumericEdit.Value = 0.0129D;
+            this.triggerConductanceNumericEdit.Value = 0.0129;
             this.triggerConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.triggerConductanceNumericEdit_AfterChangeValue_1);
             // 
             // triggerConductanceLabel
@@ -1055,14 +1078,14 @@
             // 
             // biasNumericEdit
             // 
-            this.biasNumericEdit.CoercionInterval = 0.01D;
+            this.biasNumericEdit.CoercionInterval = 0.01;
             this.biasNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(3);
             this.biasNumericEdit.Location = new System.Drawing.Point(147, 29);
             this.biasNumericEdit.Name = "biasNumericEdit";
-            this.biasNumericEdit.Range = new NationalInstruments.UI.Range(-4D, 4D);
+            this.biasNumericEdit.Range = new NationalInstruments.UI.Range(-4, 4);
             this.biasNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.biasNumericEdit.TabIndex = 1;
-            this.biasNumericEdit.Value = 0.1D;
+            this.biasNumericEdit.Value = 0.1;
             this.biasNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.biasNumericEdit_AfterChangeValue);
             // 
             // biasLabel
@@ -1088,6 +1111,10 @@
             // 
             // laserSettingsPanel
             // 
+            this.laserSettingsPanel.Controls.Add(this.laseAmplitudeOnSampleNumericUpDown);
+            this.laserSettingsPanel.Controls.Add(this.laserAmplitudeOnSampleLabel);
+            this.laserSettingsPanel.Controls.Add(this.laserAmplitudeWNumericUpDown);
+            this.laserSettingsPanel.Controls.Add(this.laserAmplitudeWLabel);
             this.laserSettingsPanel.Controls.Add(this.laserModeComboBox);
             this.laserSettingsPanel.Controls.Add(this.frequencyNumericUpDown);
             this.laserSettingsPanel.Controls.Add(this.enableLaserCheckBox);
@@ -1109,7 +1136,7 @@
             this.laserModeComboBox.Items.AddRange(new object[] {
             "DC",
             "Square"});
-            this.laserModeComboBox.Location = new System.Drawing.Point(147, 4);
+            this.laserModeComboBox.Location = new System.Drawing.Point(161, 4);
             this.laserModeComboBox.Name = "laserModeComboBox";
             this.laserModeComboBox.Size = new System.Drawing.Size(75, 21);
             this.laserModeComboBox.TabIndex = 3;
@@ -1119,7 +1146,7 @@
             // frequencyNumericUpDown
             // 
             this.frequencyNumericUpDown.Enabled = false;
-            this.frequencyNumericUpDown.Location = new System.Drawing.Point(147, 72);
+            this.frequencyNumericUpDown.Location = new System.Drawing.Point(161, 129);
             this.frequencyNumericUpDown.Name = "frequencyNumericUpDown";
             this.frequencyNumericUpDown.Size = new System.Drawing.Size(75, 20);
             this.frequencyNumericUpDown.TabIndex = 5;
@@ -1145,7 +1172,7 @@
             // 
             this.frequencyLabel.AutoSize = true;
             this.frequencyLabel.Enabled = false;
-            this.frequencyLabel.Location = new System.Drawing.Point(4, 74);
+            this.frequencyLabel.Location = new System.Drawing.Point(4, 130);
             this.frequencyLabel.Name = "frequencyLabel";
             this.frequencyLabel.Size = new System.Drawing.Size(79, 13);
             this.frequencyLabel.TabIndex = 4;
@@ -1160,7 +1187,7 @@
             0,
             0,
             65536});
-            this.amplitudeNumericUpDown.Location = new System.Drawing.Point(147, 40);
+            this.amplitudeNumericUpDown.Location = new System.Drawing.Point(161, 36);
             this.amplitudeNumericUpDown.Maximum = new decimal(new int[] {
             5,
             0,
@@ -1181,7 +1208,7 @@
             this.laserAmplitudeLabel.AutoSize = true;
             this.laserAmplitudeLabel.Enabled = false;
             this.laserAmplitudeLabel.ForeColor = System.Drawing.Color.Black;
-            this.laserAmplitudeLabel.Location = new System.Drawing.Point(4, 42);
+            this.laserAmplitudeLabel.Location = new System.Drawing.Point(4, 40);
             this.laserAmplitudeLabel.Name = "laserAmplitudeLabel";
             this.laserAmplitudeLabel.Size = new System.Drawing.Size(69, 13);
             this.laserAmplitudeLabel.TabIndex = 2;
@@ -1346,14 +1373,14 @@
             // 
             // mixerReductionFactorNumericEdit
             // 
-            this.mixerReductionFactorNumericEdit.CoercionInterval = 0.01D;
+            this.mixerReductionFactorNumericEdit.CoercionInterval = 0.01;
             this.mixerReductionFactorNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateGenericMode("F0");
             this.mixerReductionFactorNumericEdit.Location = new System.Drawing.Point(152, 83);
             this.mixerReductionFactorNumericEdit.Name = "mixerReductionFactorNumericEdit";
-            this.mixerReductionFactorNumericEdit.Range = new NationalInstruments.UI.Range(0D, 100D);
+            this.mixerReductionFactorNumericEdit.Range = new NationalInstruments.UI.Range(0, 100);
             this.mixerReductionFactorNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.mixerReductionFactorNumericEdit.TabIndex = 10;
-            this.mixerReductionFactorNumericEdit.Value = 100D;
+            this.mixerReductionFactorNumericEdit.Value = 100;
             // 
             // acVoltageReductionFactorLabel
             // 
@@ -1378,14 +1405,14 @@
             // 
             // lockInAcVoltageNumericEdit
             // 
-            this.lockInAcVoltageNumericEdit.CoercionInterval = 0.01D;
+            this.lockInAcVoltageNumericEdit.CoercionInterval = 0.01;
             this.lockInAcVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2, true);
             this.lockInAcVoltageNumericEdit.Location = new System.Drawing.Point(152, 50);
             this.lockInAcVoltageNumericEdit.Name = "lockInAcVoltageNumericEdit";
-            this.lockInAcVoltageNumericEdit.Range = new NationalInstruments.UI.Range(1E-05D, 1D);
+            this.lockInAcVoltageNumericEdit.Range = new NationalInstruments.UI.Range(1E-05, 1);
             this.lockInAcVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.lockInAcVoltageNumericEdit.TabIndex = 7;
-            this.lockInAcVoltageNumericEdit.Value = 0.01D;
+            this.lockInAcVoltageNumericEdit.Value = 0.01;
             // 
             // lockInAcVoltageLabel
             // 
@@ -1455,7 +1482,7 @@
             // emHoldOnMinVoltageNumericEdit
             // 
             this.emHoldOnMinVoltageNumericEdit.BackColor = System.Drawing.SystemColors.Control;
-            this.emHoldOnMinVoltageNumericEdit.CoercionInterval = 0.001D;
+            this.emHoldOnMinVoltageNumericEdit.CoercionInterval = 0.001;
             this.emHoldOnMinVoltageNumericEdit.Enabled = false;
             this.emHoldOnMinVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
             this.emHoldOnMinVoltageNumericEdit.InteractionMode = NationalInstruments.UI.NumericEditInteractionModes.Indicator;
@@ -1488,21 +1515,21 @@
             // 
             // emHoldOnMinConductanceNumericEdit
             // 
-            this.emHoldOnMinConductanceNumericEdit.CoercionInterval = 0.1D;
+            this.emHoldOnMinConductanceNumericEdit.CoercionInterval = 0.1;
             this.emHoldOnMinConductanceNumericEdit.Enabled = false;
             this.emHoldOnMinConductanceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
             this.emHoldOnMinConductanceNumericEdit.Location = new System.Drawing.Point(145, 109);
             this.emHoldOnMinConductanceNumericEdit.Name = "emHoldOnMinConductanceNumericEdit";
-            this.emHoldOnMinConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0D, 2000D);
+            this.emHoldOnMinConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0, 2000);
             this.emHoldOnMinConductanceNumericEdit.Size = new System.Drawing.Size(77, 20);
             this.emHoldOnMinConductanceNumericEdit.TabIndex = 14;
-            this.emHoldOnMinConductanceNumericEdit.Value = 0.7D;
+            this.emHoldOnMinConductanceNumericEdit.Value = 0.7;
             this.emHoldOnMinConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.emHoldOnMinConductanceNumericEdit_AfterChangeValue);
             // 
             // emHoldOnMaxVoltageNumericEdit
             // 
             this.emHoldOnMaxVoltageNumericEdit.BackColor = System.Drawing.SystemColors.Control;
-            this.emHoldOnMaxVoltageNumericEdit.CoercionInterval = 0.001D;
+            this.emHoldOnMaxVoltageNumericEdit.CoercionInterval = 0.001;
             this.emHoldOnMaxVoltageNumericEdit.Enabled = false;
             this.emHoldOnMaxVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
             this.emHoldOnMaxVoltageNumericEdit.InteractionMode = NationalInstruments.UI.NumericEditInteractionModes.Indicator;
@@ -1535,15 +1562,15 @@
             // 
             // emHoldOnMaxConductanceNumericEdit
             // 
-            this.emHoldOnMaxConductanceNumericEdit.CoercionInterval = 0.1D;
+            this.emHoldOnMaxConductanceNumericEdit.CoercionInterval = 0.1;
             this.emHoldOnMaxConductanceNumericEdit.Enabled = false;
             this.emHoldOnMaxConductanceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
             this.emHoldOnMaxConductanceNumericEdit.Location = new System.Drawing.Point(145, 49);
             this.emHoldOnMaxConductanceNumericEdit.Name = "emHoldOnMaxConductanceNumericEdit";
-            this.emHoldOnMaxConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0D, 2000D);
+            this.emHoldOnMaxConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0, 2000);
             this.emHoldOnMaxConductanceNumericEdit.Size = new System.Drawing.Size(77, 20);
             this.emHoldOnMaxConductanceNumericEdit.TabIndex = 9;
-            this.emHoldOnMaxConductanceNumericEdit.Value = 1.3D;
+            this.emHoldOnMaxConductanceNumericEdit.Value = 1.3;
             this.emHoldOnMaxConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.emHoldOnMaxConductanceNumericEdit_AfterChangeValue);
             // 
             // emHoldOnToConductanceRangeCheckBox
@@ -2050,13 +2077,13 @@
             this.ivWaveformGraph.CaptionBackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.ivWaveformGraph.CaptionFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ivWaveformGraph.CaptionForeColor = System.Drawing.SystemColors.ControlText;
-            this.ivWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY) 
-            | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint) 
-            | NationalInstruments.UI.GraphInteractionModes.PanX) 
-            | NationalInstruments.UI.GraphInteractionModes.PanY) 
-            | NationalInstruments.UI.GraphInteractionModes.DragCursor) 
-            | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption) 
-            | NationalInstruments.UI.GraphInteractionModes.EditRange)));
+            this.ivWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY)
+                        | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint)
+                        | NationalInstruments.UI.GraphInteractionModes.PanX)
+                        | NationalInstruments.UI.GraphInteractionModes.PanY)
+                        | NationalInstruments.UI.GraphInteractionModes.DragCursor)
+                        | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption)
+                        | NationalInstruments.UI.GraphInteractionModes.EditRange)));
             this.ivWaveformGraph.Location = new System.Drawing.Point(13, 16);
             this.ivWaveformGraph.Name = "ivWaveformGraph";
             this.ivWaveformGraph.PlotAreaColor = System.Drawing.Color.LightGray;
@@ -2072,7 +2099,7 @@
             // ivWaveformPlot
             // 
             this.ivWaveformPlot.LineColor = System.Drawing.Color.Red;
-            this.ivWaveformPlot.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
+
             this.ivWaveformPlot.ToolTipsEnabled = true;
             this.ivWaveformPlot.XAxis = this.xAxis2;
             this.ivWaveformPlot.YAxis = this.conductanceAxis;
@@ -2080,7 +2107,7 @@
             // xAxis2
             // 
             this.xAxis2.Caption = "IV Cycles";
-            this.xAxis2.Range = new NationalInstruments.UI.Range(0D, 10000D);
+            this.xAxis2.Range = new NationalInstruments.UI.Range(0, 10000);
             // 
             // conductanceAxis
             // 
@@ -2158,7 +2185,7 @@
             this.ivVoltageForTraceNumericEdit.Name = "ivVoltageForTraceNumericEdit";
             this.ivVoltageForTraceNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivVoltageForTraceNumericEdit.TabIndex = 69;
-            this.ivVoltageForTraceNumericEdit.Value = 0.1D;
+            this.ivVoltageForTraceNumericEdit.Value = 0.1;
             // 
             // ivVoltageForTraceLabel
             // 
@@ -2179,7 +2206,7 @@
             this.ivTimeOfOneIVCycleNumericEdit.Name = "ivTimeOfOneIVCycleNumericEdit";
             this.ivTimeOfOneIVCycleNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivTimeOfOneIVCycleNumericEdit.TabIndex = 67;
-            this.ivTimeOfOneIVCycleNumericEdit.Value = 50D;
+            this.ivTimeOfOneIVCycleNumericEdit.Value = 50;
             // 
             // ivTimeOfIVCycleLabel
             // 
@@ -2210,7 +2237,7 @@
             this.ivOutputUpdateRateNumericEdit.Name = "ivOutputUpdateRateNumericEdit";
             this.ivOutputUpdateRateNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivOutputUpdateRateNumericEdit.TabIndex = 64;
-            this.ivOutputUpdateRateNumericEdit.Value = 10000D;
+            this.ivOutputUpdateRateNumericEdit.Value = 10000;
             // 
             // ivSamplesPerCycleLabel
             // 
@@ -2249,7 +2276,7 @@
             this.ivVoltageAmplitudeNumericEdit.Name = "ivVoltageAmplitudeNumericEdit";
             this.ivVoltageAmplitudeNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivVoltageAmplitudeNumericEdit.TabIndex = 58;
-            this.ivVoltageAmplitudeNumericEdit.Value = 0.2D;
+            this.ivVoltageAmplitudeNumericEdit.Value = 0.2;
             this.ivVoltageAmplitudeNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivVoltageAmplitudeNumericEdit_AfterChangeValue);
             // 
             // ivOutputUpdateDelayNumericEdit
@@ -2258,7 +2285,7 @@
             this.ivOutputUpdateDelayNumericEdit.Name = "ivOutputUpdateDelayNumericEdit";
             this.ivOutputUpdateDelayNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivOutputUpdateDelayNumericEdit.TabIndex = 60;
-            this.ivOutputUpdateDelayNumericEdit.Value = 0.1D;
+            this.ivOutputUpdateDelayNumericEdit.Value = 0.1;
             this.ivOutputUpdateDelayNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivOutputUpdateDelayNumericEdit_AfterChangeValue);
             // 
             // ivSamplesPerCycleNumericEdit
@@ -2268,7 +2295,7 @@
             this.ivSamplesPerCycleNumericEdit.Name = "ivSamplesPerCycleNumericEdit";
             this.ivSamplesPerCycleNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivSamplesPerCycleNumericEdit.TabIndex = 59;
-            this.ivSamplesPerCycleNumericEdit.Value = 500D;
+            this.ivSamplesPerCycleNumericEdit.Value = 500;
             this.ivSamplesPerCycleNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivSamplesPerCycleNumericEdit_AfterChangeValue);
             // 
             // ivGainPoweComboBox
@@ -2316,7 +2343,7 @@
             this.ivTriggerVoltageNumericEdit.Name = "ivTriggerVoltageNumericEdit";
             this.ivTriggerVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.ivTriggerVoltageNumericEdit.TabIndex = 11;
-            this.ivTriggerVoltageNumericEdit.Value = -0.01D;
+            this.ivTriggerVoltageNumericEdit.Value = -0.01;
             // 
             // ivTriggerVoltageLabel
             // 
@@ -2335,7 +2362,7 @@
             this.ivTriggerConductanceNumericEdit.Name = "ivTriggerConductanceNumericEdit";
             this.ivTriggerConductanceNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.ivTriggerConductanceNumericEdit.TabIndex = 9;
-            this.ivTriggerConductanceNumericEdit.Value = 0.0129D;
+            this.ivTriggerConductanceNumericEdit.Value = 0.0129;
             this.ivTriggerConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivTriggerConductanceNumericEdit_AfterChangeValue);
             // 
             // ivTriggerConductanceLabel
@@ -2799,6 +2826,82 @@
             this.ivCyclesBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.ivCyclesBackgroundWorker_DoWork);
             this.ivCyclesBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.ivCyclesBackgroundWorker_RunWorkerCompleted);
             // 
+            // manualStartBackgroundWorker
+            // 
+            this.manualStartBackgroundWorker.WorkerSupportsCancellation = true;
+            this.manualStartBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.manualStartBackgroundWorker_DoWork);
+            this.manualStartBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.manualStartBackgroundWorker_RunWorkerCompleted);
+            // 
+            // laserAmplitudeWNumericUpDown
+            // 
+            this.laserAmplitudeWNumericUpDown.DecimalPlaces = 3;
+            this.laserAmplitudeWNumericUpDown.Enabled = false;
+            this.laserAmplitudeWNumericUpDown.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.laserAmplitudeWNumericUpDown.Location = new System.Drawing.Point(161, 67);
+            this.laserAmplitudeWNumericUpDown.Maximum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.laserAmplitudeWNumericUpDown.Name = "laserAmplitudeWNumericUpDown";
+            this.laserAmplitudeWNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.laserAmplitudeWNumericUpDown.TabIndex = 7;
+            this.laserAmplitudeWNumericUpDown.Value = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            // 
+            // laserAmplitudeWLabel
+            // 
+            this.laserAmplitudeWLabel.AutoSize = true;
+            this.laserAmplitudeWLabel.Enabled = false;
+            this.laserAmplitudeWLabel.ForeColor = System.Drawing.Color.Black;
+            this.laserAmplitudeWLabel.Location = new System.Drawing.Point(4, 70);
+            this.laserAmplitudeWLabel.Name = "laserAmplitudeWLabel";
+            this.laserAmplitudeWLabel.Size = new System.Drawing.Size(81, 13);
+            this.laserAmplitudeWLabel.TabIndex = 6;
+            this.laserAmplitudeWLabel.Text = "Amplitude [mW]";
+            // 
+            // laseAmplitudeOnSampleNumericUpDown
+            // 
+            this.laseAmplitudeOnSampleNumericUpDown.DecimalPlaces = 3;
+            this.laseAmplitudeOnSampleNumericUpDown.Enabled = false;
+            this.laseAmplitudeOnSampleNumericUpDown.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.laseAmplitudeOnSampleNumericUpDown.Location = new System.Drawing.Point(161, 98);
+            this.laseAmplitudeOnSampleNumericUpDown.Maximum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.laseAmplitudeOnSampleNumericUpDown.Name = "laseAmplitudeOnSampleNumericUpDown";
+            this.laseAmplitudeOnSampleNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.laseAmplitudeOnSampleNumericUpDown.TabIndex = 9;
+            this.laseAmplitudeOnSampleNumericUpDown.Value = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            // 
+            // laserAmplitudeOnSampleLabel
+            // 
+            this.laserAmplitudeOnSampleLabel.AutoSize = true;
+            this.laserAmplitudeOnSampleLabel.Enabled = false;
+            this.laserAmplitudeOnSampleLabel.ForeColor = System.Drawing.Color.Black;
+            this.laserAmplitudeOnSampleLabel.Location = new System.Drawing.Point(4, 100);
+            this.laserAmplitudeOnSampleLabel.Name = "laserAmplitudeOnSampleLabel";
+            this.laserAmplitudeOnSampleLabel.Size = new System.Drawing.Size(134, 13);
+            this.laserAmplitudeOnSampleLabel.TabIndex = 8;
+            this.laserAmplitudeOnSampleLabel.Text = "Amplitude on Sample [mW]";
+            // 
             // SBJControllerMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2808,8 +2911,8 @@
             this.Controls.Add(this.controllerTabControl);
             this.Name = "SBJControllerMainForm";
             this.Text = "SBJControllerMainForm";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.SBJControllerMainForm_FormClosed);
             this.Shown += new System.EventHandler(this.SBJControllerMainForm_Shown);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.SBJControllerMainForm_FormClosed);
             this.controllerTabControl.ResumeLayout(false);
             this.dataAquisitionTabPage.ResumeLayout(false);
             this.dataAquisitionTabPage.PerformLayout();
@@ -2906,6 +3009,8 @@
             this.controlPanelsTabPage.ResumeLayout(false);
             this.electroMagnetGroupBox.ResumeLayout(false);
             this.stepperMotorGroupBox.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeWNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.laseAmplitudeOnSampleNumericUpDown)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -3106,6 +3211,12 @@
         private System.Windows.Forms.NumericUpDown ivStepperDelayTime1NumericUpDown;
         private System.Windows.Forms.Label ivStepperDelayTime2Label;
         private System.Windows.Forms.Label ivStepperDelayTime1Label;
+        private System.Windows.Forms.CheckBox manualStartCheckBoxButton;
+        private System.ComponentModel.BackgroundWorker manualStartBackgroundWorker;
+        private System.Windows.Forms.NumericUpDown laserAmplitudeWNumericUpDown;
+        private System.Windows.Forms.Label laserAmplitudeWLabel;
+        private System.Windows.Forms.NumericUpDown laseAmplitudeOnSampleNumericUpDown;
+        private System.Windows.Forms.Label laserAmplitudeOnSampleLabel;
                          
     }
 }
