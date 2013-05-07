@@ -281,6 +281,8 @@
             this.ivCyclesBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.calibrationBackGroundWorker = new System.ComponentModel.BackgroundWorker();
             this.manualStartBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.calibrationPlotGroupBox = new System.Windows.Forms.GroupBox();
+            this.calibrationListView = new System.Windows.Forms.ListView();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
             this.plotGroupBox.SuspendLayout();
@@ -385,6 +387,7 @@
             this.controlPanelsTabPage.SuspendLayout();
             this.electroMagnetGroupBox.SuspendLayout();
             this.stepperMotorGroupBox.SuspendLayout();
+            this.calibrationPlotGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // obtainShortCircuitBackgroundWorker
@@ -2899,6 +2902,7 @@
             // 
             // calibrationTabPage
             // 
+            this.calibrationTabPage.Controls.Add(this.calibrationPlotGroupBox);
             this.calibrationTabPage.Controls.Add(this.calibrationWaveformGraph);
             this.calibrationTabPage.Controls.Add(this.calibrationSettingsGroupBox);
             this.calibrationTabPage.Controls.Add(this.calibrationOperateGroupBox);
@@ -3683,6 +3687,28 @@
             this.manualStartBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.manualStartBackgroundWorker_DoWork);
             this.manualStartBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.manualStartBackgroundWorker_RunWorkerCompleted);
             // 
+            // calibrationPlotGroupBox
+            // 
+            this.calibrationPlotGroupBox.Controls.Add(this.calibrationListView);
+            this.calibrationPlotGroupBox.ForeColor = System.Drawing.Color.Red;
+            this.calibrationPlotGroupBox.Location = new System.Drawing.Point(483, 0);
+            this.calibrationPlotGroupBox.Name = "calibrationPlotGroupBox";
+            this.calibrationPlotGroupBox.Size = new System.Drawing.Size(258, 348);
+            this.calibrationPlotGroupBox.TabIndex = 32;
+            this.calibrationPlotGroupBox.TabStop = false;
+            this.calibrationPlotGroupBox.Text = "Plots";
+            // 
+            // calibrationListView
+            // 
+            this.calibrationListView.CheckBoxes = true;
+            this.calibrationListView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.calibrationListView.Location = new System.Drawing.Point(3, 16);
+            this.calibrationListView.Name = "calibrationListView";
+            this.calibrationListView.Size = new System.Drawing.Size(252, 329);
+            this.calibrationListView.TabIndex = 25;
+            this.calibrationListView.UseCompatibleStateImageBehavior = false;
+            this.calibrationListView.View = System.Windows.Forms.View.List;
+            // 
             // SBJControllerMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -3819,6 +3845,7 @@
             this.controlPanelsTabPage.ResumeLayout(false);
             this.electroMagnetGroupBox.ResumeLayout(false);
             this.stepperMotorGroupBox.ResumeLayout(false);
+            this.calibrationPlotGroupBox.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -4078,6 +4105,8 @@
         private System.Windows.Forms.Label laserAmplitudeWLabel;
         private System.Windows.Forms.NumericUpDown laseAmplitudeOnSampleNumericUpDown;
         private System.Windows.Forms.Label laserAmplitudeOnSampleLabel;
+        private System.Windows.Forms.GroupBox calibrationPlotGroupBox;
+        private System.Windows.Forms.ListView calibrationListView;
                          
     }
 }
