@@ -1188,6 +1188,7 @@ namespace SBJController
         {
             PopulateChannelsListOnDAQTab();
             PopulateChannelsListOnIVTab();
+            PopulateChannelsListOnCalibrationTab();
         }
 
         /// <summary>
@@ -1246,6 +1247,56 @@ namespace SBJController
             List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
             channelsListView.Items.AddRange(channelsToDisplay.ToArray());
             channelsListView.Items[channelsListView.Items.IndexOfKey(typeof(DefaultDataChannel).Name)].Checked = true;            
+        }
+
+        /// <summary>
+        /// Populate channels list on the Calibration tab on the UI
+        /// </summary>
+        private void PopulateChannelsListOnCalibrationTab()
+        {
+            List<string> channelTypes = new List<string>();
+            List<string> complexChannelTypes = new List<string>();
+            var typeIDataChannel = typeof(IDataChannel);
+
+            //
+            // A possible data channel is only one which ipmlements IDataChannel
+            // Take only these ones and sort to Simple and Complex data channels lists.
+            //
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypes())
+                {
+                    if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
+                    {
+                        if (type.GetCustomAttributes(false)[0] is CalibrationAttribute)
+                        {
+                            if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+                            {
+                                channelTypes.Add(type.Name);
+                            }
+                            else
+                            {
+                                complexChannelTypes.Add(type.Name);
+                            }
+                        }
+                    }
+                }
+            }
+
+            //
+            // In the channles tab only assign the simple data channels
+            //
+            this.calibrationChannel1ComboBox.DataSource = channelTypes;
+            this.calibrationChannel1ComboBox.Text = Settings.Default.DAQPhysicalChannelName0;
+            
+            //
+            // Also populate the channels in the display list
+            //
+            List<string> allAvailableChannels = channelTypes;
+            allAvailableChannels.AddRange(complexChannelTypes);
+            List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
+            calibrationListView.Items.AddRange(channelsToDisplay.ToArray());
+            calibrationListView.Items[calibrationListView.Items.IndexOfKey(typeof(DefaultDataChannel).Name)].Checked = true;
         }
 
         /// <summary>
