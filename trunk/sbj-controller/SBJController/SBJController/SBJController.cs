@@ -8,6 +8,7 @@ using NationalInstruments.DAQmx;
 using SBJController.Properties;
 using System.Text;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SBJController
 {
@@ -332,7 +333,7 @@ namespace SBJController
             }
             fileNameStringBuilder.Append(".txt");
 
-            string fileFullPath = Path.Combine(path, subFolderName, fileNameStringBuilder.ToString());
+            string fileFullPath = Path.Combine(Path.Combine(path, subFolderName), fileNameStringBuilder.ToString());
 
             //
             // As long as the data file exists increase file number
@@ -365,14 +366,14 @@ namespace SBJController
             if (settings.LaserSettings.LaserMode.Equals("DC"))
             {
                 m_taborLaserController.SetDCMode();
-                m_taborLaserController.SetDcModeAmplitude(settings.LaserSettings.LaserAmplitude);
+                m_taborLaserController.SetDcModeAmplitude(settings.LaserSettings.LaserAmplitudeVolts);
             }
             else
             {
                 if (settings.LaserSettings.LaserMode.Equals("Square"))
                 {
                     m_taborLaserController.SetSquareMode();
-                    m_taborLaserController.SetSquareModeAmplitude(settings.LaserSettings.LaserAmplitude);
+                    m_taborLaserController.SetSquareModeAmplitude(settings.LaserSettings.LaserAmplitudeVolts);
                     m_taborLaserController.SetSquareModeFrequency(settings.LaserSettings.LaserFrequency);
                 }
                 else
@@ -438,7 +439,7 @@ namespace SBJController
                 {
                     channelRawData.Add(rawData[i, j]);
                 }
-                activeChannels[i].RawData.Clear();
+
                 activeChannels[i].RawData.Add(channelRawData.ToArray());
             }
         }
@@ -509,6 +510,142 @@ namespace SBJController
             }
         }
 
+        /// <summary>
+        /// Clear raw data from channels list
+        /// </summary>
+        /// <param name="activeChannels"></param>
+        private void ClearRawData(IList<IDataChannel> activeChannels)
+        {
+            foreach (var channel in activeChannels)
+            {
+                channel.RawData.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Converts the data to matrix form
+        /// </summary>
+        /// <param name="data">The data as a list of lists</param>
+        /// <returns>The data as a metrix</returns>
+        private double[,] ConvertDataToMatrix(List<List<double>> data)
+        {
+            //
+            // The number of items in the lists (i.e the number of lists)
+            // is the number of data channels.
+            //
+            int numberOfChannles = data.Count;
+
+            //
+            // The number of data points per channel is the number of items in each inner list
+            //
+            int numberOfDataPointsPerChannel = data[0].Count;
+            
+            //
+            // Init matrix and populate it
+            //
+            double[,] dataAsMatrix = new double[numberOfChannles, numberOfDataPointsPerChannel];
+            for (int i = 0; i < numberOfChannles; i++)
+            {
+                for (int j = 0; j < data[i].Count; j++)
+                {
+                    dataAsMatrix[i, j] = data[i][j];
+                }
+            }
+            return dataAsMatrix;
+        }
+
+        /// <summary>
+        /// Average on the data set
+        /// </summary>
+        /// <param name="fullDataSet">The full data set to be averaged on</param>
+        /// <param name="numberOfPointsToAverage">The number of points to average</param>
+        /// <returns>A new averaged data set</returns>
+        private List<List<double>> GetAveragedData(List<List<double>> fullDataSet, int numberOfPointsToAverage)
+        {
+            //
+            // The number of channels is the number of lists in the data
+            //
+            int numberOfChannels = fullDataSet.Count;
+
+            //
+            // Initialize parameters
+            //
+            List<List<double>> averagedData = new List<List<double>>(numberOfChannels);
+            double averagePoint = 0;
+
+            //
+            // Iterate over the channels and average each ones data
+            //
+            for (int i = 0; i < numberOfChannels; i++)
+            {
+                //
+                // The new list of averaged data is now initialized
+                //
+                List<double> channelAveragedData = new List<double>();
+
+                //
+                // As long as we have more items in the original list
+                // than the number of items we are required to averaged on
+                // then we can continue averaging.
+                //
+                while (fullDataSet[i].Count >= numberOfPointsToAverage)
+                {
+                    //
+                    // Take first amount of items and average.
+                    //
+                    averagePoint = fullDataSet[i].Take(numberOfPointsToAverage).Average();
+                    channelAveragedData.Add(averagePoint);
+
+                    //
+                    // After being used we can remove these items from the orginial list
+                    // So that in the next iteration it will not be taken again
+                    //
+                    fullDataSet[i].RemoveRange(0, numberOfPointsToAverage);     
+                }
+
+                //
+                // Since we are out of the "while" loop these means that we are left
+                // with less than 'numberOfPointsToAverage' in the original list,
+                // So we'll take what is left and average on them.
+                //
+                averagePoint = fullDataSet[i].Take(numberOfPointsToAverage).Average();
+                channelAveragedData.Add(averagePoint);
+
+                //
+                // Now we can add the new averaged data set to the returned variable
+                //
+                averagedData.Add(channelAveragedData);
+            }
+
+            return averagedData;
+        }
+
+        /// <summary>
+        /// Get an average data point for each sampled channel
+        /// </summary>
+        /// <param name="dataAquired">The acquired data</param>
+        /// <returns>List of all the average data from each channel</returns>
+        private List<double> GetAverageDataValue(double[,] dataAquired)
+        {
+            int numberOfDataSampled = dataAquired.GetLength(1);
+            int numberOfChannels = dataAquired.GetLength(0);
+            List<double> averageData = new List<double>(numberOfChannels);
+
+            //
+            // Flattens the matrix to a list so that each row is appended after the row before.
+            // The result is one list: 2D [a,a,a;b,b,b;c,c,c] ==> 1D (a,a,a,b,b,b,c,c,c)
+            //
+            IEnumerable<double> flatMatrix = dataAquired.Cast<double>();
+            for (int i = 0; i < numberOfChannels; i++)
+            {
+                //
+                // Take only the data relevant for the specific channel.
+                // This is why we skip some of the data.
+                //
+                averageData.Add(flatMatrix.Skip(numberOfDataSampled * i).Take(numberOfDataSampled).Average());
+            }
+            return averageData;
+        }
         #endregion
 
         #region Public Methods
@@ -590,8 +727,14 @@ namespace SBJController
             bool isCancelled = false;
             int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
             double[,] dataAquired;
-
             List<IDataChannel> physicalChannels = new List<IDataChannel>();
+
+            //
+            // Apply voltage with desired tool: Task or Keithley
+            //
+            ApplyVoltageIfNeeded(settings.GeneralSettings.UseKeithley, 
+                                 settings.GeneralSettings.Bias, 
+                                 settings.GeneralSettings.BiasError);
 
             //
             // Configure the laser if needed for this run
@@ -760,8 +903,10 @@ namespace SBJController
                 m_task.Stop();
 
                 //
-                // Assign the aquired data for each channel
-                //                
+                // Assign the aquired data for each channel.
+                // First clear all data from previous interation.
+                //     
+                ClearRawData(settings.ChannelsSettings.ActiveChannels);
                 AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAquired);
 
                 //
@@ -809,8 +954,251 @@ namespace SBJController
 
             return (isCancelled || e.Cancel);
         }
-       
+
         /// <summary>
+        /// Manually aquire data
+        /// This method continuously poll the buffer for data until it is stopped by the user.
+        /// </summary>
+        /// <param name="settings">The settings for running the aquisition</param>
+        /// <returns>True whether the operation was cacled by the user. False otherwise.</returns>
+        public bool AquireDataManually(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            //
+            // Apply voltage with desired tool: Task or Keithley
+            //
+            ApplyVoltageIfNeeded(settings.GeneralSettings.UseKeithley,
+                                 settings.GeneralSettings.Bias,
+                                 settings.GeneralSettings.BiasError);
+
+            bool isCancelled = false;
+            int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
+            
+            //
+            // The array is intialized with size for 1 minute sampling.
+            //
+            double[,] dataAquired = new double[1000, 1000];
+
+            List<IDataChannel> physicalChannels = new List<IDataChannel>();
+
+            //
+            // Configure the laser if needed for this run
+            //
+            ConfigureLaserIfNeeded(settings);
+
+            //
+            // Save this run settings if desired
+            //
+            SaveSettingsIfNeeded(settings, settings.GeneralSettings.IsFileSavingRequired, settings.GeneralSettings.Path);
+
+            //
+            //apply initial voltage on the EM
+            //
+            ApplyVoltageOnElectroMagnetIfNeeded(settings.ElectromagnetSettings.IsEMEnable);
+
+            //
+            // Create the task
+            //
+            m_task = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+            
+            //
+            // If EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
+            // then return.
+            //
+            if (settings.ElectromagnetSettings.IsEMEnable && settings.ElectromagnetSettings.IsEMSkipFirstCycleEnable)
+            {
+                m_stepperMotor.Shutdown();
+                return false;
+            }
+
+            //
+            // Turn off the laser before we reach contact
+            //
+            if (settings.LaserSettings.IsLaserOn)
+            {
+                m_taborLaserController.TurnOff();
+                Thread.Sleep(5000);
+            }
+
+            //
+            // Change the gain power to 5 before reaching contact
+            // to ensure full contact current
+            //
+            m_amplifier.ChangeGain(5);
+
+            //
+            // Reach to contact before we start openning the junction
+            // If EM is enabled and we're after the first cycle, use the EM.
+            // If user asked to stop than exit
+            //
+            isCancelled = (settings.ElectromagnetSettings.IsEMEnable) ?
+                           EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, 
+                                                   settings.GeneralSettings.ShortCircuitVoltage, worker, e) :
+                           TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+            if (isCancelled)
+            {
+                return false;
+            }
+
+            //
+            // Configure the gain to the desired one before strating the measurement.
+            // And also this is the time to switch the laser on.
+            //
+            int gainPower;
+            Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
+            m_amplifier.ChangeGain(gainPower);
+
+
+            if (settings.LaserSettings.IsLaserOn)
+            {
+                m_taborLaserController.TurnOn();
+            }
+
+            //
+            // Start openning the junction.
+            // If EM is enabled then use it.
+            //
+            if (settings.ElectromagnetSettings.IsEMEnable)
+            {
+                m_stepperMotor.Shutdown();
+                EMBeginOpenJunction(settings);                
+            }
+            else
+            {
+                BeginOpenJunction(settings);
+            }
+
+            //
+            // Start the task and wait for the data
+            //
+            try
+            {
+                m_task.Start();
+            }
+            catch (DaqException ex)
+            {
+                throw new SBJException("Error occured when tryin to start DAQ task", ex);
+            }
+
+            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_task.Stream);
+            List<List<double>> averagedData = new List<List<double>>(settings.ChannelsSettings.ActiveChannels.Count);
+
+            for (int i = 0; i < averagedData.Capacity; i++)
+            {
+                averagedData.Add(new List<double>());
+            }
+
+            try
+            {
+                //
+                // Before getting all the data clear the lists.
+                //
+                ClearRawData(settings.ChannelsSettings.ActiveChannels);              
+
+                //
+                // As long as the user didn't ask to stop the acquisition 
+                // (which is signaled by the stop of the stepper motion)
+                // we coninue sampling.
+                //
+                while (!m_quitJunctionOpenningOperation)
+                {
+                    //
+                    // Read all available data points in the buffer that
+                    // were not read so far.
+                    //
+                    dataAquired = reader.ReadMultiSample(-1);
+
+                    //
+                    // Get average for the acquired the data and assign to variable
+                    //
+                    List<double> averageDataValues = GetAverageDataValue(dataAquired);
+                    for (int i = 0; i < averageDataValues.Count; i++)
+                    {                        
+                        averagedData[i].Add(averageDataValues[i]);
+                    }
+                      
+                    dataAquired = null;
+ 
+                    //
+                    // Cancel the operatin if user asked for
+                    // We do it at the end of the loop to make sure we 
+                    // saved all the data we have available.
+                    //
+                    if (worker.CancellationPending == true)
+                    {
+                        e.Cancel = true;
+                        break;
+                    }
+                }                
+            }
+            catch (DaqException)
+            {
+                //
+                // In case of an error just return
+                //
+                m_task.Stop();
+                m_task.Dispose();
+                m_taborLaserController.TurnOff();
+                return false;
+            }
+
+            //
+            // At this point the user had requested to stop the data aquisition.
+            // By signaling "stop". We can stop the task.
+            //            
+            m_task.Stop();
+
+            //
+            // Assign the aquired data for each channel after an average process
+            //                    
+            AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, ConvertDataToMatrix(GetAveragedData(averagedData, 5000)));
+
+            //
+            // physical channel will include both simple and complex channels. 
+            // 
+            physicalChannels = GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels);
+
+            //
+            // calculate the physical data for each channel
+            //
+            GetPhysicalData(physicalChannels);
+
+            // 
+            // Increase file number by one
+            // Save data if needed
+            //
+            finalFileNumber++;
+            if (settings.GeneralSettings.IsFileSavingRequired)
+            {
+                finalFileNumber = SaveData(settings.GeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+            }
+
+            //
+            // Signal UI we have the data
+            //
+            if (DataAquired != null)
+            {
+                DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
+            }
+            
+
+            //
+            // Finish the measurement properly
+            //
+            if (settings.LaserSettings.IsLaserOn)
+            {
+                m_taborLaserController.TurnOff();
+            }
+            if (settings.ElectromagnetSettings.IsEMEnable)
+            {
+                m_electroMagnet.Shutdown();
+            }
+            m_task.Dispose();
+            m_stepperMotor.Shutdown();
+
+            return (isCancelled || e.Cancel);
+        }
+
+       /// <summary>
         /// Move the stepper up
         /// </summary>
         /// <param name="worker"></param>
@@ -1063,6 +1451,57 @@ namespace SBJController
             m_amplifier.ChangeGain(gain);
         }
 
+        /// <summary>
+        /// if we can't use the keithey we will use the DAQ as a source instead.
+        /// </summary>
+        public void ApplyVoltageIfNeeded(bool useKeithley, double bias, double biasError)
+        {
+            //
+            // if we didn't check the keithley as a source for bias,  let's try to connect to it
+            //
+            if (!useKeithley)
+            {
+                try
+                {
+                    SourceMeter.Connect();
+                    SourceMeter.SetBias(bias + biasError);
+                }
+                catch (SBJException)
+                {
+                    //
+                    // the keithley doesn't connect. let's try the DAQ
+                    //
+                    try
+                    {
+                        StartConstantOutputTask(bias);
+                    }
+                    catch (DaqException ex)
+                    {
+                        throw new SBJException("Error occured when tryin to start DAQ output task", ex);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// if the bias was applied by the DAQ device, close it and stop the task. 
+        /// if it was applied by the keithley - leave it on. 
+        /// </summary>
+        public void StopApplyingVoltageIfNeeded()
+        {
+            //
+            // if we applied the bias by the DAQ device, we need to stop the task. 
+            //
+            if (OutputTask != null)
+            {
+                OutputTask.Stop();
+                OutputTask.Dispose();
+            }
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
         public void ControllerTabControlDeselected()
         {
             m_electroMagnet.Shutdown();

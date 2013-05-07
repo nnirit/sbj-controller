@@ -31,10 +31,41 @@ namespace SBJController
         /// </summary>
         /// <param name="rawVoltageValue"></param>
         /// <returns></returns>
-        internal override double ConvertVoltageToConductanceValue(double rawVoltageValue)
+        internal override double ConvertVoltageToPhysicalValue(double rawVoltageValue)
         {           
             return Math.Abs(rawVoltageValue) / Math.Pow(10, DataConvertionSettings.Gain) / DataConvertionSettings.Bias / c_1G0;
         }       
+    }
+
+    /// <summary>
+    /// Photodetector data channel.
+    /// This channel is used to sample data points fron the silicon diode.
+    /// </summary>
+    [DAQAttribute()]
+    public class PhotodetectorDataChannel : SimpleDataChannel, IDataChannel
+    {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="physicalName">The physical channels on the PCI board. e.g: Dev1\AI0</param>
+        /// <param name="settings"></param>
+        public PhotodetectorDataChannel(string physicalName, DataConvertorSettings settings)
+            : base(physicalName, settings)
+        {
+            Name = "PhotodetectorDataChannel";
+        }
+
+        /// <summary>
+        /// Override. 
+        /// Converts the voltage to intensity units.
+        /// TODO: Add conversion.
+        /// </summary>
+        /// <param name="rawVoltageValue"></param>
+        /// <returns></returns>
+        internal override double ConvertVoltageToPhysicalValue(double rawVoltageValue)
+        {
+            return rawVoltageValue;
+        }
     }
 
     /// <summary>
@@ -115,7 +146,7 @@ namespace SBJController
         /// </summary>
         /// <param name="rawVoltageValue">One raw data point to be converted to physicak data.</param>
         /// <returns>The physical data representation of the input data point.</returns>
-        internal override double ConvertVoltageToConductanceValue(double rawVoltageValue)
+        internal override double ConvertVoltageToPhysicalValue(double rawVoltageValue)
         {
             //
             // When the lock in is internally referenced, the measured signal is in the form of:
@@ -123,7 +154,7 @@ namespace SBJController
             // We must divide in the ac voltage applied internally from the lock - in in order to extract the
             // the physical data.
             //
-            return base.ConvertVoltageToConductanceValue(rawVoltageValue) / DataConvertionSettings.ACVoltage;
+            return base.ConvertVoltageToPhysicalValue(rawVoltageValue) / DataConvertionSettings.ACVoltage;
         }
     }
 
@@ -164,7 +195,7 @@ namespace SBJController
         /// <param name="rawVoltageDataX">The X data set</param>
         /// <param name="rawVoltageDataY">The Y data set</param>
         /// <returns></returns>
-        internal override IList<double[]> ConvertVoltageToConductanceValue(double[] rawVoltageDataX, double[] rawVoltageDataY)     
+        internal override IList<double[]> ConvertVoltageToPhysicalValue(double[] rawVoltageDataX, double[] rawVoltageDataY)     
         {
             double[] conductanceValues = new double[rawVoltageDataX.Length];
             double[] phaseValues = new double[rawVoltageDataX.Length];
@@ -254,7 +285,7 @@ namespace SBJController
             m_normalizationFactor = (10 / settings.Sensitivity);
         }
 
-        internal override double ConvertVoltageToConductanceValue(double rawVoltageValue)
+        internal override double ConvertVoltageToPhysicalValue(double rawVoltageValue)
         {
             return rawVoltageValue / Math.Pow(10, DataConvertionSettings.Gain) / s_1G0 / m_normalizationFactor * s_rmsToPPFactor;
         }
@@ -277,7 +308,7 @@ namespace SBJController
         //
         // this function sets the right values in physical data and additional data.
         //
-        internal override IList<double[]> ConvertVoltageToConductanceValue(double[] junctionData, double[] voltageData)
+        internal override IList<double[]> ConvertVoltageToPhysicalValue(double[] junctionData, double[] voltageData)
         {
             //
             // get an instance of the class that has the functions that does all the data processing for the iv measurements.
@@ -315,7 +346,7 @@ namespace SBJController
         //
         // no need to modify the raw data, so just return with it.
         //
-        internal override double ConvertVoltageToConductanceValue(double rawVoltageValue)
+        internal override double ConvertVoltageToPhysicalValue(double rawVoltageValue)
         {
             return rawVoltageValue;
         }
@@ -333,7 +364,7 @@ namespace SBJController
             Name = "IVInputDataChannel";
         }
 
-        internal override double ConvertVoltageToConductanceValue(double rawVoltageValue)
+        internal override double ConvertVoltageToPhysicalValue(double rawVoltageValue)
         {
             //
             // calculates the current (not the conductance since the bias was oscilating).
@@ -406,14 +437,14 @@ namespace SBJController
             double[] conductanceValues = new double[rawVoltageData.Length];
             for (int i = 0; i < rawVoltageData.Length; i++)
             {
-                conductanceValues[i] = ConvertVoltageToConductanceValue(rawVoltageData[i]);
+                conductanceValues[i] = ConvertVoltageToPhysicalValue(rawVoltageData[i]);
             }
             PhysicalData.Clear();
             PhysicalData.Add(conductanceValues);
             return PhysicalData;
         }
 
-        internal abstract double ConvertVoltageToConductanceValue(double p);        
+        internal abstract double ConvertVoltageToPhysicalValue(double p);        
     }
 
     /// <summary>
@@ -477,13 +508,13 @@ namespace SBJController
             IList<double[]> convertedData = new List<double[]>();
 
             //TODO: change the name of this function to something like "GetPhysicalAndAdditionalData"
-            convertedData = ConvertVoltageToConductanceValue(RawData[0], RawData[1]);
+            convertedData = ConvertVoltageToPhysicalValue(RawData[0], RawData[1]);
 
             PhysicalData = convertedData;
             return PhysicalData;
         }
 
-        internal abstract IList<double[]> ConvertVoltageToConductanceValue(double[] firstRawDataSet, double[] secondRawDataSet);
+        internal abstract IList<double[]> ConvertVoltageToPhysicalValue(double[] firstRawDataSet, double[] secondRawDataSet);
     }
 
     /// <summary>

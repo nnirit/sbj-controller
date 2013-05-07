@@ -111,7 +111,7 @@ namespace SBJController
             //
             // create the input and output tasks
             //
-            m_ivInputTask = GetContinuousAITask(settings);
+            m_ivInputTask = GetContinuousAITask(settings.IVGeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
             m_outputTask = GetContinuousAOTask(settings);
 
             //
@@ -478,13 +478,12 @@ namespace SBJController
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        private Task GetContinuousAITask(IVSettings settings)
+        private Task GetContinuousAITask(int sampleRate, IList<IDataChannel> activeChannels)
         {
             //
             // get the properties required for the input task
             //
-            TaskProperties inputTaskProperties = new TaskProperties(settings.IVGeneralSettings.SampleRate, 
-                                                                    settings.ChannelsSettings.ActiveChannels);
+            TaskProperties inputTaskProperties = new TaskProperties(sampleRate, activeChannels);
 
             //
             // return the input task

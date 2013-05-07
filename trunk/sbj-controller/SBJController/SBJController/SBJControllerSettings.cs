@@ -45,6 +45,7 @@ namespace SBJController
         public int StepperWaitTime1 { get; set; }
         public int StepperWaitTime2 { get; set; }
         public bool IsFileSavingRequired { get; set; }
+        public bool UseKeithley { get; set; }
         public string Path { get; set; }
         public int CurrentFileNumber { get; set; }
         public int TotalNumberOfCycles { get; set; }
@@ -56,7 +57,7 @@ namespace SBJController
                                      double triggerConductance, int sampleRate,
                                      int totalSamples, int pretriggerSamples,
                                      int stepperWaitTime1, int stepperWaitTime2, bool isFileSavingRequired, 
-                                     string path, int currentFileNumber, int totalNUmberOfCycles, 
+                                     bool useKeithley, string path, int currentFileNumber, int totalNUmberOfCycles, 
                                      double shourtCircuitVoltage,Sample bottom, Sample top)
         {
             Bias = bias;
@@ -70,6 +71,7 @@ namespace SBJController
             StepperWaitTime1 = stepperWaitTime1;
             StepperWaitTime2 = stepperWaitTime2;
             IsFileSavingRequired = isFileSavingRequired;
+            UseKeithley = useKeithley;
             Path = path;
             CurrentFileNumber = currentFileNumber;
             TotalNumberOfCycles = totalNUmberOfCycles;
@@ -96,14 +98,18 @@ namespace SBJController
     {
         public bool IsLaserOn { get; set; }
         public string LaserMode { get; set; }
-        public double LaserAmplitude { get; set; }
+        public double LaserAmplitudeVolts { get; set; }
+        public double LaserAmplitudeMiliWatt { get; set; }
+        public double LaserAmplitudeOnSample { get; set; }
         public int LaserFrequency { get; set; }
 
-        public LaserSBJControllerSettings(bool isLaserOn, string laserMode, double laserAmplitude, int laserFrequency)
+        public LaserSBJControllerSettings(bool isLaserOn, string laserMode, double laserAmplitudeVolts, double laserAmplitudeMiliWatt, double laserAmplitudeOnSample, int laserFrequency)
         {
             IsLaserOn = isLaserOn;
             LaserMode = laserMode;
-            LaserAmplitude = laserAmplitude;
+            LaserAmplitudeVolts = laserAmplitudeVolts;
+            LaserAmplitudeMiliWatt = laserAmplitudeMiliWatt;
+            LaserAmplitudeOnSample = laserAmplitudeOnSample;
             LaserFrequency = laserFrequency;
         }
 
