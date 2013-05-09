@@ -985,16 +985,6 @@ namespace SBJController
             else
             {
                 //
-                // Update file number
-                //
-                this.fileNumberNumericUpDown.Value = e.FileNumber;                
-
-                //
-                // Clear the last plot
-                //
-                this.traceWaveformGraph.ClearData();
-
-                //
                 // Retreive the channels to be dispalyed according to the user's choice.
                 //
                 List<IDataChannel> channelsToDisplay = GetChannelsToDisplay(e.DataChannels as List<IDataChannel>);
@@ -1005,20 +995,58 @@ namespace SBJController
                 double[,] data = GetPhysicalData(channelsToDisplay);
 
                 //
-                // Update plot
+                // Check the attribute of the first channel received (all of the channels received are suppose to be of the same attribute). 
+                // This will help us decide which UI Tab should be updated.
                 //
-                int numberOfChannels = data.GetLength(0);
-                this.traceWaveformGraph.PlotYMultiple(data);
-       
-                if (numberOfChannels > 1)
+                if (e.DataChannels[0].GetType().GetCustomAttributes(false)[0] is DAQAttribute)
                 {
-                    this.traceWaveformGraph.Plots[1].PointColor = Color.Blue;
-                    this.traceWaveformGraph.Plots[1].YAxis = yAxis2;
-                    this.traceWaveformGraph.Plots[1].ToolTipsEnabled = true;
-                    this.traceWaveformGraph.Plots[1].LineColor = Color.Blue;                    
-                }                
-                this.traceWaveformGraph.Caption = string.Format("Trace #{0} at {1}", this.fileNumberNumericUpDown.Value, DateTime.Now.TimeOfDay);        
+                    GraphAndFileNumberUpdate(data, this.traceWaveformGraph, e.FileNumber, this.fileNumberNumericUpDown);
+                }
+                else if (e.DataChannels[0].GetType().GetCustomAttributes(false)[0] is IVAttribute)
+                {
+                    GraphAndFileNumberUpdate(data, this.ivWaveformGraph, e.FileNumber, this.ivFileNumberNumericUpDown);
+                }
+                else
+                {
+                    GraphAndFileNumberUpdate(data, this.calibrationWaveformGraph, e.FileNumber, this.calibrationCycleNumberNumericUpDown);
+                }
             }
+        }
+
+        /// <summary>
+        /// Update the plot on the graph and the current file number, on the UI.
+        /// </summary>
+        /// <param name="data">The data that should be plotted on the graph.</param>
+        /// <param name="waveformGraph">The waveform graph from the UI that should be updated.</param>
+        /// <param name="fileNumber">The current file number.</param>
+        /// <param name="fileNumberNumericButton">The button from the UI that shows the current file number.</param>
+        private void GraphAndFileNumberUpdate(double[,] data, WaveformGraph waveformGraph, int fileNumber, NumericUpDown fileNumberNumericButton)
+        {
+            //
+            // Update file number
+            //
+            fileNumberNumericButton.Value = fileNumber;
+            
+            //
+            // Clear the last plot
+            //
+            waveformGraph.ClearData();
+
+            //
+            // Update plot
+            //
+            int numberOfChannels = data.GetLength(0);
+            waveformGraph.PlotYMultiple(data);
+
+            if (numberOfChannels > 1)
+            {
+                waveformGraph.Plots[1].PointColor = Color.Blue;
+                waveformGraph.Plots[1].YAxis = yAxis2;
+                waveformGraph.Plots[1].ToolTipsEnabled = true;
+                waveformGraph.Plots[1].LineColor = Color.Blue;
+            }
+            
+            waveformGraph.Caption = string.Format("Trace #{0} at {1}", fileNumber, DateTime.Now.TimeOfDay);
         }
 
         /// <summary>
@@ -1234,7 +1262,7 @@ namespace SBJController
             this.channel3ComboBox.DataSource = new List<string>(channelTypes);
 
             
-            //this.channel0CheckBox.Text = Settings.Default.DAQPhysicalChannelName0;
+            this.channel0CheckBox.Text = Settings.Default.DAQPhysicalChannelName0;
             this.channel1CheckBox.Text = Settings.Default.DAQPhysicalChannelName1;
             this.channel2CheckBox.Text = Settings.Default.DAQPhysicalChannelName2;
             this.channel3CheckBox.Text = Settings.Default.DAQPhysicalChannelName3;
@@ -1455,11 +1483,107 @@ namespace SBJController
             return false;
         }
 
+        /// <summary>
+        /// Select path for saving file
+        /// </summary>
+        /// <param name="relevantPathTextBox">the active path text box</param>
+        private void BrowseButtonFunction(TextBox relevantPathTextBox)
+        {
+            string initialPath = relevantPathTextBox.Text;
+            FolderBrowserDialog folderBroswer = new FolderBrowserDialog();
+
+            //
+            // Open the directory that currently written.
+            // If doesn't exist just open the broswer from the current running path.
+            //
+            if (Directory.Exists(relevantPathTextBox.Text))
+            {
+                folderBroswer.SelectedPath = relevantPathTextBox.Text;
+            }
+            else
+            {
+                folderBroswer.SelectedPath = Environment.CurrentDirectory;
+            }
+            DialogResult dialogResult = folderBroswer.ShowDialog();
+
+            //
+            // Show the selected path.
+            //
+            if (dialogResult == DialogResult.OK)
+            {
+                relevantPathTextBox.Text = folderBroswer.SelectedPath;
+            }
+            else
+            {
+                relevantPathTextBox.Text = initialPath;
+            }
+        }
+
+        /// <summary>
+        /// updates the bias on the keithley if needed, and the trigger values on the UI
+        /// </summary>
+        /// <param name="isKeithleyUsed"></param>
+        /// <param name="triggerConductance"></param>
+        /// <param name="triggerVoltage"></param>
+        private void BiasUpdate(double bias, int gainPower, bool isKeithleyUsed, NumericEdit triggerConductance, NumericEdit triggerVoltage)
+        {
+            //
+            // This event is also fired when the UI loads on start.
+            // At that point sbjController is still null and we need to verify this.
+            //
+            if (m_sbjController != null && isKeithleyUsed)
+            {
+                m_sbjController.SourceMeter.SetBias(bias);
+            }
+
+            //
+            // update the trigger values
+            //
+            triggerConductance.Value = GetTriggerConductance(gainPower, bias);
+            triggerVoltage.Value = -triggerConductance.Value * m_1G0 * Math.Abs(bias) * Math.Pow(10, gainPower);
+        }
+
+        /// <summary>
+        /// updates the gain on the amplifier, and the trigger values on the UI
+        /// </summary>
+        /// <param name="isKeithleyUsed"></param>
+        /// <param name="triggerConductance"></param>
+        /// <param name="triggerVoltage"></param>
+        private void GainUpdate(double bias, int gainPower, NumericEdit triggerConductance, NumericEdit triggerVoltage)
+        {
+            //
+            // update gain power on the amplifier
+            //
+            m_sbjController.ChangeGain(gainPower);
+
+            //
+            // update the trigger values
+            //
+            triggerConductance.Value = GetTriggerConductance(gainPower, bias);
+            triggerVoltage.Value = -triggerConductance.Value * m_1G0 * Math.Abs(bias) * Math.Pow(10, gainPower);
+        }
+
+        /// <summary>
+        /// Tries to connect to the keithley. If failed, uncheck the "use keithly" checkBox. 
+        /// </summary>
+        private void TryConnectToKeithly()
+        {
+            try
+            {
+                m_sbjController.SourceMeter.Connect();
+            }
+            catch (SBJException)
+            {
+                //
+                // the keithley doesn't connect. 
+                //
+                this.useKeithleyCheckBox.Checked = false;
+            }
+        }
        
-      
         #endregion            
 
-        #region Calibration
+        #region Calibration Tab
 
         private void StartStopCalibrationcheckBox_CheckedChanged(object sender, EventArgs e)
         {
@@ -1582,7 +1706,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationbiasNumericEdit_AfterChangeValue(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
+        private void calibrationbiasNumericEdit_AfterChangeValue(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
         {
             BiasUpdate(this.calibrationBiasNumericEdit.Value, int.Parse(this.calibrationGainPowerComboBox.Text), this.calibrationKeithleyCheckBox.Checked,
                         this.calibrationTriggerConductanceNumericEdit, this.calibrationTriggerVoltageNumericEdit);
@@ -1593,7 +1717,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationGainComboBox_ValueChanged(object sender, EventArgs e)
+        private void calibrationGainComboBox_ValueChanged(object sender, EventArgs e)
         {
             GainUpdate(this.calibrationBiasNumericEdit.Value, int.Parse(this.calibrationGainPowerComboBox.Text),
                         this.calibrationTriggerConductanceNumericEdit, this.calibrationTriggerVoltageNumericEdit);
@@ -1604,7 +1728,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationTriggerConductanceNumericEdit_AfterChangeValue(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
+        private void calibrationTriggerConductanceNumericEdit_AfterChangeValue(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
         {
             this.calibrationTriggerVoltageNumericEdit.Value = -this.calibrationTriggerVoltageNumericEdit.Value * m_1G0 * Math.Abs(this.calibrationBiasNumericEdit.Value) * Math.Pow(10, int.Parse(this.calibrationGainPowerComboBox.Text));
         }
@@ -1614,7 +1738,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationTotalSamplesNumericUpDown_ValueChanged(object sender, EventArgs e)
+        private void calibrationTotalSamplesNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             //
             // the total number of samples was changed - the trigger usually should be after 85% of the samples.
@@ -1627,7 +1751,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationEnableElectroMagnetCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void calibrationEnableElectroMagnetCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             //
             // Update the appearance of other UI related parameters.
@@ -1646,7 +1770,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationChannel1ComboBox_SelectedValueChanged(object sender, EventArgs e)
+        private void calibrationChannel1ComboBox_SelectedValueChanged(object sender, EventArgs e)
         {
             if (calibrationChannel1CheckBox.Checked)
             {
@@ -1659,7 +1783,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationChannel1CheckBox_CheckedChanged(object sender, EventArgs e)
+        private void calibrationChannel1CheckBox_CheckedChanged(object sender, EventArgs e)
         {
             UpdateChannelsToDisplayListView();
         }
@@ -1669,7 +1793,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationPathTextBox_TextChanged(object sender, EventArgs e)
+        private void calibrationPathTextBox_TextChanged(object sender, EventArgs e)
         {
             //
             // The folder in which we save the files has been changed, so we need to set the file number back to zero.
@@ -1682,7 +1806,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationBrowseButton_Click(object sender, EventArgs e)
+        private void calibrationBrowseButton_Click(object sender, EventArgs e)
         {
             BrowseButtonFunction(this.calibrationPathTextBox);
         }
@@ -1692,7 +1816,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationShortCircuitButton_CheckedChanged(object sender, EventArgs e)
+        private void calibrationShortCircuitButton_CheckedChanged(object sender, EventArgs e)
         {
             if (calibrationShortCircuitCkeckBox.Checked)
             {
@@ -1736,7 +1860,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationOpenFolderButton_Click(object sender, EventArgs e)
+        private void calibrationOpenFolderButton_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(this.calibrationPathTextBox.Text);
         }
@@ -1746,7 +1870,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void calibrationStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             if (this.calibrationStepperUpCheckBox.Checked)
             {
@@ -1776,7 +1900,7 @@ namespace SBJController
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CalibrationUseKeithleyCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void calibrationUseKeithleyCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             if (this.calibrationKeithleyCheckBox.Checked)
             {
@@ -1784,117 +1908,34 @@ namespace SBJController
                 m_sbjController.SourceMeter.SetBias(this.calibrationBiasNumericEdit.Value);
             }
         }
-
         #endregion
 
+        #region IV Tab
+        /// <summary>
+        /// Select path for saving files on the IV Tab
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ivBrowseButton_Click(object sender, EventArgs e)
         {
             BrowseButtonFunction(this.ivPathTextBox);
         }
 
+        /// <summary>
+        /// Open the folder on from the path on the IV tab
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ivOpenFolderButton_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(this.ivPathTextBox.Text);
         }
 
         /// <summary>
-        /// Select path for saving file
+        /// choose if to use the stepper motor on the IV tab
         /// </summary>
-        /// <param name="relevantPathTextBox">the active path text box</param>
-        private void BrowseButtonFunction(TextBox relevantPathTextBox)
-        {
-            string initialPath = relevantPathTextBox.Text;
-            FolderBrowserDialog folderBroswer = new FolderBrowserDialog();
-
-            //
-            // Open the directory that currently written.
-            // If doesn't exist just open the broswer from the current running path.
-            //
-            if (Directory.Exists(relevantPathTextBox.Text))
-            {
-                folderBroswer.SelectedPath = relevantPathTextBox.Text;
-            }
-            else
-            {
-                folderBroswer.SelectedPath = Environment.CurrentDirectory;
-            }
-            DialogResult dialogResult = folderBroswer.ShowDialog();
-
-            //
-            // Show the selected path.
-            //
-            if (dialogResult == DialogResult.OK)
-            {
-                relevantPathTextBox.Text = folderBroswer.SelectedPath;
-            }
-            else
-            {
-                relevantPathTextBox.Text = initialPath;
-            }
-        }
-
-        /// <summary>
-        /// updates the bias on the keithley if needed, and the trigger values on the UI
-        /// </summary>
-        /// <param name="isKeithleyUsed"></param>
-        /// <param name="triggerConductance"></param>
-        /// <param name="triggerVoltage"></param>
-        private void BiasUpdate(double bias, int gainPower, bool isKeithleyUsed, NumericEdit triggerConductance, NumericEdit triggerVoltage)
-        {
-            //
-            // This event is also fired when the UI loads on start.
-            // At that point sbjController is still null and we need to verify this.
-            //
-            if (m_sbjController != null && isKeithleyUsed)
-            {
-                m_sbjController.SourceMeter.SetBias(bias);
-            }
-
-            //
-            // update the trigger values
-            //
-            triggerConductance.Value = GetTriggerConductance(gainPower, bias);
-            triggerVoltage.Value = -triggerConductance.Value * m_1G0 * Math.Abs(bias) * Math.Pow(10, gainPower);
-        }
-
-        /// <summary>
-        /// updates the gain on the amplifier, and the trigger values on the UI
-        /// </summary>
-        /// <param name="isKeithleyUsed"></param>
-        /// <param name="triggerConductance"></param>
-        /// <param name="triggerVoltage"></param>
-        private void GainUpdate(double bias, int gainPower, NumericEdit triggerConductance, NumericEdit triggerVoltage)
-        {
-            //
-            // update gain power on the amplifier
-            //
-            m_sbjController.ChangeGain(gainPower);
-
-            //
-            // update the trigger values
-            //
-            triggerConductance.Value = GetTriggerConductance(gainPower, bias);
-            triggerVoltage.Value = -triggerConductance.Value * m_1G0 * Math.Abs(bias) * Math.Pow(10, gainPower);
-        }
-
-        /// <summary>
-        /// Tries to connect to the keithley. If failed, uncheck the "use keithly" checkBox. 
-        /// </summary>
-        private void TryConnectToKeithly()
-        {
-            try
-            {
-                m_sbjController.SourceMeter.Connect();
-            }
-            catch (SBJException)
-            {
-                //
-                // the keithley doesn't connect. 
-                //
-                this.useKeithleyCheckBox.Checked = false;
-            }
-        }
-
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ivStepperMotorRadioButton_CheckedChanged(object sender, EventArgs e)
         {
             if (this.ivStepperMotorRadioButton.Checked)
@@ -1905,6 +1946,11 @@ namespace SBJController
             }
         }
 
+        /// <summary>
+        /// chosse if to use the electromagnet on the IV tab
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ivElectroMagnetRadioButton_CheckedChanged(object sender, EventArgs e)
         {
             if (this.ivElectroMagnetRadioButton.Checked)
@@ -1915,12 +1961,60 @@ namespace SBJController
             }
         }
 
+        /// <summary>
+        /// on path changed in the IV tab
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ivPathTextBox_TextChanged(object sender, EventArgs e)
         {
             //
             // The folder in which we save the files has been changed, so we need to set the file number back to zero.
             //            
             this.fileNumberNumericUpDown.Value = 0;
+        }
+
+        /// <summary>
+        /// On gain changed on IV tab. 
+        /// Make sure amplifier is updated accordingly and other UI parameters as well.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivGainPoweComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            GainUpdate(this.ivVoltageForTraceNumericEdit.Value, int.Parse(this.ivGainPoweComboBox.Text),
+                        this.ivTriggerConductanceNumericEdit, this.ivTriggerVoltageNumericEdit);
+        }
+
+        /// <summary>
+        /// On trigger conductance change on IV tab
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivTriggerConductanceNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            this.ivTriggerVoltageNumericEdit.Value = -this.ivTriggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.ivVoltageForTraceNumericEdit.Value) * Math.Pow(10, int.Parse(this.ivGainPoweComboBox.Text));
+        }
+
+        /// <summary>
+        /// On samples per cycle change on IV tab
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivSamplesPerCycleNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            this.ivTimeOfOneIVCycleNumericEdit.Value = this.ivOutputUpdateDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
+        }
+
+        /// <summary>
+        /// On Output update delay change on IV tab
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ivOutputUpdateDelayNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
+        {
+            this.ivTimeOfOneIVCycleNumericEdit.Value = this.ivOutputUpdateDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
+            this.ivOutputUpdateRateNumericEdit.Value = 1000 / e.NewValue;
         }
 
         /// <summary>
@@ -1990,29 +2084,8 @@ namespace SBJController
             {
                 return SteppingDevice.ElectroMagnet;
             }
-        }
-
-        private void ivGainPoweComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            GainUpdate(this.ivVoltageForTraceNumericEdit.Value, int.Parse(this.ivGainPoweComboBox.Text), 
-                        this.ivTriggerConductanceNumericEdit, this.ivTriggerVoltageNumericEdit);
-        }
-
-        private void ivTriggerConductanceNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
-        {
-            this.ivTriggerVoltageNumericEdit.Value = -this.ivTriggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.ivVoltageForTraceNumericEdit.Value) * Math.Pow(10, int.Parse(this.ivGainPoweComboBox.Text));
-        }
-
-        private void ivSamplesPerCycleNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
-        {
-            this.ivTimeOfOneIVCycleNumericEdit.Value = this.ivOutputUpdateDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
-        }
-
-        private void ivOutputUpdateDelayNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
-        {
-            this.ivTimeOfOneIVCycleNumericEdit.Value = this.ivOutputUpdateDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
-            this.ivOutputUpdateRateNumericEdit.Value = 1000 / e.NewValue;
-        }
+        }        
+        #endregion
 
         private void manualStartCheckBox_CheckedChanged(object sender, EventArgs e)
         {

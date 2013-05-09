@@ -272,9 +272,9 @@
             this.calibrationCycleNumberNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
-            this.electroMagnetUserControl2 = new SBJController.ElectroMagnetUserControl();
+            this.electroMagnetUserControl2 = new ElectroMagnetUserControl();
             this.stepperMotorGroupBox = new System.Windows.Forms.GroupBox();
-            this.stepperMotorUserControl1 = new SBJController.StepperMotorUserControl();
+            this.stepperMotorUserControl1 = new StepperMotorUserControl();
             this.aquireDataBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.stepperUpBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.fixBiasBackgroundWorker = new System.ComponentModel.BackgroundWorker();
@@ -3014,7 +3014,7 @@
             this.calibrationKeithleyCheckBox.TabIndex = 32;
             this.calibrationKeithleyCheckBox.Text = "Use Keithley as Bias Source";
             this.calibrationKeithleyCheckBox.UseVisualStyleBackColor = true;
-            this.calibrationKeithleyCheckBox.CheckedChanged += new System.EventHandler(this.CalibrationUseKeithleyCheckBox_CheckedChanged);
+            this.calibrationKeithleyCheckBox.CheckedChanged += new System.EventHandler(this.calibrationUseKeithleyCheckBox_CheckedChanged);
             // 
             // calibrationTotalSamplesNumericUpDown
             // 
@@ -3032,7 +3032,7 @@
             0,
             0,
             0});
-            this.calibrationTotalSamplesNumericUpDown.ValueChanged += new System.EventHandler(this.CalibrationTotalSamplesNumericUpDown_ValueChanged);
+            this.calibrationTotalSamplesNumericUpDown.ValueChanged += new System.EventHandler(this.calibrationTotalSamplesNumericUpDown_ValueChanged);
             // 
             // calibrationTotalSamplesLabel
             // 
@@ -3126,7 +3126,7 @@
             this.calibrationGainPowerComboBox.Size = new System.Drawing.Size(75, 21);
             this.calibrationGainPowerComboBox.TabIndex = 25;
             this.calibrationGainPowerComboBox.Text = "5";
-            this.calibrationGainPowerComboBox.SelectedIndexChanged += new System.EventHandler(this.CalibrationGainComboBox_ValueChanged);
+            this.calibrationGainPowerComboBox.SelectedIndexChanged += new System.EventHandler(this.calibrationGainComboBox_ValueChanged);
             // 
             // calibrationBiasNumericEdit
             // 
@@ -3138,7 +3138,7 @@
             this.calibrationBiasNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.calibrationBiasNumericEdit.TabIndex = 2;
             this.calibrationBiasNumericEdit.Value = 0.1D;
-            this.calibrationBiasNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.CalibrationbiasNumericEdit_AfterChangeValue);
+            this.calibrationBiasNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.calibrationbiasNumericEdit_AfterChangeValue);
             // 
             // calibrationGainPowerLabel
             // 
@@ -3178,7 +3178,7 @@
             this.calibrationTriggerConductanceNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.calibrationTriggerConductanceNumericEdit.TabIndex = 14;
             this.calibrationTriggerConductanceNumericEdit.Value = 0.0129D;
-            this.calibrationTriggerConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.CalibrationTriggerConductanceNumericEdit_AfterChangeValue);
+            this.calibrationTriggerConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.calibrationTriggerConductanceNumericEdit_AfterChangeValue);
             // 
             // calibrationTriggerConductanceLabel
             // 
@@ -3341,7 +3341,7 @@
             this.calibrationEnableElectroMagnetCheckBox.TabIndex = 0;
             this.calibrationEnableElectroMagnetCheckBox.Text = "Enable ElectroMagnet";
             this.calibrationEnableElectroMagnetCheckBox.UseVisualStyleBackColor = true;
-            this.calibrationEnableElectroMagnetCheckBox.CheckedChanged += new System.EventHandler(this.CalibrationEnableElectroMagnetCheckBox_CheckedChanged);
+            this.calibrationEnableElectroMagnetCheckBox.CheckedChanged += new System.EventHandler(this.calibrationEnableElectroMagnetCheckBox_CheckedChanged);
             // 
             // tabPage2
             // 
@@ -3376,7 +3376,7 @@
             this.calibrationChannel1CheckBox.TabIndex = 0;
             this.calibrationChannel1CheckBox.Text = "Dev1/ai0";
             this.calibrationChannel1CheckBox.UseVisualStyleBackColor = true;
-            this.calibrationChannel1CheckBox.CheckedChanged += new System.EventHandler(this.CalibrationChannel1CheckBox_CheckedChanged);
+            this.calibrationChannel1CheckBox.CheckedChanged += new System.EventHandler(this.calibrationChannel1CheckBox_CheckedChanged);
             // 
             // calibrationChannel1ComboBox
             // 
@@ -3385,7 +3385,7 @@
             this.calibrationChannel1ComboBox.Name = "calibrationChannel1ComboBox";
             this.calibrationChannel1ComboBox.Size = new System.Drawing.Size(202, 21);
             this.calibrationChannel1ComboBox.TabIndex = 1;
-            this.calibrationChannel1ComboBox.SelectedIndexChanged += new System.EventHandler(this.CalibrationChannel1ComboBox_SelectedValueChanged);
+            this.calibrationChannel1ComboBox.SelectedIndexChanged += new System.EventHandler(this.calibrationChannel1ComboBox_SelectedValueChanged);
             // 
             // calibrationOperateGroupBox
             // 
@@ -3423,7 +3423,7 @@
             this.calibrationOpenFolderButton.TabIndex = 29;
             this.calibrationOpenFolderButton.Text = "Open Folder";
             this.calibrationOpenFolderButton.UseVisualStyleBackColor = true;
-            this.calibrationOpenFolderButton.Click += new System.EventHandler(this.CalibrationOpenFolderButton_Click);
+            this.calibrationOpenFolderButton.Click += new System.EventHandler(this.calibrationOpenFolderButton_Click);
             // 
             // calibrationStepperUpCheckBox
             // 
@@ -3438,7 +3438,7 @@
             this.calibrationStepperUpCheckBox.Text = "Stepper Up";
             this.calibrationStepperUpCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.calibrationStepperUpCheckBox.UseVisualStyleBackColor = true;
-            this.calibrationStepperUpCheckBox.Click += new System.EventHandler(this.CalibrationStepperUpCheckBox_CheckedChanged);
+            this.calibrationStepperUpCheckBox.Click += new System.EventHandler(this.calibrationStepperUpCheckBox_CheckedChanged);
             // 
             // calibrationStartStopCheckBox
             // 
@@ -3468,7 +3468,7 @@
             this.calibrationShortCircuitCkeckBox.Text = "Short Circuit";
             this.calibrationShortCircuitCkeckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.calibrationShortCircuitCkeckBox.UseVisualStyleBackColor = true;
-            this.calibrationShortCircuitCkeckBox.Click += new System.EventHandler(this.CalibrationShortCircuitButton_CheckedChanged);
+            this.calibrationShortCircuitCkeckBox.Click += new System.EventHandler(this.calibrationShortCircuitButton_CheckedChanged);
             // 
             // calibrationNumberOfCyclesNumericUpDown
             // 
@@ -3542,7 +3542,7 @@
             this.calibrationPathTextBox.Size = new System.Drawing.Size(400, 20);
             this.calibrationPathTextBox.TabIndex = 9;
             this.calibrationPathTextBox.Text = "C:\\sbj\\Measurements";
-            this.calibrationPathTextBox.TextChanged += new System.EventHandler(this.CalibrationPathTextBox_TextChanged);
+            this.calibrationPathTextBox.TextChanged += new System.EventHandler(this.calibrationPathTextBox_TextChanged);
             // 
             // calibrationBrowseButton
             // 
@@ -3553,7 +3553,7 @@
             this.calibrationBrowseButton.TabIndex = 10;
             this.calibrationBrowseButton.Text = "Browse";
             this.calibrationBrowseButton.UseVisualStyleBackColor = true;
-            this.calibrationBrowseButton.Click += new System.EventHandler(this.CalibrationBrowseButton_Click);
+            this.calibrationBrowseButton.Click += new System.EventHandler(this.calibrationBrowseButton_Click);
             // 
             // calibrationSavingFilesCheckBox
             // 

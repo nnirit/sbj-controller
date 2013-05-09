@@ -157,19 +157,18 @@ namespace SBJController
                     finalFileNumber = SaveData(settings, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
                 }
 
-                ////
-                //// Signal UI we have the data
-                ////
-                //if (DataAquired != null)
-                //{
-                //    DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
-                //}
+                //
+                // Signal UI we have the data
+                //
+                if (DataAquired != null)
+                {
+                    DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
+                }
             }
 
             //
             // Finish the measurement properly
             //
-
             m_task.Dispose();
             m_stepperMotor.Shutdown();
 

@@ -507,7 +507,6 @@ namespace SBJController
 
             IList<double[]> convertedData = new List<double[]>();
 
-            //TODO: change the name of this function to something like "GetPhysicalAndAdditionalData"
             convertedData = ConvertVoltageToPhysicalValue(RawData[0], RawData[1]);
 
             PhysicalData = convertedData;
