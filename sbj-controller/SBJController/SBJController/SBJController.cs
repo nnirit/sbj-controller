@@ -102,8 +102,7 @@ namespace SBJController
         /// <exception cref="SBJException">Incase connection to one of the external components was unsuccessful</exception>
         private void InitializeComponents()
         {
-            //TODO: undo this note
-            //m_amplifier.Connect();            
+            m_amplifier.Connect();            
         }
 
         /// <summary>
@@ -1454,8 +1453,7 @@ namespace SBJController
         /// <exception cref="SBJException"></exception>
         public void ChangeGain(int gain)
         {
-            //TODO: undo this note
-            //m_amplifier.ChangeGain(gain);
+            m_amplifier.ChangeGain(gain);
         }
 
         /// <summary>
