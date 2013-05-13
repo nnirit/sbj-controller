@@ -176,8 +176,8 @@ namespace SBJController
         }
         private double GetDataAfterEachStep(SBJControllerSettingsForCalibration settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
-            double[] dataAquired=null;
-            AnalogSingleChannelReader reader = new AnalogSingleChannelReader(m_task.Stream);
+            double[,] dataAquired=null;
+            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_task.Stream);
 
             dataAquired = reader.ReadMultiSample(-1);
 
@@ -438,12 +438,15 @@ namespace SBJController
             }
             return finalNumber;
         }
-        private double AverageVoltageAfterEachStep(double[] dataAfterEachSter)
+        private double AverageVoltageAfterEachStep(double[,] dataAfterEachSter)
         {
             double average = 0;
             for (int i = 0; i < dataAfterEachSter.GetLength(0); i++)
             {
-                average = average + dataAfterEachSter[i] / dataAfterEachSter.GetLength(0);
+                for (int j = 0; j < dataAfterEachSter.GetLength(1); j++)
+                {
+                    average = average + dataAfterEachSter[i,j] / dataAfterEachSter.GetLength(0);
+                }
             }
             return average;
         }
