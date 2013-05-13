@@ -216,7 +216,7 @@ namespace SBJController
             double voltageAfterStepping;
             bool isPermanentOpenCircuit = false;
             bool isTempOpenCircuit = false;
-            List<double> rawDataList=null;
+            List<double> rawDataList = new List<double>();
 
             //
             // Get current voltage
@@ -290,14 +290,10 @@ namespace SBJController
         private double[,] ConvertToMatrix(List<double> rawDataList)
         {
             double[,] data = new double[1,rawDataList.Count];
-            double[] rawData = rawDataList.ToArray();
- 
-            for(int i=0; i<rawData.GetLength(0); i++)
+
+            for (int i = 0; i < rawDataList.Count; i++)
             {
-                for (int j = 0; j < rawData.GetLength(1); j++)
-                {
-                    data[i, j] = rawData[j];
-                }
+                    data[0,i] = rawDataList[i];
             }
             return data;
         }
@@ -306,7 +302,7 @@ namespace SBJController
             double voltageAfterStepping;
             bool isPermanentClosedCircuit = false;
             bool isTempClosedCircuit = false;
-            List<double> rawDataList = null;
+            List<double> rawDataList = new List<double>();
 
             //
             // Get current voltage
@@ -445,7 +441,7 @@ namespace SBJController
             {
                 for (int j = 0; j < dataAfterEachSter.GetLength(1); j++)
                 {
-                    average = average + dataAfterEachSter[i,j] / dataAfterEachSter.GetLength(0);
+                    average = average + dataAfterEachSter[i,j] / dataAfterEachSter.GetLength(1);
                 }
             }
             return average;
