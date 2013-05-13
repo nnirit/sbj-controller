@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace SBJController
 {
-    class ElectroMagnet
+    public  class ElectroMagnet
     {
         #region Static Members
 

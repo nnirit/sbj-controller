@@ -639,6 +639,7 @@ namespace SBJController
         }
     }
 
+    [CalibrationAttribute()]
     public class CalibrationDataChannel : SimpleDataChannel, IDataChannel
     {
 
