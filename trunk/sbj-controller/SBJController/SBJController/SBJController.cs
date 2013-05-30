@@ -908,7 +908,7 @@ namespace SBJController
                 //
                 // Assign the aquired data for each channel.
                 // First clear all data from previous interation.
-                //     
+                //                
                 ClearRawData(settings.ChannelsSettings.ActiveChannels);
                 AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAquired);
 
@@ -975,7 +975,7 @@ namespace SBJController
 
             bool isCancelled = false;
             int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
-            
+       
             //
             // The array is intialized with size for 1 minute sampling.
             //
@@ -1201,7 +1201,7 @@ namespace SBJController
             return (isCancelled || e.Cancel);
         }
 
-       /// <summary>
+        /// <summary>
         /// Move the stepper up
         /// </summary>
         /// <param name="worker"></param>
@@ -1434,7 +1434,7 @@ namespace SBJController
             //                                              Type.Missing, Type.Missing,
             //                                              Type.Missing);
             //xlsLogBook.Visible = true;
-        }
+            }
 
         /// <summary>
         /// Change the applied bias

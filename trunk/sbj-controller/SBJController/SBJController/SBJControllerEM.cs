@@ -15,6 +15,14 @@ namespace SBJController
         private delegate bool EMOpenJunctionMethodDelegate(SBJControllerSettings settings);
         #endregion
 
+        #region Properties
+        public ElectroMagnet ElectroMagnet
+        {
+            get { return m_electroMagnet; }
+            set { m_electroMagnet = value; }
+        }
+        #endregion
+
         #region Private Methods
         /// <summary>
         /// Open the junction asynchronously by the ElectroMagnet
@@ -279,7 +287,7 @@ namespace SBJController
                     // then start over again. 
                     //
                     m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
-                    MoveStepsByStepperMotor(StepperDirection.DOWN, 100);
+                    MoveStepsByStepperMotor(StepperDirection.DOWN, 300);
                     return EMTryObtainShortCircuit(shortCircuitDelayTime, shortCircuitVoltage, worker, e);
             }
             return true;

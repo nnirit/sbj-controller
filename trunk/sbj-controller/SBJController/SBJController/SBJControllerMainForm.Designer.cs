@@ -219,6 +219,8 @@
             this.ivChannel1CheckBox = new System.Windows.Forms.CheckBox();
             this.ivChannel2CheckBox = new System.Windows.Forms.CheckBox();
             this.calibrationTabPage = new System.Windows.Forms.TabPage();
+            this.calibrationPlotGroupBox = new System.Windows.Forms.GroupBox();
+            this.calibrationChannelsListView = new System.Windows.Forms.ListView();
             this.calibrationWaveformGraph = new NationalInstruments.UI.WindowsForms.WaveformGraph();
             this.calibrationWaveformPlot = new NationalInstruments.UI.WaveformPlot();
             this.calibrationXAxis = new NationalInstruments.UI.XAxis();
@@ -281,8 +283,6 @@
             this.ivCyclesBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.calibrationBackGroundWorker = new System.ComponentModel.BackgroundWorker();
             this.manualStartBackgroundWorker = new System.ComponentModel.BackgroundWorker();
-            this.calibrationPlotGroupBox = new System.Windows.Forms.GroupBox();
-            this.calibrationListView = new System.Windows.Forms.ListView();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
             this.plotGroupBox.SuspendLayout();
@@ -363,6 +363,7 @@
             this.ivChannelsTabPage.SuspendLayout();
             this.ivChannelsPanel.SuspendLayout();
             this.calibrationTabPage.SuspendLayout();
+            this.calibrationPlotGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationWaveformGraph)).BeginInit();
             this.calibrationSettingsGroupBox.SuspendLayout();
             this.calibrationSettingsTabControl.SuspendLayout();
@@ -387,7 +388,6 @@
             this.controlPanelsTabPage.SuspendLayout();
             this.electroMagnetGroupBox.SuspendLayout();
             this.stepperMotorGroupBox.SuspendLayout();
-            this.calibrationPlotGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // obtainShortCircuitBackgroundWorker
@@ -407,7 +407,7 @@
             this.controllerTabControl.Location = new System.Drawing.Point(0, 0);
             this.controllerTabControl.Name = "controllerTabControl";
             this.controllerTabControl.SelectedIndex = 0;
-            this.controllerTabControl.Size = new System.Drawing.Size(749, 824);
+            this.controllerTabControl.Size = new System.Drawing.Size(749, 826);
             this.controllerTabControl.TabIndex = 2;
             this.controllerTabControl.Tag = "";
             this.controllerTabControl.Deselected += new System.Windows.Forms.TabControlEventHandler(this.controllerTabControl_Deselected);
@@ -423,7 +423,7 @@
             this.dataAquisitionTabPage.Location = new System.Drawing.Point(4, 22);
             this.dataAquisitionTabPage.Name = "dataAquisitionTabPage";
             this.dataAquisitionTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.dataAquisitionTabPage.Size = new System.Drawing.Size(741, 798);
+            this.dataAquisitionTabPage.Size = new System.Drawing.Size(741, 800);
             this.dataAquisitionTabPage.TabIndex = 0;
             this.dataAquisitionTabPage.Text = "DAQ";
             this.dataAquisitionTabPage.UseVisualStyleBackColor = true;
@@ -473,7 +473,7 @@
             this.operateGroupBox.Controls.Add(this.fileNumberNumericUpDown);
             this.operateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.operateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.operateGroupBox.Location = new System.Drawing.Point(3, 611);
+            this.operateGroupBox.Location = new System.Drawing.Point(3, 613);
             this.operateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.operateGroupBox.Name = "operateGroupBox";
             this.operateGroupBox.Size = new System.Drawing.Size(735, 184);
@@ -1777,7 +1777,7 @@
             this.emShortCircuitDelayTimeNumericUpDown.Size = new System.Drawing.Size(87, 20);
             this.emShortCircuitDelayTimeNumericUpDown.TabIndex = 6;
             this.emShortCircuitDelayTimeNumericUpDown.Value = new decimal(new int[] {
-            50,
+            30,
             0,
             0,
             0});
@@ -1800,7 +1800,7 @@
             this.emSlowDelayTimeNumericUpDown.Size = new System.Drawing.Size(87, 20);
             this.emSlowDelayTimeNumericUpDown.TabIndex = 5;
             this.emSlowDelayTimeNumericUpDown.Value = new decimal(new int[] {
-            200,
+            100,
             0,
             0,
             0});
@@ -1834,7 +1834,7 @@
             this.emFastDelayTimeNumericUpDown.Size = new System.Drawing.Size(87, 20);
             this.emFastDelayTimeNumericUpDown.TabIndex = 3;
             this.emFastDelayTimeNumericUpDown.Value = new decimal(new int[] {
-            15,
+            2,
             0,
             0,
             0});
@@ -1984,7 +1984,7 @@
             this.ivAcquisition.Location = new System.Drawing.Point(4, 22);
             this.ivAcquisition.Name = "ivAcquisition";
             this.ivAcquisition.Padding = new System.Windows.Forms.Padding(3);
-            this.ivAcquisition.Size = new System.Drawing.Size(741, 798);
+            this.ivAcquisition.Size = new System.Drawing.Size(741, 800);
             this.ivAcquisition.TabIndex = 2;
             this.ivAcquisition.Text = "IV Acquisition";
             this.ivAcquisition.UseVisualStyleBackColor = true;
@@ -2008,7 +2008,7 @@
             this.ivOperateGroupBox.Controls.Add(this.ivFileNumberNumericUpDown);
             this.ivOperateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.ivOperateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.ivOperateGroupBox.Location = new System.Drawing.Point(3, 611);
+            this.ivOperateGroupBox.Location = new System.Drawing.Point(3, 613);
             this.ivOperateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.ivOperateGroupBox.Name = "ivOperateGroupBox";
             this.ivOperateGroupBox.Size = new System.Drawing.Size(735, 184);
@@ -2444,8 +2444,8 @@
             this.ivSamplesPerCycleNumericEdit.Location = new System.Drawing.Point(455, 56);
             this.ivSamplesPerCycleNumericEdit.Name = "ivSamplesPerCycleNumericEdit";
             this.ivSamplesPerCycleNumericEdit.Size = new System.Drawing.Size(78, 20);
-            this.ivSamplesPerCycleNumericEdit.TabIndex = 59;
-            this.ivSamplesPerCycleNumericEdit.Value = 500D;
+            this.ivSamplesPerCycleNumericEdit.TabIndex = 21;
+            this.ivSamplesPerCycleNumericEdit.Value = 200D;
             this.ivSamplesPerCycleNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivSamplesPerCycleNumericEdit_AfterChangeValue);
             // 
             // ivGainPoweComboBox
@@ -2909,10 +2909,32 @@
             this.calibrationTabPage.Location = new System.Drawing.Point(4, 22);
             this.calibrationTabPage.Name = "calibrationTabPage";
             this.calibrationTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.calibrationTabPage.Size = new System.Drawing.Size(741, 798);
+            this.calibrationTabPage.Size = new System.Drawing.Size(741, 800);
             this.calibrationTabPage.TabIndex = 3;
             this.calibrationTabPage.Text = "Calibration";
             this.calibrationTabPage.UseVisualStyleBackColor = true;
+            // 
+            // calibrationPlotGroupBox
+            // 
+            this.calibrationPlotGroupBox.Controls.Add(this.calibrationChannelsListView);
+            this.calibrationPlotGroupBox.ForeColor = System.Drawing.Color.Red;
+            this.calibrationPlotGroupBox.Location = new System.Drawing.Point(483, 0);
+            this.calibrationPlotGroupBox.Name = "calibrationPlotGroupBox";
+            this.calibrationPlotGroupBox.Size = new System.Drawing.Size(258, 348);
+            this.calibrationPlotGroupBox.TabIndex = 32;
+            this.calibrationPlotGroupBox.TabStop = false;
+            this.calibrationPlotGroupBox.Text = "Plots";
+            // 
+            // calibrationChannelsListView
+            // 
+            this.calibrationChannelsListView.CheckBoxes = true;
+            this.calibrationChannelsListView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.calibrationChannelsListView.Location = new System.Drawing.Point(3, 16);
+            this.calibrationChannelsListView.Name = "calibrationChannelsListView";
+            this.calibrationChannelsListView.Size = new System.Drawing.Size(252, 329);
+            this.calibrationChannelsListView.TabIndex = 25;
+            this.calibrationChannelsListView.UseCompatibleStateImageBehavior = false;
+            this.calibrationChannelsListView.View = System.Windows.Forms.View.List;
             // 
             // calibrationWaveformGraph
             // 
@@ -3406,7 +3428,7 @@
             this.calibrationOperateGroupBox.Controls.Add(this.calibrationCycleNumberNumericUpDown);
             this.calibrationOperateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.calibrationOperateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.calibrationOperateGroupBox.Location = new System.Drawing.Point(3, 611);
+            this.calibrationOperateGroupBox.Location = new System.Drawing.Point(3, 613);
             this.calibrationOperateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.calibrationOperateGroupBox.Name = "calibrationOperateGroupBox";
             this.calibrationOperateGroupBox.Size = new System.Drawing.Size(735, 184);
@@ -3606,7 +3628,7 @@
             this.controlPanelsTabPage.Location = new System.Drawing.Point(4, 22);
             this.controlPanelsTabPage.Name = "controlPanelsTabPage";
             this.controlPanelsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.controlPanelsTabPage.Size = new System.Drawing.Size(741, 798);
+            this.controlPanelsTabPage.Size = new System.Drawing.Size(741, 800);
             this.controlPanelsTabPage.TabIndex = 1;
             this.controlPanelsTabPage.Text = "Control Panels";
             this.controlPanelsTabPage.UseVisualStyleBackColor = true;
@@ -3687,34 +3709,12 @@
             this.manualStartBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.manualStartBackgroundWorker_DoWork);
             this.manualStartBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.manualStartBackgroundWorker_RunWorkerCompleted);
             // 
-            // calibrationPlotGroupBox
-            // 
-            this.calibrationPlotGroupBox.Controls.Add(this.calibrationListView);
-            this.calibrationPlotGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.calibrationPlotGroupBox.Location = new System.Drawing.Point(483, 0);
-            this.calibrationPlotGroupBox.Name = "calibrationPlotGroupBox";
-            this.calibrationPlotGroupBox.Size = new System.Drawing.Size(258, 348);
-            this.calibrationPlotGroupBox.TabIndex = 32;
-            this.calibrationPlotGroupBox.TabStop = false;
-            this.calibrationPlotGroupBox.Text = "Plots";
-            // 
-            // calibrationListView
-            // 
-            this.calibrationListView.CheckBoxes = true;
-            this.calibrationListView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.calibrationListView.Location = new System.Drawing.Point(3, 16);
-            this.calibrationListView.Name = "calibrationListView";
-            this.calibrationListView.Size = new System.Drawing.Size(252, 329);
-            this.calibrationListView.TabIndex = 25;
-            this.calibrationListView.UseCompatibleStateImageBehavior = false;
-            this.calibrationListView.View = System.Windows.Forms.View.List;
-            // 
             // SBJControllerMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(749, 824);
+            this.ClientSize = new System.Drawing.Size(749, 826);
             this.Controls.Add(this.controllerTabControl);
             this.Name = "SBJControllerMainForm";
             this.Text = "SBJControllerMainForm";
@@ -3817,6 +3817,7 @@
             this.ivChannelsPanel.PerformLayout();
             this.calibrationTabPage.ResumeLayout(false);
             this.calibrationTabPage.PerformLayout();
+            this.calibrationPlotGroupBox.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.calibrationWaveformGraph)).EndInit();
             this.calibrationSettingsGroupBox.ResumeLayout(false);
             this.calibrationSettingsTabControl.ResumeLayout(false);
@@ -3845,7 +3846,6 @@
             this.controlPanelsTabPage.ResumeLayout(false);
             this.electroMagnetGroupBox.ResumeLayout(false);
             this.stepperMotorGroupBox.ResumeLayout(false);
-            this.calibrationPlotGroupBox.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -4106,7 +4106,7 @@
         private System.Windows.Forms.NumericUpDown laseAmplitudeOnSampleNumericUpDown;
         private System.Windows.Forms.Label laserAmplitudeOnSampleLabel;
         private System.Windows.Forms.GroupBox calibrationPlotGroupBox;
-        private System.Windows.Forms.ListView calibrationListView;
+        private System.Windows.Forms.ListView calibrationChannelsListView;
                          
     }
 }

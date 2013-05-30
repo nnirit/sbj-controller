@@ -50,6 +50,7 @@ namespace SBJController
             Write(String.Format(c_zeroCheckOffCommand), "Error has occured while trying to set zero check off on the Amplifier.");
             Write(String.Format(c_autoZeroCorrectCommand), "Error has occured while trying to do zero correction on the Amplifier.");   
         }
+
         /// <summary>
         /// Set gain power to new value
         /// </summary>

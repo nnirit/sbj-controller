@@ -112,6 +112,7 @@ namespace SBJController
             // create the input and output tasks
             //
             m_ivInputTask = GetContinuousAITask(settings.IVGeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+            m_ivInputTask.Stream.ReadRelativeTo = ReadRelativeTo.FirstSample;
             m_outputTask = GetContinuousAOTask(settings);
 
             //
@@ -266,8 +267,10 @@ namespace SBJController
                 }
 
                 //
-                // insert raw data into active channels
-                //
+                // Assign the aquired data for each channel.
+                // First clear all data from previous interation.
+                //                
+                ClearRawData(settings.ChannelsSettings.ActiveChannels);
                 AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAcquired);
 
                 //
@@ -347,7 +350,7 @@ namespace SBJController
             if (!IV_EMOpenJunction(settings))
             {
                 m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
-                MoveStepsByStepperMotor(StepperDirection.UP, 200);
+                MoveStepsByStepperMotor(StepperDirection.UP, 300);
                 return IV_EMTryOpenJunction(settings);
             }
             return true;
@@ -430,7 +433,7 @@ namespace SBJController
                     //
                     // if we are under the trigger for some steps in a row, switch to the slowest rate.
                     //
-                    if (rateTriggerCounts > 8)
+                    if (rateTriggerCounts > 4)
                     {
                         m_electroMagnet.Delay = (int)settings.IVSteppingMethodSettings.EMSlowDelayTime;
                         rateTriggerCounts = -1;
@@ -469,8 +472,8 @@ namespace SBJController
         /// <param name="asyncResult"></param>
         private void IV_EMEndOpenJunction(IAsyncResult asyncResult)
         {
-            EMOpenJunctionMethodDelegate emOpenJunctionDelegate = (EMOpenJunctionMethodDelegate)asyncResult.AsyncState;
-            emOpenJunctionDelegate.EndInvoke(asyncResult);
+            IV_EMOpenJunctionMethodDelegate ivEMOpenJunctionDelegate = (IV_EMOpenJunctionMethodDelegate)asyncResult.AsyncState;
+            ivEMOpenJunctionDelegate.EndInvoke(asyncResult);
         }
 
         /// <summary>
