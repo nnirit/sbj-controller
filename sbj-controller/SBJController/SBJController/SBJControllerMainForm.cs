@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using SBJController.Properties;
+using System.Runtime.InteropServices;
 
 namespace SBJController
 {
@@ -26,7 +27,8 @@ namespace SBJController
         /// Constructor
         /// </summary>
         public SBJControllerMainForm()
-        {           
+        {
+            setParallelPortMode(1);
             InitializeComponent();
             m_sbjController = new SBJController();
             m_sbjController.DataAquired += new SBJController.DataAquiredEventHandler(OnDataAquisition);
@@ -179,7 +181,14 @@ namespace SBJController
                 }
                 if (m_sbjController.Task != null)
                 {
-                    m_sbjController.Task.Control(TaskAction.Abort);
+                    try
+                    {
+                        m_sbjController.Task.Control(TaskAction.Abort);
+                    }
+                    catch(Exception)
+                    {
+                        //probably the task was already disposed. go on, no need for exception.
+                    }
                 }
                 m_sbjController.QuitJunctionOpenningOperation = true;
                 m_sbjController.StepperMotor.Shutdown();
@@ -357,10 +366,10 @@ namespace SBJController
         #region IV Cycles Handlers
 
         //private void ivSampleDelayNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
-        //{
+            //{
         //    this.ivTimeOfOneCycleNumericEdit.Value = this.ivSampleDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit2.Value;
         //    this.ivSampleRateNumericEdit.Value = 1000 / e.NewValue;
-        //}
+            //}
 
         /// <summary>
         /// Fired when the Start IV button is pressed
@@ -410,7 +419,7 @@ namespace SBJController
                 }
                 m_sbjController.QuitJunctionOpenningOperation = true;
                 m_sbjController.StepperMotor.Shutdown();
-            }
+        }
         }
 
         /// <summary>
@@ -641,7 +650,7 @@ namespace SBJController
         /// <param name="e"></param>
         private void controllerTabControl_Deselected(object sender, TabControlEventArgs e)
         {
-            m_sbjController.ControllerTabControlDeselected();
+            m_sbjController.ElectroMagnet.Shutdown();
         }
 
         /// <summary>
@@ -919,7 +928,7 @@ namespace SBJController
         private void openFolderButton_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(this.pathTextBox.Text);
-        }
+            }
 
         /// <summary>
         /// On IV Amplitude change
@@ -985,30 +994,20 @@ namespace SBJController
             else
             {
                 //
-                // Retreive the channels to be dispalyed according to the user's choice.
-                //
-                List<IDataChannel> channelsToDisplay = GetChannelsToDisplay(e.DataChannels as List<IDataChannel>);
-
-                //
-                // Convert the raw data to phyical one
-                //
-                double[,] data = GetPhysicalData(channelsToDisplay);
-
-                //
                 // Check the attribute of the first channel received (all of the channels received are suppose to be of the same attribute). 
                 // This will help us decide which UI Tab should be updated.
                 //
                 if (e.DataChannels[0].GetType().GetCustomAttributes(false)[0] is DAQAttribute)
                 {
-                    GraphAndFileNumberUpdate(data, this.traceWaveformGraph, e.FileNumber, this.fileNumberNumericUpDown);
+                    GraphAndFileNumberUpdate(e.DataChannels as List<IDataChannel>, this.channelsListView, this.traceWaveformGraph, e.FileNumber, this.fileNumberNumericUpDown);
                 }
                 else if (e.DataChannels[0].GetType().GetCustomAttributes(false)[0] is IVAttribute)
                 {
-                    GraphAndFileNumberUpdate(data, this.ivWaveformGraph, e.FileNumber, this.ivFileNumberNumericUpDown);
+                    GraphAndFileNumberUpdate(e.DataChannels as List<IDataChannel>, this.ivChannelsListView, this.ivWaveformGraph, e.FileNumber, this.ivFileNumberNumericUpDown);
                 }
                 else
                 {
-                    GraphAndFileNumberUpdate(data, this.calibrationWaveformGraph, e.FileNumber, this.calibrationCycleNumberNumericUpDown);
+                    GraphAndFileNumberUpdate(e.DataChannels as List<IDataChannel>, this.calibrationChannelsListView, this.calibrationWaveformGraph, e.FileNumber, this.calibrationCycleNumberNumericUpDown);
                 }
             }
         }
@@ -1016,12 +1015,23 @@ namespace SBJController
         /// <summary>
         /// Update the plot on the graph and the current file number, on the UI.
         /// </summary>
-        /// <param name="data">The data that should be plotted on the graph.</param>
+        /// <param name="dataChannels">The channels received from the event, and contains the data that should be plotted on the graph.</param>
+        /// <param name="relevantChannelsListView">The relevant ListView on the correct tab.</param>
         /// <param name="waveformGraph">The waveform graph from the UI that should be updated.</param>
         /// <param name="fileNumber">The current file number.</param>
         /// <param name="fileNumberNumericButton">The button from the UI that shows the current file number.</param>
-        private void GraphAndFileNumberUpdate(double[,] data, WaveformGraph waveformGraph, int fileNumber, NumericUpDown fileNumberNumericButton)
+        private void GraphAndFileNumberUpdate(List<IDataChannel> dataChannels, ListView relevantChannelsListView, WaveformGraph waveformGraph, int fileNumber, NumericUpDown fileNumberNumericButton)
         {
+            //
+            // Retreive the channels to be dispalyed according to the user's choice.
+            //
+            List<IDataChannel> channelsToDisplay = GetChannelsToDisplay(dataChannels, relevantChannelsListView);
+
+            //
+            // Convert the raw data to phyical one
+            //
+            double[,] data = GetPhysicalData(channelsToDisplay);
+            
             //
             // Update file number
             //
@@ -1054,14 +1064,14 @@ namespace SBJController
         /// </summary>
         /// <param name="physicalChannels">The possible available channels</param>
         /// <returns></returns>
-        private List<IDataChannel> GetChannelsToDisplay(List<IDataChannel> dataChannels)
+        private List<IDataChannel> GetChannelsToDisplay(List<IDataChannel> dataChannels, ListView relevantChannelsListView)
         {
             List<IDataChannel> selectedChannels = new List<IDataChannel>();
 
             //
             // Only dispaly channels that were chosen to be displayed
             // 
-            foreach (ListViewItem selectedChannel in channelsListView.CheckedItems)
+            foreach (ListViewItem selectedChannel in relevantChannelsListView.CheckedItems)
             {
                 //
                 // Find the desired channel in the available channel list.
@@ -1240,16 +1250,16 @@ namespace SBJController
                     {
                         if (type.GetCustomAttributes(false)[0] is DAQAttribute)
                         {
-                            if (type.IsSubclassOf(typeof(SimpleDataChannel)))
-                            {
-                                channelTypes.Add(type.Name);
-                            }
-                            else
-                            {
-                                complexChannelTypes.Add(type.Name);
-                            }
+                        if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+                        {
+                            channelTypes.Add(type.Name);
+                        }
+                        else
+                        {
+                            complexChannelTypes.Add(type.Name);
                         }
                     }
+                }
                 }
             }
 
@@ -1275,7 +1285,7 @@ namespace SBJController
             List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
             channelsListView.Items.AddRange(channelsToDisplay.ToArray());
             channelsListView.Items[channelsListView.Items.IndexOfKey(typeof(DefaultDataChannel).Name)].Checked = true;            
-        }
+    }
 
         /// <summary>
         /// Populate channels list on the Calibration tab on the UI
@@ -1323,8 +1333,8 @@ namespace SBJController
             List<string> allAvailableChannels = channelTypes;
             allAvailableChannels.AddRange(complexChannelTypes);
             List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
-            calibrationListView.Items.AddRange(channelsToDisplay.ToArray());
-            calibrationListView.Items[calibrationListView.Items.IndexOfKey(typeof(DefaultDataChannel).Name)].Checked = true;
+            calibrationChannelsListView.Items.AddRange(channelsToDisplay.ToArray());
+            calibrationChannelsListView.Items[calibrationChannelsListView.Items.IndexOfKey(typeof(CalibrationDataChannel).Name)].Checked = true;
         }
 
         /// <summary>
@@ -1415,7 +1425,7 @@ namespace SBJController
 
             DataConvertorSettings dataConvertorSettings =  new DataConvertorSettings(Math.Abs(this.biasNumericEdit.Value), Convert.ToInt32(this.gainComboBox.Text),
                                                                                      this.lockInAcVoltageNumericEdit.Value, Double.Parse(this.sensitivityComboBox.Text), 
-                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value, this.ivVoltageForTraceNumericEdit.Value);
+                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value);
             if (channel0CheckBox.Checked)
             {
                 activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(channel0ComboBox.SelectedValue as string)), 
@@ -1438,6 +1448,64 @@ namespace SBJController
             {
                 activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(channel3ComboBox.SelectedValue as string)),
                                                                           new object[] { channel3CheckBox.Text, dataConvertorSettings }));
+            }
+
+            return activeChannels;
+        }
+
+        /// <summary>
+        /// Create instances of the desired channels to be sampled from by reflection for the IV tab
+        /// </summary>
+        /// <returns></returns>
+        private List<IDataChannel> GetIVActiveChannels()
+        {
+            List<IDataChannel> activeChannels = new List<IDataChannel>();
+
+            DataConvertorSettings dataConvertorSettings = new DataConvertorSettings(Math.Abs(this.ivVoltageForTraceNumericEdit.Value), Convert.ToInt32(this.ivGainPoweComboBox.Text),
+                                                                                     this.lockInAcVoltageNumericEdit.Value, Double.Parse(this.sensitivityComboBox.Text),
+                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value);
+            if (ivChannel0CheckBox.Checked)
+            {
+                activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(ivChannel0ComboBox.SelectedValue as string)),
+                                                                          new object[] { ivChannel0CheckBox.Text, dataConvertorSettings }));
+            }
+
+            if (ivChannel1CheckBox.Checked)
+            {
+                activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(ivChannel1ComboBox.SelectedValue as string)),
+                                                                          new object[] { ivChannel1CheckBox.Text, dataConvertorSettings }));
+            }
+
+            if (ivChannel2CheckBox.Checked)
+            {
+                activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(ivChannel2ComboBox.SelectedValue as string)),
+                                                                          new object[] { ivChannel2CheckBox.Text, dataConvertorSettings }));
+            }
+
+            if (ivChannel3CheckBox.Checked)
+            {
+                activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(ivChannel3ComboBox.SelectedValue as string)),
+                                                                          new object[] { ivChannel3CheckBox.Text, dataConvertorSettings }));
+            }
+
+            return activeChannels;
+        }
+
+        /// <summary>
+        /// Create instances of the desired channels to be sampled from by reflection for the calibration tab
+        /// </summary>
+        /// <returns></returns>
+        private List<IDataChannel> GetCalibrationActiveChannels()
+        {
+            List<IDataChannel> activeChannels = new List<IDataChannel>();
+
+            DataConvertorSettings dataConvertorSettings = new DataConvertorSettings(Math.Abs(this.calibrationBiasNumericEdit.Value), Convert.ToInt32(this.calibrationGainPowerComboBox.Text),
+                                                                                     this.lockInAcVoltageNumericEdit.Value, Double.Parse(this.sensitivityComboBox.Text),
+                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value);
+            if (calibrationChannel1CheckBox.Checked)
+            {
+                activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(calibrationChannel1ComboBox.SelectedValue as string)),
+                                                                          new object[] { calibrationChannel1CheckBox.Text, dataConvertorSettings }));
             }
 
             return activeChannels;
@@ -1614,13 +1682,19 @@ namespace SBJController
                 //
                 // We were requested to stop data acquisition process
                 //
-                if (aquireDataBackgroundWorker.WorkerSupportsCancellation == true)
+                if (calibrationBackGroundWorker.WorkerSupportsCancellation == true)
                 {
-                    aquireDataBackgroundWorker.CancelAsync();
+                    calibrationBackGroundWorker.CancelAsync();
                 }
                 if (m_sbjController.Task != null)
                 {
-                    m_sbjController.Task.Control(TaskAction.Abort);
+                    try
+                    {
+                        m_sbjController.Task.Control(TaskAction.Abort);
+                    }
+                    catch(Exception)
+                    {
+                    }
                 }
                 m_sbjController.QuitJunctionOpenningOperation = true;
                 m_sbjController.StepperMotor.Shutdown();
@@ -1696,7 +1770,7 @@ namespace SBJController
                                                                                                     this.emHoldOnMinConductanceNumericEdit.Value,
                                                                                                     this.emHoldOnMinVoltageNumericEdit.Value,
                                                                                                     this.emSkipFirstCycleByStepperMotorCheckBox.Checked),
-                                                               new ChannelsSettings(GetActiveChannels()));
+                                                               new ChannelsSettings(GetCalibrationActiveChannels()));
 
             }
         }
@@ -1730,7 +1804,7 @@ namespace SBJController
         /// <param name="e"></param>
         private void calibrationTriggerConductanceNumericEdit_AfterChangeValue(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
         {
-            this.calibrationTriggerVoltageNumericEdit.Value = -this.calibrationTriggerVoltageNumericEdit.Value * m_1G0 * Math.Abs(this.calibrationBiasNumericEdit.Value) * Math.Pow(10, int.Parse(this.calibrationGainPowerComboBox.Text));
+            this.calibrationTriggerVoltageNumericEdit.Value = -this.calibrationTriggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.calibrationBiasNumericEdit.Value) * Math.Pow(10, int.Parse(this.calibrationGainPowerComboBox.Text));
         }
         
         /// <summary>
@@ -1908,6 +1982,13 @@ namespace SBJController
                 m_sbjController.SourceMeter.SetBias(this.calibrationBiasNumericEdit.Value);
             }
         }
+    
+        #region Native Dll
+        [DllImport("IODrive2007.dll", CallingConvention = CallingConvention.Cdecl)]
+        private extern static void setParallelPortMode(int mode);
+        #endregion
+    
+
         #endregion
 
         #region IV Tab
@@ -1919,7 +2000,7 @@ namespace SBJController
         private void ivBrowseButton_Click(object sender, EventArgs e)
         {
             BrowseButtonFunction(this.ivPathTextBox);
-        }
+    }
 
         /// <summary>
         /// Open the folder on from the path on the IV tab
@@ -1944,7 +2025,7 @@ namespace SBJController
                 this.ivElectroMagnetGroupBox.Enabled = false;
                 this.ivStepperMotorGroupBox.Enabled = true;
             }
-        }
+            }
 
         /// <summary>
         /// chosse if to use the electromagnet on the IV tab
@@ -1952,7 +2033,7 @@ namespace SBJController
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void ivElectroMagnetRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
+            {
             if (this.ivElectroMagnetRadioButton.Checked)
             {
                 this.ivStepperMotorRadioButton.Checked = false;
@@ -1972,7 +2053,7 @@ namespace SBJController
             // The folder in which we save the files has been changed, so we need to set the file number back to zero.
             //            
             this.fileNumberNumericUpDown.Value = 0;
-        }
+            }
 
         /// <summary>
         /// On gain changed on IV tab. 
@@ -1994,7 +2075,7 @@ namespace SBJController
         private void ivTriggerConductanceNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
         {
             this.ivTriggerVoltageNumericEdit.Value = -this.ivTriggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.ivVoltageForTraceNumericEdit.Value) * Math.Pow(10, int.Parse(this.ivGainPoweComboBox.Text));
-        }
+            }
 
         /// <summary>
         /// On samples per cycle change on IV tab
@@ -2004,7 +2085,7 @@ namespace SBJController
         private void ivSamplesPerCycleNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
         {
             this.ivTimeOfOneIVCycleNumericEdit.Value = this.ivOutputUpdateDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
-        }
+            }
 
         /// <summary>
         /// On Output update delay change on IV tab
@@ -2015,7 +2096,7 @@ namespace SBJController
         {
             this.ivTimeOfOneIVCycleNumericEdit.Value = this.ivOutputUpdateDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit.Value;
             this.ivOutputUpdateRateNumericEdit.Value = 1000 / e.NewValue;
-        }
+            }
 
         /// <summary>
         /// IV Tab - get settings from UI
@@ -2066,7 +2147,7 @@ namespace SBJController
                                                             (int)this.ivEMFastDelayTimeNumericUpDown.Value, 
                                                             (int)this.ivEMSlowDelayTimeNumericUpDown.Value, 
                                                             this.ivEMSkipStepperMotorCheckBox.Checked),
-                                new ChannelsSettings(GetActiveChannels()));
+                                new ChannelsSettings(GetIVActiveChannels()));
             }
         }
 
@@ -2160,4 +2241,5 @@ namespace SBJController
             m_sbjController.StopApplyingVoltageIfNeeded();
         }
     }
+
 }

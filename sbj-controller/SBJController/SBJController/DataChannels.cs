@@ -325,7 +325,7 @@ namespace SBJController
             //
             // set the physical data to be a trace at a certain voltage
             //
-            base.PhysicalData = ivDataHandle.GetCertainVoltageTrace(base.DataConvertionSettings.IVTraceVoltage);
+            base.PhysicalData = ivDataHandle.GetCertainVoltageTrace(base.DataConvertionSettings.Bias);
             
             return PhysicalData;
         }
@@ -596,7 +596,6 @@ namespace SBJController
         private double m_acVoltage;
         private double m_sensitivity;
         private int m_samplesPerIVCycle;
-        private double m_ivTraceVoltage;
 
         public double Bias
         {
@@ -623,19 +622,13 @@ namespace SBJController
             get { return m_samplesPerIVCycle; }
         }
 
-        public double IVTraceVoltage
-        {
-            get { return m_ivTraceVoltage; }
-        }
-
-        public DataConvertorSettings(double bias, int gain, double acVoltage, double sensitivity, int samplesPerIVCycle, double ivTraceVoltage)
+        public DataConvertorSettings(double bias, int gain, double acVoltage, double sensitivity, int samplesPerIVCycle)
         {
             m_acVoltage = acVoltage;
             m_bias = bias;
             m_gain = gain;
             m_sensitivity = sensitivity;
             m_samplesPerIVCycle = samplesPerIVCycle;
-            m_ivTraceVoltage = ivTraceVoltage;
         }
     }
 

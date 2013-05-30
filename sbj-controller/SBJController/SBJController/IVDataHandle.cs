@@ -89,7 +89,7 @@ namespace SBJController
                     //
                     // checks if the distance between the current peak and the last one is reasonable
                     //
-                    if ((i + 1) - peakIndices.Last() < m_samplesPerIVCycle * 1.2 && (i + 1) - peakIndices.Last() > m_samplesPerIVCycle * 0.8)
+                    if ((i + 1) - peakIndices.Last() < m_samplesPerIVCycle * 1.03 && (i + 1) - peakIndices.Last() > m_samplesPerIVCycle * 0.97)
                     {
                         //
                         // distance is reasonable; let's add the new dot.
@@ -102,6 +102,26 @@ namespace SBJController
                         // if not, delete last item and put the current one. 
                         //
                         peakIndices[peakIndices.Count - 1] = i + 1;
+                    }
+
+                    //
+                    // let's check if the peak is in the overload part of the trace. 
+                    // if it is, than we might don't want to save it. 
+                    //
+                    if (Math.Abs(m_junctionRawData[peakIndices.Last()]) > 9.9)
+                    {
+                        //
+                        // if we already have items in the index list - continue (we are in the middle of the trace)
+                        // if we this is one of the first indices in the list, delete everything.
+                        //
+                        if (peakIndices.Count() < 3)
+                        {
+                            peakIndices.Clear();
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
                 }
             }
