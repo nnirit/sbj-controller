@@ -274,15 +274,17 @@
             this.calibrationCycleNumberNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
-            this.electroMagnetUserControl2 = new ElectroMagnetUserControl();
+            this.electroMagnetUserControl2 = new SBJController.ElectroMagnetUserControl();
             this.stepperMotorGroupBox = new System.Windows.Forms.GroupBox();
-            this.stepperMotorUserControl1 = new StepperMotorUserControl();
+            this.stepperMotorUserControl1 = new SBJController.StepperMotorUserControl();
             this.aquireDataBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.stepperUpBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.fixBiasBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.ivCyclesBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.calibrationBackGroundWorker = new System.ComponentModel.BackgroundWorker();
             this.manualStartBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.calibrationDelayTimeLabel = new System.Windows.Forms.Label();
+            this.calibrationDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
             this.plotGroupBox.SuspendLayout();
@@ -388,6 +390,7 @@
             this.controlPanelsTabPage.SuspendLayout();
             this.electroMagnetGroupBox.SuspendLayout();
             this.stepperMotorGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.calibrationDelayTimeNumericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // obtainShortCircuitBackgroundWorker
@@ -3001,6 +3004,8 @@
             // 
             // CalibrationGeneralTabPage
             // 
+            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationDelayTimeNumericUpDown);
+            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationDelayTimeLabel);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationKeithleyCheckBox);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationTotalSamplesNumericUpDown);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationTotalSamplesLabel);
@@ -3709,6 +3714,38 @@
             this.manualStartBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.manualStartBackgroundWorker_DoWork);
             this.manualStartBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.manualStartBackgroundWorker_RunWorkerCompleted);
             // 
+            // calibrationDelayTimeLabel
+            // 
+            this.calibrationDelayTimeLabel.AutoSize = true;
+            this.calibrationDelayTimeLabel.ForeColor = System.Drawing.Color.Black;
+            this.calibrationDelayTimeLabel.Location = new System.Drawing.Point(389, 151);
+            this.calibrationDelayTimeLabel.Name = "calibrationDelayTimeLabel";
+            this.calibrationDelayTimeLabel.Size = new System.Drawing.Size(94, 13);
+            this.calibrationDelayTimeLabel.TabIndex = 33;
+            this.calibrationDelayTimeLabel.Text = "Delay Time [msec]";
+            // 
+            // calibrationDelayTimeNumericUpDown
+            // 
+            this.calibrationDelayTimeNumericUpDown.Increment = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.calibrationDelayTimeNumericUpDown.Location = new System.Drawing.Point(557, 151);
+            this.calibrationDelayTimeNumericUpDown.Maximum = new decimal(new int[] {
+            500,
+            0,
+            0,
+            0});
+            this.calibrationDelayTimeNumericUpDown.Name = "calibrationDelayTimeNumericUpDown";
+            this.calibrationDelayTimeNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.calibrationDelayTimeNumericUpDown.TabIndex = 34;
+            this.calibrationDelayTimeNumericUpDown.Value = new decimal(new int[] {
+            40,
+            0,
+            0,
+            0});
+            // 
             // SBJControllerMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -3846,6 +3883,7 @@
             this.controlPanelsTabPage.ResumeLayout(false);
             this.electroMagnetGroupBox.ResumeLayout(false);
             this.stepperMotorGroupBox.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.calibrationDelayTimeNumericUpDown)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -4107,6 +4145,8 @@
         private System.Windows.Forms.Label laserAmplitudeOnSampleLabel;
         private System.Windows.Forms.GroupBox calibrationPlotGroupBox;
         private System.Windows.Forms.ListView calibrationChannelsListView;
+        private System.Windows.Forms.NumericUpDown calibrationDelayTimeNumericUpDown;
+        private System.Windows.Forms.Label calibrationDelayTimeLabel;
                          
     }
 }
