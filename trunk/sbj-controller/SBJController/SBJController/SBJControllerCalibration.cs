@@ -228,7 +228,7 @@ namespace SBJController
             // 
             m_stepperMotor.Direction = StepperDirection.UP;
             m_stepperMotor.SteppingMode = StepperSteppingMode.HALF;
-            m_stepperMotor.Delay = m_stepperMotor.MinDelay;
+            m_stepperMotor.Delay = settings.CalibirationSettings.DelayTime;
 
             //
             // Open the junction
@@ -316,7 +316,7 @@ namespace SBJController
             // 
             m_stepperMotor.Direction = StepperDirection.DOWN;
             m_stepperMotor.SteppingMode = StepperSteppingMode.HALF;
-            m_stepperMotor.Delay = m_stepperMotor.MinDelay;
+            m_stepperMotor.Delay = settings.CalibirationSettings.DelayTime;
 
             //
             // Close the junction
@@ -482,12 +482,13 @@ namespace SBJController
         public double ShortCircuitVoltage { get; set; }
         public bool EnableElectroMagnet { get; set; }
         public bool UseKeithley { get; set; }
+        public int DelayTime { get; set; }
 
         public CalibrationSBJControllerSettings (double bias, string gain, double triggerVoltage,
                                      double triggerConductance, bool isFileSavingRequired, int sampleRate,
                                      int totalSamples, int pretriggerSamples,
                                      string path, int currentFileNumber, int totalNUmberOfCycles,
-                                     double shourtCircuitVoltage, bool EnableElectroMagnet, bool UseKeithley)
+                                     double shourtCircuitVoltage, bool enableElectroMagnet, bool useKeithley, int delayTime)
         {
             Bias = bias;
             Gain = gain;
@@ -501,6 +502,9 @@ namespace SBJController
             CurrentFileNumber = currentFileNumber;
             TotalNumberOfCycles = totalNUmberOfCycles;
             ShortCircuitVoltage = shourtCircuitVoltage;
+            DelayTime = delayTime;
+            EnableElectroMagnet = enableElectroMagnet;
+            UseKeithley = useKeithley;
         }
 
         public override string ToString()
