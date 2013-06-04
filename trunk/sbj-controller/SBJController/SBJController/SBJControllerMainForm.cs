@@ -1325,7 +1325,7 @@ namespace SBJController
             // In the channles tab only assign the simple data channels
             //
             this.calibrationChannel1ComboBox.DataSource = channelTypes;
-            this.calibrationChannel1ComboBox.Text = Settings.Default.DAQPhysicalChannelName0;
+            this.calibrationChannel1CheckBox.Text = Settings.Default.DAQPhysicalChannelName0;
             
             //
             // Also populate the channels in the display list

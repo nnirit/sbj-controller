@@ -371,6 +371,7 @@ namespace SBJController
             //
             // Assign the aquired data for each channel
             //
+            ClearRawData(settings.ChannelsSettings.ActiveChannels);               
             AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, ConvertToMatrix(rawDataList));    
 
             return e.Cancel;
