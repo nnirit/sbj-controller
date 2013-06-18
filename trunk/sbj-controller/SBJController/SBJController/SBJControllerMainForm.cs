@@ -1752,25 +1752,26 @@ namespace SBJController
                                                                                                     this.calibrationTriggerConductanceNumericEdit.Value,
                                                                                                     this.calibrationSavingFilesCheckBox.Checked,
                                                                                                     (int)this.calibrationSampleRateNumericEdit.Value,
-                                                                                                    (int)this.calibrationTotalSamplesNumericUpDown.Value,
-                                                                                                    (int)this.calibrationPreTriggerSampleNumericUpDown.Value,
                                                                                                     this.calibrationPathTextBox.Text,
                                                                                                     (int)this.calibrationCycleNumberNumericUpDown.Value,
                                                                                                     (int)this.calibrationNumberOfCyclesNumericUpDown.Value,
                                                                                                     (double)this.calibrationShortCircuitVoltageumericUpDown.Value,
                                                                                                     this.calibrationEnableElectroMagnetCheckBox.Checked,
                                                                                                     this.calibrationKeithleyCheckBox.Checked,
-                                                                                                    (int)this.calibrationDelayTimeNumericUpDown.Value),
-                                                               new ElectroMagnetSBJControllerSettings(this.enableElectroMagnetCheckBox.Checked,
-                                                                                                    (int)this.emShortCircuitDelayTimeNumericUpDown.Value,
-                                                                                                    (int)this.emFastDelayTimeNumericUpDown.Value,
-                                                                                                    (int)this.emSlowDelayTimeNumericUpDown.Value,
+                                                                                                    (int)this.calibrationDelayTimeNumericUpDown.Value,
+                                                                                                    this.calibrationOpenJunctionCheckBox.Checked,
+                                                                                                    this.calibrationCloseJunctionCheckBox.Checked,
+                                                                                                    this.calibrationBothOptionsCheckBox.Checked),
+                                                               new ElectroMagnetSBJControllerSettings(this.calibrationEnableElectroMagnetCheckBox.Checked,
+                                                                                                    (int)this.calibrationEMShortCircuitDelayTimeNumericUpDown.Value,
+                                                                                                    (int)this.calibrationEMFastDelayTimeNumericUpDown.Value,
+                                                                                                    (int)this.calibrationEMSlowDelayTimeNumericUpDown.Value,
                                                                                                     this.emHoldOnToConductanceRangeCheckBox.Checked,
                                                                                                     this.emHoldOnMaxConductanceNumericEdit.Value,
                                                                                                     this.emHoldOnMaxVoltageNumericEdit.Value,
                                                                                                     this.emHoldOnMinConductanceNumericEdit.Value,
                                                                                                     this.emHoldOnMinVoltageNumericEdit.Value,
-                                                                                                    this.emSkipFirstCycleByStepperMotorCheckBox.Checked),
+                                                                                                    this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.Checked),
                                                                new ChannelsSettings(GetCalibrationActiveChannels()));
 
             }
@@ -1807,20 +1808,7 @@ namespace SBJController
         {
             this.calibrationTriggerVoltageNumericEdit.Value = -this.calibrationTriggerConductanceNumericEdit.Value * m_1G0 * Math.Abs(this.calibrationBiasNumericEdit.Value) * Math.Pow(10, int.Parse(this.calibrationGainPowerComboBox.Text));
         }
-        
-        /// <summary>
-        /// On number of samples changed
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void calibrationTotalSamplesNumericUpDown_ValueChanged(object sender, EventArgs e)
-        {
-            //
-            // the total number of samples was changed - the trigger usually should be after 85% of the samples.
-            //
-            calibrationPreTriggerSampleNumericUpDown.Value = (decimal)0.85 * calibrationTotalSamplesNumericUpDown.Value;
-        }
-        
+             
         /// <summary>
         /// Enable or disable the ElectroMagnet
         /// </summary>

@@ -228,11 +228,9 @@
             this.calibrationSettingsGroupBox = new System.Windows.Forms.GroupBox();
             this.calibrationSettingsTabControl = new System.Windows.Forms.TabControl();
             this.CalibrationGeneralTabPage = new System.Windows.Forms.TabPage();
+            this.calibrationDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.calibrationDelayTimeLabel = new System.Windows.Forms.Label();
             this.calibrationKeithleyCheckBox = new System.Windows.Forms.CheckBox();
-            this.calibrationTotalSamplesNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.calibrationTotalSamplesLabel = new System.Windows.Forms.Label();
-            this.calibrationPreTriggerSampleNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.calibrationPretriggerSamplesLabel = new System.Windows.Forms.Label();
             this.calibrationSampleRateNumericEdit = new System.Windows.Forms.NumericUpDown();
             this.calibrationSampleRateLabel = new System.Windows.Forms.Label();
             this.calibrationTriggerVoltagrLabel = new System.Windows.Forms.Label();
@@ -283,8 +281,10 @@
             this.ivCyclesBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.calibrationBackGroundWorker = new System.ComponentModel.BackgroundWorker();
             this.manualStartBackgroundWorker = new System.ComponentModel.BackgroundWorker();
-            this.calibrationDelayTimeLabel = new System.Windows.Forms.Label();
-            this.calibrationDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.calibrationMeasurementsTypeLabel = new System.Windows.Forms.Label();
+            this.calibrationOpenJunctionCheckBox = new System.Windows.Forms.CheckBox();
+            this.calibrationCloseJunctionCheckBox = new System.Windows.Forms.CheckBox();
+            this.calibrationBothOptionsCheckBox = new System.Windows.Forms.CheckBox();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
             this.plotGroupBox.SuspendLayout();
@@ -370,8 +370,7 @@
             this.calibrationSettingsGroupBox.SuspendLayout();
             this.calibrationSettingsTabControl.SuspendLayout();
             this.CalibrationGeneralTabPage.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.calibrationTotalSamplesNumericUpDown)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.calibrationPreTriggerSampleNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.calibrationDelayTimeNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationSampleRateNumericEdit)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationBiasNumericEdit)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationTriggerVoltageNumericEdit)).BeginInit();
@@ -390,7 +389,6 @@
             this.controlPanelsTabPage.SuspendLayout();
             this.electroMagnetGroupBox.SuspendLayout();
             this.stepperMotorGroupBox.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.calibrationDelayTimeNumericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // obtainShortCircuitBackgroundWorker
@@ -410,7 +408,7 @@
             this.controllerTabControl.Location = new System.Drawing.Point(0, 0);
             this.controllerTabControl.Name = "controllerTabControl";
             this.controllerTabControl.SelectedIndex = 0;
-            this.controllerTabControl.Size = new System.Drawing.Size(749, 826);
+            this.controllerTabControl.Size = new System.Drawing.Size(787, 830);
             this.controllerTabControl.TabIndex = 2;
             this.controllerTabControl.Tag = "";
             this.controllerTabControl.Deselected += new System.Windows.Forms.TabControlEventHandler(this.controllerTabControl_Deselected);
@@ -426,7 +424,7 @@
             this.dataAquisitionTabPage.Location = new System.Drawing.Point(4, 22);
             this.dataAquisitionTabPage.Name = "dataAquisitionTabPage";
             this.dataAquisitionTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.dataAquisitionTabPage.Size = new System.Drawing.Size(741, 800);
+            this.dataAquisitionTabPage.Size = new System.Drawing.Size(779, 804);
             this.dataAquisitionTabPage.TabIndex = 0;
             this.dataAquisitionTabPage.Text = "DAQ";
             this.dataAquisitionTabPage.UseVisualStyleBackColor = true;
@@ -476,10 +474,10 @@
             this.operateGroupBox.Controls.Add(this.fileNumberNumericUpDown);
             this.operateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.operateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.operateGroupBox.Location = new System.Drawing.Point(3, 613);
+            this.operateGroupBox.Location = new System.Drawing.Point(3, 617);
             this.operateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.operateGroupBox.Name = "operateGroupBox";
-            this.operateGroupBox.Size = new System.Drawing.Size(735, 184);
+            this.operateGroupBox.Size = new System.Drawing.Size(773, 184);
             this.operateGroupBox.TabIndex = 23;
             this.operateGroupBox.TabStop = false;
             this.operateGroupBox.Text = "Operate";
@@ -758,7 +756,7 @@
             this.samplePropertiesGroupBox.ForeColor = System.Drawing.Color.Red;
             this.samplePropertiesGroupBox.Location = new System.Drawing.Point(553, 364);
             this.samplePropertiesGroupBox.Name = "samplePropertiesGroupBox";
-            this.samplePropertiesGroupBox.Size = new System.Drawing.Size(178, 247);
+            this.samplePropertiesGroupBox.Size = new System.Drawing.Size(216, 247);
             this.samplePropertiesGroupBox.TabIndex = 20;
             this.samplePropertiesGroupBox.TabStop = false;
             this.samplePropertiesGroupBox.Text = "Sample Properties";
@@ -794,7 +792,7 @@
             this.samplePropertiesTabControl.MinimumSize = new System.Drawing.Size(150, 0);
             this.samplePropertiesTabControl.Name = "samplePropertiesTabControl";
             this.samplePropertiesTabControl.SelectedIndex = 0;
-            this.samplePropertiesTabControl.Size = new System.Drawing.Size(172, 183);
+            this.samplePropertiesTabControl.Size = new System.Drawing.Size(210, 183);
             this.samplePropertiesTabControl.TabIndex = 0;
             // 
             // bottomTabPage
@@ -803,7 +801,7 @@
             this.bottomTabPage.Location = new System.Drawing.Point(4, 22);
             this.bottomTabPage.Name = "bottomTabPage";
             this.bottomTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.bottomTabPage.Size = new System.Drawing.Size(164, 157);
+            this.bottomTabPage.Size = new System.Drawing.Size(202, 157);
             this.bottomTabPage.TabIndex = 0;
             this.bottomTabPage.Text = "Bottom";
             this.bottomTabPage.UseVisualStyleBackColor = true;
@@ -816,7 +814,7 @@
             this.bottomPropertyGrid.MinimumSize = new System.Drawing.Size(150, 0);
             this.bottomPropertyGrid.Name = "bottomPropertyGrid";
             this.bottomPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.bottomPropertyGrid.Size = new System.Drawing.Size(158, 151);
+            this.bottomPropertyGrid.Size = new System.Drawing.Size(196, 151);
             this.bottomPropertyGrid.TabIndex = 1;
             // 
             // TopTabPage
@@ -825,7 +823,7 @@
             this.TopTabPage.Location = new System.Drawing.Point(4, 22);
             this.TopTabPage.Name = "TopTabPage";
             this.TopTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.TopTabPage.Size = new System.Drawing.Size(164, 157);
+            this.TopTabPage.Size = new System.Drawing.Size(202, 157);
             this.TopTabPage.TabIndex = 1;
             this.TopTabPage.Text = "Top";
             this.TopTabPage.UseVisualStyleBackColor = true;
@@ -837,7 +835,7 @@
             this.topPropertyGrid.Location = new System.Drawing.Point(3, 3);
             this.topPropertyGrid.Name = "topPropertyGrid";
             this.topPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.topPropertyGrid.Size = new System.Drawing.Size(158, 151);
+            this.topPropertyGrid.Size = new System.Drawing.Size(196, 151);
             this.topPropertyGrid.TabIndex = 0;
             // 
             // settingsGroupBox
@@ -1987,7 +1985,7 @@
             this.ivAcquisition.Location = new System.Drawing.Point(4, 22);
             this.ivAcquisition.Name = "ivAcquisition";
             this.ivAcquisition.Padding = new System.Windows.Forms.Padding(3);
-            this.ivAcquisition.Size = new System.Drawing.Size(741, 800);
+            this.ivAcquisition.Size = new System.Drawing.Size(779, 804);
             this.ivAcquisition.TabIndex = 2;
             this.ivAcquisition.Text = "IV Acquisition";
             this.ivAcquisition.UseVisualStyleBackColor = true;
@@ -2011,10 +2009,10 @@
             this.ivOperateGroupBox.Controls.Add(this.ivFileNumberNumericUpDown);
             this.ivOperateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.ivOperateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.ivOperateGroupBox.Location = new System.Drawing.Point(3, 613);
+            this.ivOperateGroupBox.Location = new System.Drawing.Point(3, 617);
             this.ivOperateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.ivOperateGroupBox.Name = "ivOperateGroupBox";
-            this.ivOperateGroupBox.Size = new System.Drawing.Size(735, 184);
+            this.ivOperateGroupBox.Size = new System.Drawing.Size(773, 184);
             this.ivOperateGroupBox.TabIndex = 27;
             this.ivOperateGroupBox.TabStop = false;
             this.ivOperateGroupBox.Text = "Operate";
@@ -2912,7 +2910,7 @@
             this.calibrationTabPage.Location = new System.Drawing.Point(4, 22);
             this.calibrationTabPage.Name = "calibrationTabPage";
             this.calibrationTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.calibrationTabPage.Size = new System.Drawing.Size(741, 800);
+            this.calibrationTabPage.Size = new System.Drawing.Size(779, 804);
             this.calibrationTabPage.TabIndex = 3;
             this.calibrationTabPage.Text = "Calibration";
             this.calibrationTabPage.UseVisualStyleBackColor = true;
@@ -3004,13 +3002,13 @@
             // 
             // CalibrationGeneralTabPage
             // 
+            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationBothOptionsCheckBox);
+            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationCloseJunctionCheckBox);
+            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationOpenJunctionCheckBox);
+            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationMeasurementsTypeLabel);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationDelayTimeNumericUpDown);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationDelayTimeLabel);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationKeithleyCheckBox);
-            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationTotalSamplesNumericUpDown);
-            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationTotalSamplesLabel);
-            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationPreTriggerSampleNumericUpDown);
-            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationPretriggerSamplesLabel);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationSampleRateNumericEdit);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationSampleRateLabel);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationTriggerVoltagrLabel);
@@ -3029,11 +3027,41 @@
             this.CalibrationGeneralTabPage.Text = "General";
             this.CalibrationGeneralTabPage.UseVisualStyleBackColor = true;
             // 
+            // calibrationDelayTimeNumericUpDown
+            // 
+            this.calibrationDelayTimeNumericUpDown.Increment = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.calibrationDelayTimeNumericUpDown.Location = new System.Drawing.Point(557, 53);
+            this.calibrationDelayTimeNumericUpDown.Maximum = new decimal(new int[] {
+            500,
+            0,
+            0,
+            0});
+            this.calibrationDelayTimeNumericUpDown.Name = "calibrationDelayTimeNumericUpDown";
+            this.calibrationDelayTimeNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.calibrationDelayTimeNumericUpDown.TabIndex = 34;
+            this.calibrationDelayTimeNumericUpDown.Value = new decimal(new int[] {
+            40,
+            0,
+            0,
+            0});
+            // 
+            // calibrationDelayTimeLabel
+            // 
+            this.calibrationDelayTimeLabel.AutoSize = true;
+            this.calibrationDelayTimeLabel.ForeColor = System.Drawing.Color.Black;
+            this.calibrationDelayTimeLabel.Location = new System.Drawing.Point(389, 53);
+            this.calibrationDelayTimeLabel.Name = "calibrationDelayTimeLabel";
+            this.calibrationDelayTimeLabel.Size = new System.Drawing.Size(94, 13);
+            this.calibrationDelayTimeLabel.TabIndex = 33;
+            this.calibrationDelayTimeLabel.Text = "Delay Time [msec]";
+            // 
             // calibrationKeithleyCheckBox
             // 
             this.calibrationKeithleyCheckBox.AutoSize = true;
-            this.calibrationKeithleyCheckBox.Checked = true;
-            this.calibrationKeithleyCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.calibrationKeithleyCheckBox.ForeColor = System.Drawing.Color.Black;
             this.calibrationKeithleyCheckBox.Location = new System.Drawing.Point(6, 3);
             this.calibrationKeithleyCheckBox.Name = "calibrationKeithleyCheckBox";
@@ -3042,61 +3070,6 @@
             this.calibrationKeithleyCheckBox.Text = "Use Keithley as Bias Source";
             this.calibrationKeithleyCheckBox.UseVisualStyleBackColor = true;
             this.calibrationKeithleyCheckBox.CheckedChanged += new System.EventHandler(this.calibrationUseKeithleyCheckBox_CheckedChanged);
-            // 
-            // calibrationTotalSamplesNumericUpDown
-            // 
-            this.calibrationTotalSamplesNumericUpDown.Location = new System.Drawing.Point(557, 115);
-            this.calibrationTotalSamplesNumericUpDown.Maximum = new decimal(new int[] {
-            10000000,
-            0,
-            0,
-            0});
-            this.calibrationTotalSamplesNumericUpDown.Name = "calibrationTotalSamplesNumericUpDown";
-            this.calibrationTotalSamplesNumericUpDown.Size = new System.Drawing.Size(75, 20);
-            this.calibrationTotalSamplesNumericUpDown.TabIndex = 31;
-            this.calibrationTotalSamplesNumericUpDown.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
-            this.calibrationTotalSamplesNumericUpDown.ValueChanged += new System.EventHandler(this.calibrationTotalSamplesNumericUpDown_ValueChanged);
-            // 
-            // calibrationTotalSamplesLabel
-            // 
-            this.calibrationTotalSamplesLabel.AutoSize = true;
-            this.calibrationTotalSamplesLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationTotalSamplesLabel.Location = new System.Drawing.Point(389, 115);
-            this.calibrationTotalSamplesLabel.Name = "calibrationTotalSamplesLabel";
-            this.calibrationTotalSamplesLabel.Size = new System.Drawing.Size(74, 13);
-            this.calibrationTotalSamplesLabel.TabIndex = 30;
-            this.calibrationTotalSamplesLabel.Text = "Total Samples";
-            // 
-            // calibrationPreTriggerSampleNumericUpDown
-            // 
-            this.calibrationPreTriggerSampleNumericUpDown.Location = new System.Drawing.Point(557, 71);
-            this.calibrationPreTriggerSampleNumericUpDown.Maximum = new decimal(new int[] {
-            100000,
-            0,
-            0,
-            0});
-            this.calibrationPreTriggerSampleNumericUpDown.Name = "calibrationPreTriggerSampleNumericUpDown";
-            this.calibrationPreTriggerSampleNumericUpDown.Size = new System.Drawing.Size(75, 20);
-            this.calibrationPreTriggerSampleNumericUpDown.TabIndex = 29;
-            this.calibrationPreTriggerSampleNumericUpDown.Value = new decimal(new int[] {
-            8500,
-            0,
-            0,
-            0});
-            // 
-            // calibrationPretriggerSamplesLabel
-            // 
-            this.calibrationPretriggerSamplesLabel.AutoSize = true;
-            this.calibrationPretriggerSamplesLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationPretriggerSamplesLabel.Location = new System.Drawing.Point(389, 71);
-            this.calibrationPretriggerSamplesLabel.Name = "calibrationPretriggerSamplesLabel";
-            this.calibrationPretriggerSamplesLabel.Size = new System.Drawing.Size(98, 13);
-            this.calibrationPretriggerSamplesLabel.TabIndex = 28;
-            this.calibrationPretriggerSamplesLabel.Text = "Pre-trigger Samples";
             // 
             // calibrationSampleRateNumericEdit
             // 
@@ -3433,10 +3406,10 @@
             this.calibrationOperateGroupBox.Controls.Add(this.calibrationCycleNumberNumericUpDown);
             this.calibrationOperateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.calibrationOperateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.calibrationOperateGroupBox.Location = new System.Drawing.Point(3, 613);
+            this.calibrationOperateGroupBox.Location = new System.Drawing.Point(3, 617);
             this.calibrationOperateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.calibrationOperateGroupBox.Name = "calibrationOperateGroupBox";
-            this.calibrationOperateGroupBox.Size = new System.Drawing.Size(735, 184);
+            this.calibrationOperateGroupBox.Size = new System.Drawing.Size(773, 184);
             this.calibrationOperateGroupBox.TabIndex = 29;
             this.calibrationOperateGroupBox.TabStop = false;
             this.calibrationOperateGroupBox.Text = "Operate";
@@ -3633,7 +3606,7 @@
             this.controlPanelsTabPage.Location = new System.Drawing.Point(4, 22);
             this.controlPanelsTabPage.Name = "controlPanelsTabPage";
             this.controlPanelsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.controlPanelsTabPage.Size = new System.Drawing.Size(741, 800);
+            this.controlPanelsTabPage.Size = new System.Drawing.Size(779, 804);
             this.controlPanelsTabPage.TabIndex = 1;
             this.controlPanelsTabPage.Text = "Control Panels";
             this.controlPanelsTabPage.UseVisualStyleBackColor = true;
@@ -3714,44 +3687,52 @@
             this.manualStartBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.manualStartBackgroundWorker_DoWork);
             this.manualStartBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.manualStartBackgroundWorker_RunWorkerCompleted);
             // 
-            // calibrationDelayTimeLabel
+            // calibrationMeasurementsTypeLabel
             // 
-            this.calibrationDelayTimeLabel.AutoSize = true;
-            this.calibrationDelayTimeLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationDelayTimeLabel.Location = new System.Drawing.Point(389, 151);
-            this.calibrationDelayTimeLabel.Name = "calibrationDelayTimeLabel";
-            this.calibrationDelayTimeLabel.Size = new System.Drawing.Size(94, 13);
-            this.calibrationDelayTimeLabel.TabIndex = 33;
-            this.calibrationDelayTimeLabel.Text = "Delay Time [msec]";
+            this.calibrationMeasurementsTypeLabel.AutoSize = true;
+            this.calibrationMeasurementsTypeLabel.ForeColor = System.Drawing.Color.Black;
+            this.calibrationMeasurementsTypeLabel.Location = new System.Drawing.Point(389, 92);
+            this.calibrationMeasurementsTypeLabel.Name = "calibrationMeasurementsTypeLabel";
+            this.calibrationMeasurementsTypeLabel.Size = new System.Drawing.Size(103, 13);
+            this.calibrationMeasurementsTypeLabel.TabIndex = 35;
+            this.calibrationMeasurementsTypeLabel.Text = "MeasurementsType:";
             // 
-            // calibrationDelayTimeNumericUpDown
+            // calibrationOpenJunctionCheckBox
             // 
-            this.calibrationDelayTimeNumericUpDown.Increment = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-            this.calibrationDelayTimeNumericUpDown.Location = new System.Drawing.Point(557, 151);
-            this.calibrationDelayTimeNumericUpDown.Maximum = new decimal(new int[] {
-            500,
-            0,
-            0,
-            0});
-            this.calibrationDelayTimeNumericUpDown.Name = "calibrationDelayTimeNumericUpDown";
-            this.calibrationDelayTimeNumericUpDown.Size = new System.Drawing.Size(75, 20);
-            this.calibrationDelayTimeNumericUpDown.TabIndex = 34;
-            this.calibrationDelayTimeNumericUpDown.Value = new decimal(new int[] {
-            40,
-            0,
-            0,
-            0});
+            this.calibrationOpenJunctionCheckBox.AutoSize = true;
+            this.calibrationOpenJunctionCheckBox.Location = new System.Drawing.Point(398, 111);
+            this.calibrationOpenJunctionCheckBox.Name = "calibrationOpenJunctionCheckBox";
+            this.calibrationOpenJunctionCheckBox.Size = new System.Drawing.Size(98, 17);
+            this.calibrationOpenJunctionCheckBox.TabIndex = 36;
+            this.calibrationOpenJunctionCheckBox.Text = "Open Junction ";
+            this.calibrationOpenJunctionCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // calibrationCloseJunctionCheckBox
+            // 
+            this.calibrationCloseJunctionCheckBox.AutoSize = true;
+            this.calibrationCloseJunctionCheckBox.Location = new System.Drawing.Point(398, 134);
+            this.calibrationCloseJunctionCheckBox.Name = "calibrationCloseJunctionCheckBox";
+            this.calibrationCloseJunctionCheckBox.Size = new System.Drawing.Size(98, 17);
+            this.calibrationCloseJunctionCheckBox.TabIndex = 37;
+            this.calibrationCloseJunctionCheckBox.Text = "Close Junction ";
+            this.calibrationCloseJunctionCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // calibrationBothOptionsCheckBox
+            // 
+            this.calibrationBothOptionsCheckBox.AutoSize = true;
+            this.calibrationBothOptionsCheckBox.Location = new System.Drawing.Point(398, 157);
+            this.calibrationBothOptionsCheckBox.Name = "calibrationBothOptionsCheckBox";
+            this.calibrationBothOptionsCheckBox.Size = new System.Drawing.Size(87, 17);
+            this.calibrationBothOptionsCheckBox.TabIndex = 38;
+            this.calibrationBothOptionsCheckBox.Text = "Both Options";
+            this.calibrationBothOptionsCheckBox.UseVisualStyleBackColor = true;
             // 
             // SBJControllerMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(749, 826);
+            this.ClientSize = new System.Drawing.Size(787, 830);
             this.Controls.Add(this.controllerTabControl);
             this.Name = "SBJControllerMainForm";
             this.Text = "SBJControllerMainForm";
@@ -3860,8 +3841,7 @@
             this.calibrationSettingsTabControl.ResumeLayout(false);
             this.CalibrationGeneralTabPage.ResumeLayout(false);
             this.CalibrationGeneralTabPage.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.calibrationTotalSamplesNumericUpDown)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.calibrationPreTriggerSampleNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.calibrationDelayTimeNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationSampleRateNumericEdit)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationBiasNumericEdit)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationTriggerVoltageNumericEdit)).EndInit();
@@ -3883,7 +3863,6 @@
             this.controlPanelsTabPage.ResumeLayout(false);
             this.electroMagnetGroupBox.ResumeLayout(false);
             this.stepperMotorGroupBox.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.calibrationDelayTimeNumericUpDown)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -4088,10 +4067,6 @@
         private System.Windows.Forms.GroupBox calibrationSettingsGroupBox;
         private System.Windows.Forms.TabControl calibrationSettingsTabControl;
         private System.Windows.Forms.TabPage CalibrationGeneralTabPage;
-        private System.Windows.Forms.NumericUpDown calibrationTotalSamplesNumericUpDown;
-        private System.Windows.Forms.Label calibrationTotalSamplesLabel;
-        private System.Windows.Forms.NumericUpDown calibrationPreTriggerSampleNumericUpDown;
-        private System.Windows.Forms.Label calibrationPretriggerSamplesLabel;
         private System.Windows.Forms.NumericUpDown calibrationSampleRateNumericEdit;
         private System.Windows.Forms.Label calibrationSampleRateLabel;
         private System.Windows.Forms.Label calibrationTriggerVoltagrLabel;
@@ -4107,8 +4082,6 @@
         private System.Windows.Forms.CheckBox calibrationEMSkipFirstCycleByStepperMotorCheckBox;
         private System.Windows.Forms.Label calibrationEMShortCircuitDelayTimeLabel;
         private System.Windows.Forms.NumericUpDown calibrationEMShortCircuitDelayTimeNumericUpDown;
-        private System.Windows.Forms.NumericUpDown calibrationEMSlowDelayTimeNumericUpDown;
-        private System.Windows.Forms.Label calibrationEMSlowDelayTimeLabel;
         private System.Windows.Forms.NumericUpDown calibrationEMFastDelayTimeNumericUpDown;
         private System.Windows.Forms.Label calibrationEMFastDelayTimeLabel;
         private System.Windows.Forms.CheckBox calibrationEnableElectroMagnetCheckBox;
@@ -4147,6 +4120,12 @@
         private System.Windows.Forms.ListView calibrationChannelsListView;
         private System.Windows.Forms.NumericUpDown calibrationDelayTimeNumericUpDown;
         private System.Windows.Forms.Label calibrationDelayTimeLabel;
+        private System.Windows.Forms.NumericUpDown calibrationEMSlowDelayTimeNumericUpDown;
+        private System.Windows.Forms.Label calibrationEMSlowDelayTimeLabel;
+        private System.Windows.Forms.CheckBox calibrationBothOptionsCheckBox;
+        private System.Windows.Forms.CheckBox calibrationCloseJunctionCheckBox;
+        private System.Windows.Forms.CheckBox calibrationOpenJunctionCheckBox;
+        private System.Windows.Forms.Label calibrationMeasurementsTypeLabel;
                          
     }
 }
