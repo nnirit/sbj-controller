@@ -691,7 +691,7 @@ namespace SBJController
                 //
                 // Move down 100 steps and check the voltage afterwords
                 //
-                m_stepperMotor.MoveMultipleSteps(100);
+                m_stepperMotor.MoveMultipleSteps(20);
                 voltageAfterStepping = Math.Abs(AnalogIn(0));
 
                 //

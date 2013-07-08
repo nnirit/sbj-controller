@@ -213,6 +213,7 @@ namespace SBJController
 
             return (isCancelled || e.Cancel);
         }
+
         private double GetDataAfterEachStep(SBJControllerSettingsForCalibration settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double[,] dataAquired=null;
@@ -275,6 +276,13 @@ namespace SBJController
             while (!isPermanentOpenCircuit)
             {
                 //
+                // Move up one step and check the voltage afterwards
+                //
+                m_stepperMotor.MoveSingleStep();
+                Thread.Sleep(m_stepperMotor.Delay);
+                voltageAfterStepping = Math.Abs(AnalogIn(0));
+
+                //
                 // If the backgroundworker requested cancellation - exit
                 //
                 if (worker != null && worker.CancellationPending)
@@ -283,13 +291,6 @@ namespace SBJController
                     break;
                 }
 
-                //
-                // Move up one step and check the voltage afterwards
-                //
-                m_stepperMotor.MoveSingleStep();
-                Thread.Sleep(m_stepperMotor.Delay);
-                voltageAfterStepping = Math.Abs(AnalogIn(0));
-                
                 //
                 // Get Data after each step and save it.
                 // Save the data for each cycle
@@ -353,6 +354,13 @@ namespace SBJController
             while (!isPermanentClosedCircuit)
             {
                 //
+                // Move up one step and check the voltage afterwards
+                //
+                m_stepperMotor.MoveSingleStep();
+                Thread.Sleep(m_stepperMotor.Delay);
+                voltageAfterStepping = Math.Abs(AnalogIn(0));
+
+                //
                 // If the backgroundworker requested cancellation - exit
                 //
                 if (worker != null && worker.CancellationPending)
@@ -361,13 +369,6 @@ namespace SBJController
                     break;
                 }
 
-                //
-                // Move up one step and check the voltage afterwards
-                //
-                m_stepperMotor.MoveSingleStep();
-                Thread.Sleep(m_stepperMotor.Delay);
-                voltageAfterStepping = Math.Abs(AnalogIn(0));
-                
                 //
                 // Get Data after each step and save it.
                 // Save the data for each cycle

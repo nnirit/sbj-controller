@@ -365,12 +365,6 @@ namespace SBJController
 
         #region IV Cycles Handlers
 
-        //private void ivSampleDelayNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
-            //{
-        //    this.ivTimeOfOneCycleNumericEdit.Value = this.ivSampleDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit2.Value;
-        //    this.ivSampleRateNumericEdit.Value = 1000 / e.NewValue;
-            //}
-
         /// <summary>
         /// Fired when the Start IV button is pressed
         /// </summary>
@@ -392,7 +386,9 @@ namespace SBJController
                     this.ivStartStopCheckBox.Text = "Stop";
                     this.ivShortCircuitCheckBox.Enabled = false;
                     this.ivStepperUpCheckBox.Enabled = false;
-                    this.ivSettingsGroupBox.Enabled = false;
+                    this.ivGeneralSettingsPanel.Enabled = false;
+                    this.ivSteppingMethodPanel.Enabled = false;
+                    this.ivChannelsPanel.Enabled = false;
                     ivCyclesBackgroundWorker.RunWorkerAsync();
                 }
                 else
@@ -447,7 +443,9 @@ namespace SBJController
             this.ivStartStopCheckBox.Checked = false;
             this.ivShortCircuitCheckBox.Enabled = true;
             this.ivStepperUpCheckBox.Enabled = true;
-            this.ivSettingsGroupBox.Enabled = true;
+            this.ivGeneralSettingsPanel.Enabled = true;
+            this.ivSteppingMethodPanel.Enabled = true;
+            this.ivChannelsPanel.Enabled = true;
         }
 
         #endregion
@@ -915,6 +913,14 @@ namespace SBJController
         {
             if (this.useKeithleyCheckBox.Checked)
             {
+                //
+                // if we checked the use keithley box on the DAQ tab, we need to check it also on the calibration tab.
+                //
+                this.calibrationKeithleyCheckBox.Checked = true;
+
+                //
+                // Connect to the keithley and set bias.
+                //
                 m_sbjController.SourceMeter.Connect();
                 m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
             }
@@ -945,34 +951,6 @@ namespace SBJController
                 this.ivVoltageForTraceNumericEdit.Value = (this.ivVoltageForTraceNumericEdit.Value > 0) ? this.ivVoltageAmplitudeNumericEdit.Value : (-this.ivVoltageAmplitudeNumericEdit.Value);
             }
         }
-
-        ///// <summary>
-        ///// On Voltage for displayed Trace change
-        ///// </summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //private void ivVoltageForTheDisplayedTraceNumericEdit_AfterChangeValue(object sender, AfterChangeNumericValueEventArgs e)
-        //{
-        //    //
-        //    // sets the voltage in which we display the trace to be whithing the boundries of +-amplitude.
-        //    // this function fires when program starts before there is a vlaue inside amplitude, so we need to exclude that case. 
-        //    //
-        //    if ((this.ivAmplitudeNumericEdit.Value != 0) &&
-        //        (Math.Abs(this.ivVoltageForTheDisplayedTraceNumericEdit.Value) > Math.Abs(this.ivAmplitudeNumericEdit.Value)))
-        //    {
-        //        this.ivVoltageForTheDisplayedTraceNumericEdit.Value = (this.ivVoltageForTheDisplayedTraceNumericEdit.Value > 0) ? this.ivAmplitudeNumericEdit.Value : (-this.ivAmplitudeNumericEdit.Value);
-        //    }
-        //}
-
-        ///// <summary>
-        ///// On samples per cycle change
-        ///// </summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //private void ivSamplesPerCycleNumericEdit_AfterChangeValue_2(object sender, AfterChangeNumericValueEventArgs e)
-        //{
-        //    this.ivTimeOfOneCycleNumericEdit.Value = this.ivSampleDelayNumericEdit.Value * this.ivSamplesPerCycleNumericEdit2.Value;
-        //}
 
         #endregion
         
@@ -1646,6 +1624,7 @@ namespace SBJController
                 // the keithley doesn't connect. 
                 //
                 this.useKeithleyCheckBox.Checked = false;
+                this.calibrationKeithleyCheckBox.Checked = false;
             }
         }
        
