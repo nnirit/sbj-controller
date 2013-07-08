@@ -228,6 +228,10 @@
             this.calibrationSettingsGroupBox = new System.Windows.Forms.GroupBox();
             this.calibrationSettingsTabControl = new System.Windows.Forms.TabControl();
             this.CalibrationGeneralTabPage = new System.Windows.Forms.TabPage();
+            this.calibrationBothOptionsCheckBox = new System.Windows.Forms.CheckBox();
+            this.calibrationCloseJunctionCheckBox = new System.Windows.Forms.CheckBox();
+            this.calibrationOpenJunctionCheckBox = new System.Windows.Forms.CheckBox();
+            this.calibrationMeasurementsTypeLabel = new System.Windows.Forms.Label();
             this.calibrationDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.calibrationDelayTimeLabel = new System.Windows.Forms.Label();
             this.calibrationKeithleyCheckBox = new System.Windows.Forms.CheckBox();
@@ -281,10 +285,6 @@
             this.ivCyclesBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.calibrationBackGroundWorker = new System.ComponentModel.BackgroundWorker();
             this.manualStartBackgroundWorker = new System.ComponentModel.BackgroundWorker();
-            this.calibrationMeasurementsTypeLabel = new System.Windows.Forms.Label();
-            this.calibrationOpenJunctionCheckBox = new System.Windows.Forms.CheckBox();
-            this.calibrationCloseJunctionCheckBox = new System.Windows.Forms.CheckBox();
-            this.calibrationBothOptionsCheckBox = new System.Windows.Forms.CheckBox();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
             this.plotGroupBox.SuspendLayout();
@@ -2144,7 +2144,7 @@
             this.ivPathTextBox.Name = "ivPathTextBox";
             this.ivPathTextBox.Size = new System.Drawing.Size(400, 20);
             this.ivPathTextBox.TabIndex = 9;
-            this.ivPathTextBox.Text = "C:\\sbj\\Measurements";
+            this.ivPathTextBox.Text = "C:\\sbj\\IV_Measurements";
             this.ivPathTextBox.TextChanged += new System.EventHandler(this.ivPathTextBox_TextChanged);
             // 
             // ivBrowseButton
@@ -3027,6 +3027,46 @@
             this.CalibrationGeneralTabPage.Text = "General";
             this.CalibrationGeneralTabPage.UseVisualStyleBackColor = true;
             // 
+            // calibrationBothOptionsCheckBox
+            // 
+            this.calibrationBothOptionsCheckBox.AutoSize = true;
+            this.calibrationBothOptionsCheckBox.Location = new System.Drawing.Point(398, 157);
+            this.calibrationBothOptionsCheckBox.Name = "calibrationBothOptionsCheckBox";
+            this.calibrationBothOptionsCheckBox.Size = new System.Drawing.Size(87, 17);
+            this.calibrationBothOptionsCheckBox.TabIndex = 38;
+            this.calibrationBothOptionsCheckBox.Text = "Both Options";
+            this.calibrationBothOptionsCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // calibrationCloseJunctionCheckBox
+            // 
+            this.calibrationCloseJunctionCheckBox.AutoSize = true;
+            this.calibrationCloseJunctionCheckBox.Location = new System.Drawing.Point(398, 134);
+            this.calibrationCloseJunctionCheckBox.Name = "calibrationCloseJunctionCheckBox";
+            this.calibrationCloseJunctionCheckBox.Size = new System.Drawing.Size(98, 17);
+            this.calibrationCloseJunctionCheckBox.TabIndex = 37;
+            this.calibrationCloseJunctionCheckBox.Text = "Close Junction ";
+            this.calibrationCloseJunctionCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // calibrationOpenJunctionCheckBox
+            // 
+            this.calibrationOpenJunctionCheckBox.AutoSize = true;
+            this.calibrationOpenJunctionCheckBox.Location = new System.Drawing.Point(398, 111);
+            this.calibrationOpenJunctionCheckBox.Name = "calibrationOpenJunctionCheckBox";
+            this.calibrationOpenJunctionCheckBox.Size = new System.Drawing.Size(98, 17);
+            this.calibrationOpenJunctionCheckBox.TabIndex = 36;
+            this.calibrationOpenJunctionCheckBox.Text = "Open Junction ";
+            this.calibrationOpenJunctionCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // calibrationMeasurementsTypeLabel
+            // 
+            this.calibrationMeasurementsTypeLabel.AutoSize = true;
+            this.calibrationMeasurementsTypeLabel.ForeColor = System.Drawing.Color.Black;
+            this.calibrationMeasurementsTypeLabel.Location = new System.Drawing.Point(389, 92);
+            this.calibrationMeasurementsTypeLabel.Name = "calibrationMeasurementsTypeLabel";
+            this.calibrationMeasurementsTypeLabel.Size = new System.Drawing.Size(103, 13);
+            this.calibrationMeasurementsTypeLabel.TabIndex = 35;
+            this.calibrationMeasurementsTypeLabel.Text = "MeasurementsType:";
+            // 
             // calibrationDelayTimeNumericUpDown
             // 
             this.calibrationDelayTimeNumericUpDown.Increment = new decimal(new int[] {
@@ -3062,6 +3102,8 @@
             // calibrationKeithleyCheckBox
             // 
             this.calibrationKeithleyCheckBox.AutoSize = true;
+            this.calibrationKeithleyCheckBox.Checked = true;
+            this.calibrationKeithleyCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.calibrationKeithleyCheckBox.ForeColor = System.Drawing.Color.Black;
             this.calibrationKeithleyCheckBox.Location = new System.Drawing.Point(6, 3);
             this.calibrationKeithleyCheckBox.Name = "calibrationKeithleyCheckBox";
@@ -3686,46 +3728,6 @@
             this.manualStartBackgroundWorker.WorkerSupportsCancellation = true;
             this.manualStartBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.manualStartBackgroundWorker_DoWork);
             this.manualStartBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.manualStartBackgroundWorker_RunWorkerCompleted);
-            // 
-            // calibrationMeasurementsTypeLabel
-            // 
-            this.calibrationMeasurementsTypeLabel.AutoSize = true;
-            this.calibrationMeasurementsTypeLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationMeasurementsTypeLabel.Location = new System.Drawing.Point(389, 92);
-            this.calibrationMeasurementsTypeLabel.Name = "calibrationMeasurementsTypeLabel";
-            this.calibrationMeasurementsTypeLabel.Size = new System.Drawing.Size(103, 13);
-            this.calibrationMeasurementsTypeLabel.TabIndex = 35;
-            this.calibrationMeasurementsTypeLabel.Text = "MeasurementsType:";
-            // 
-            // calibrationOpenJunctionCheckBox
-            // 
-            this.calibrationOpenJunctionCheckBox.AutoSize = true;
-            this.calibrationOpenJunctionCheckBox.Location = new System.Drawing.Point(398, 111);
-            this.calibrationOpenJunctionCheckBox.Name = "calibrationOpenJunctionCheckBox";
-            this.calibrationOpenJunctionCheckBox.Size = new System.Drawing.Size(98, 17);
-            this.calibrationOpenJunctionCheckBox.TabIndex = 36;
-            this.calibrationOpenJunctionCheckBox.Text = "Open Junction ";
-            this.calibrationOpenJunctionCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // calibrationCloseJunctionCheckBox
-            // 
-            this.calibrationCloseJunctionCheckBox.AutoSize = true;
-            this.calibrationCloseJunctionCheckBox.Location = new System.Drawing.Point(398, 134);
-            this.calibrationCloseJunctionCheckBox.Name = "calibrationCloseJunctionCheckBox";
-            this.calibrationCloseJunctionCheckBox.Size = new System.Drawing.Size(98, 17);
-            this.calibrationCloseJunctionCheckBox.TabIndex = 37;
-            this.calibrationCloseJunctionCheckBox.Text = "Close Junction ";
-            this.calibrationCloseJunctionCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // calibrationBothOptionsCheckBox
-            // 
-            this.calibrationBothOptionsCheckBox.AutoSize = true;
-            this.calibrationBothOptionsCheckBox.Location = new System.Drawing.Point(398, 157);
-            this.calibrationBothOptionsCheckBox.Name = "calibrationBothOptionsCheckBox";
-            this.calibrationBothOptionsCheckBox.Size = new System.Drawing.Size(87, 17);
-            this.calibrationBothOptionsCheckBox.TabIndex = 38;
-            this.calibrationBothOptionsCheckBox.Text = "Both Options";
-            this.calibrationBothOptionsCheckBox.UseVisualStyleBackColor = true;
             // 
             // SBJControllerMainForm
             // 
