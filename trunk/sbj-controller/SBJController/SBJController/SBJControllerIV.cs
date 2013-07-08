@@ -19,6 +19,7 @@ namespace SBJController
         private AnalogSingleChannelWriter writer;
         private AnalogMultiChannelReader reader;
         private delegate bool IV_EMOpenJunctionMethodDelegate(IVSettings settings);
+        private delegate void IV_StepperMotorOpenJunctionMethodDelegate(IVSettings settings);
         #endregion
 
         #region Properties
@@ -63,11 +64,6 @@ namespace SBJController
             m_outputTask = m_daqController.CreateContinuousAOTask(outputProperties);
 
             //
-            // finds the on-board buffer length for the output task
-            //
-            long onBoardBufferLength = m_outputTask.Stream.Buffer.OutputOnBoardBufferSize;
-
-            //
             // create the writer of the output task
             //
             writer = new AnalogSingleChannelWriter(m_outputTask.Stream);
@@ -90,12 +86,6 @@ namespace SBJController
             int finalFileNumber = settings.IVGeneralSettings.CurrentFileNumber;
             double[,] dataAcquired;
             List<IDataChannel> physicalChannels = new List<IDataChannel>();
-
-            if (settings.IVSteppingMethodSettings.SteppingDevice != SteppingDevice.ElectroMagnet)
-            {
-                MessageBox.Show("Please enable the ElectroMagnet in order to acquire IV curves.");
-                return;
-            }
 
             //
             // Save this run settings if desired
@@ -206,7 +196,7 @@ namespace SBJController
                     // we set the voltage to triangle wave and then open the junction by stepper motor
                     //
                     writer.BeginWriteMultiSample(false, m_functionGenerator.TriangleWave, null, null);
-                    //TODO: Add opening function by stepper motor 
+                    IV_StepperMotorBeginOpenJunction(settings);
                 }
 
                 //
@@ -365,7 +355,7 @@ namespace SBJController
         {
             int underTriggerCounts = 0;
             int numOfSteps = 0;
-            double changeRateTrigger = 9.9;
+            double changeRateTrigger = settings.IVGeneralSettings.ShortCircuitVoltage;
             int rateTriggerCounts = 0;
 
             //
@@ -474,6 +464,113 @@ namespace SBJController
         {
             IV_EMOpenJunctionMethodDelegate ivEMOpenJunctionDelegate = (IV_EMOpenJunctionMethodDelegate)asyncResult.AsyncState;
             ivEMOpenJunctionDelegate.EndInvoke(asyncResult);
+        }
+
+        /// <summary>
+        /// Open the junction asynchronously by the StepperMotor for IV measurements
+        /// </summary>
+        /// <param name="settings"></param>
+        private void IV_StepperMotorBeginOpenJunction(IVSettings settings)
+        {
+            IV_StepperMotorOpenJunctionMethodDelegate stepperMotorOpenJunctionDelegate = new IV_StepperMotorOpenJunctionMethodDelegate(IV_StepperMotorOpenJunction);
+            AsyncCallback callback = new AsyncCallback(IV_StepperMotorEndOpenJunction);
+            IAsyncResult asyncResult = stepperMotorOpenJunctionDelegate.BeginInvoke(settings, callback, stepperMotorOpenJunctionDelegate);
+        }
+
+        /// <summary>
+        /// Open the junction by the StepperMotor for IV acquisition.
+        /// </summary>
+        /// <param name="settings"></param>
+        private void IV_StepperMotorOpenJunction(IVSettings settings)
+        {
+            int underTriggerCounts = 0;
+            int numOfSteps = 0;
+            double changeRateTrigger = settings.IVGeneralSettings.ShortCircuitVoltage;
+            int rateTriggerCounts = 0;
+
+            //
+            // Set the direction of the movement
+            // And configure the first setpper delay (shorter) - faster movement
+            //
+            m_stepperMotor.Direction = StepperDirection.UP;
+            m_stepperMotor.Delay = settings.IVSteppingMethodSettings.StepperMotorWaitTime1;
+
+            //
+            // Read the initial voltgae before we've done anything
+            //
+            double initialVoltage = AnalogIn(0);
+            m_quitJunctionOpenningOperation = false;
+
+            //
+            // we'll moving up until this function figures the junction is open. then it signals it
+            // by changing the value of m_quitJunctionOpeningOperatin to TRUE.
+            //
+            while (!m_quitJunctionOpenningOperation)
+            {
+                m_stepperMotor.MoveSingleStep();
+                numOfSteps++;
+                double currentVoltage = AnalogIn(0);
+
+                //
+                // if we didn't switch to slowest rate yet
+                //
+                if (rateTriggerCounts >= 0)
+                {
+                    //
+                    // check if the voltage is under the change-rate trigger. Count how many times in a row it happens.
+                    //
+                    if (Math.Abs(currentVoltage) < changeRateTrigger)
+                    {
+                        rateTriggerCounts++;
+                    }
+                    else
+                    {
+                        rateTriggerCounts = 0;
+                    }
+
+                    //
+                    // if we are under the trigger for some steps in a row, switch to the slower rate.
+                    //
+                    if (rateTriggerCounts > 5)
+                    {
+                        m_stepperMotor.Delay = (int)settings.IVSteppingMethodSettings.StepperMotorWaitTime2;
+                        rateTriggerCounts = -1;
+                    }
+                }
+
+
+                //
+                // check if the voltage is under the trigger. Count how many times in a row it happens.
+                // correct the trigger by the preamp offset
+                //
+                if (Math.Abs(currentVoltage) < (Math.Abs(settings.IVGeneralSettings.TriggerVoltage) + c_preAmpOffset))
+                {
+                    underTriggerCounts++;
+                }
+                else
+                {
+                    underTriggerCounts = 0;
+                }
+
+                //
+                // if we are under the trigger for some steps in a row, the junction is open.
+                //
+                if (underTriggerCounts > 4)
+                {
+                    m_quitJunctionOpenningOperation = true;
+                }
+                Thread.Sleep(m_stepperMotor.Delay);
+            }
+        }
+
+        /// <summary>
+        /// End junction openning with IV by StepperMotor
+        /// </summary>
+        /// <param name="asyncResult"></param>
+        private void IV_StepperMotorEndOpenJunction(IAsyncResult asyncResult)
+        {
+            IV_StepperMotorOpenJunctionMethodDelegate ivStepperMotorOpenJunctionDelegate = (IV_StepperMotorOpenJunctionMethodDelegate)asyncResult.AsyncState;
+            ivStepperMotorOpenJunctionDelegate.EndInvoke(asyncResult);
         }
 
         /// <summary>
