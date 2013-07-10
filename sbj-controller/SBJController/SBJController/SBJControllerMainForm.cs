@@ -245,7 +245,49 @@ namespace SBJController
         /// <param name="e"></param>
         private void moveUpCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (this.moveUpCheckBoxButton.Checked)
+            StepperUpButtonFunction(this.moveUpCheckBoxButton.Checked);
+            //if (this.moveUpCheckBoxButton.Checked)
+            //{
+            //    if (!stepperUpBackgroundWorker.IsBusy)
+            //    {
+            //        //
+            //        // Change button text
+            //        //
+            //        this.moveUpCheckBoxButton.Text = "Stop";
+            //        this.ivStepperUpCheckBox.Text = "Stop";
+            //        this.calibrationStepperUpCheckBox.Text = "Stop";
+
+            //        this.shortCircuitCheckBoxButton.Enabled = false;
+            //        this.ivShortCircuitCheckBox.Enabled = false;
+            //        this.calibrationShortCircuitCkeckBox.Enabled = false;
+
+            //        this.startStopCheckBoxButton.Enabled = false;
+            //        this.ivStartStopCheckBox.Enabled = false;
+            //        this.calibrationStartStopCheckBox.Enabled = false;
+
+            //        this.manualStartCheckBoxButton.Enabled = false;
+
+            //        this.stepperUpBackgroundWorker.RunWorkerAsync();
+            //    }
+            //    else
+            //    {
+            //        MessageBox.Show("Can not start move stepper up." + Environment.NewLine + "Please try again in few seconds.");
+            //    }
+            //}
+            //else
+            //{
+            //    this.stepperUpBackgroundWorker.CancelAsync();
+            //}
+        }
+
+        /// <summary>
+        /// according to the status (checked/unchecked) of the Stepper Up button, this function starts or stops
+        /// the stepping-up process
+        /// </summary>
+        /// <param name="isButtonChecked"></param>
+        private void StepperUpButtonFunction(bool isButtonChecked)
+        {
+            if (isButtonChecked)
             {
                 if (!stepperUpBackgroundWorker.IsBusy)
                 {
@@ -253,9 +295,25 @@ namespace SBJController
                     // Change button text
                     //
                     this.moveUpCheckBoxButton.Text = "Stop";
+                    this.ivStepperUpCheckBox.Text = "Stop";
+                    this.calibrationStepperUpCheckBox.Text = "Stop";
+
+                    //
+                    // update other buttons to be unavailable
+                    //
                     this.shortCircuitCheckBoxButton.Enabled = false;
+                    this.ivShortCircuitCheckBox.Enabled = false;
+                    this.calibrationShortCircuitCkeckBox.Enabled = false;
+
                     this.startStopCheckBoxButton.Enabled = false;
+                    this.ivStartStopCheckBox.Enabled = false;
+                    this.calibrationStartStopCheckBox.Enabled = false;
+
                     this.manualStartCheckBoxButton.Enabled = false;
+
+                    //
+                    //start the background worker that does the stepping-up process
+                    //
                     this.stepperUpBackgroundWorker.RunWorkerAsync();
                 }
                 else
@@ -265,6 +323,9 @@ namespace SBJController
             }
             else
             {
+                //
+                // stop the stepping up process
+                //
                 this.stepperUpBackgroundWorker.CancelAsync();
             }
         }
@@ -285,9 +346,18 @@ namespace SBJController
             //
             // Bring back the appearance
             //
-            moveUpCheckBoxButton.Text = "Stepper Up";
+            this.moveUpCheckBoxButton.Text = "Stepper Up";
+            this.ivStepperUpCheckBox.Text = "Stepper Up";
+            this.calibrationStepperUpCheckBox.Text = "Stepper Up";
+
             this.shortCircuitCheckBoxButton.Enabled = true;
+            this.ivShortCircuitCheckBox.Enabled = true;
+            this.calibrationShortCircuitCkeckBox.Enabled = true;
+
             this.startStopCheckBoxButton.Enabled = true;
+            this.ivStartStopCheckBox.Enabled = true;
+            this.calibrationStartStopCheckBox.Enabled = true;
+
             this.manualStartCheckBoxButton.Enabled = true;
         }
         #endregion
@@ -639,16 +709,6 @@ namespace SBJController
         {
             double amplitude = (double)this.amplitudeNumericUpDown.Value;
             m_sbjController.Tabor.SetDcModeAmplitude(amplitude);
-        }
-
-        /// <summary>
-        /// sutting down the electroMagnet when leaving the controller tab
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void controllerTabControl_Deselected(object sender, TabControlEventArgs e)
-        {
-            m_sbjController.ElectroMagnet.Shutdown();
         }
 
         /// <summary>
@@ -1704,7 +1764,7 @@ namespace SBJController
             m_sbjController.AquireCalibrationData(GetCalibrationSBJControllerSettings(), worker, e);
         }
 
-        private SBJControllerSettingsForCalibration GetCalibrationSBJControllerSettings()
+        private CalibrationSettings GetCalibrationSBJControllerSettings()
         {
             //
             // Using windows forms one must know that UI controls cannot be accessed from a different thread than
@@ -1717,7 +1777,7 @@ namespace SBJController
                 // This tells us that we are not in the safe thread and so this function must be re-invoked
                 // from an appropriate thread.
                 //
-                return (SBJControllerSettingsForCalibration)this.Invoke(new Func<SBJControllerSettingsForCalibration>(() => GetCalibrationSBJControllerSettings()));
+                return (CalibrationSettings)this.Invoke(new Func<CalibrationSettings>(() => GetCalibrationSBJControllerSettings()));
             }
             else
             {
@@ -1725,7 +1785,7 @@ namespace SBJController
                 // Apparently this function was called from a safe thread so just carry on with
                 // what we were planning on doing.
                 //
-                return new SBJControllerSettingsForCalibration(new CalibrationSBJControllerSettings(this.calibrationBiasNumericEdit.Value,
+                return new CalibrationSettings(new CalibrationGeneralSettings(this.calibrationBiasNumericEdit.Value,
                                                                                                     this.calibrationGainPowerComboBox.Text,
                                                                                                     this.calibrationTriggerVoltageNumericEdit.Value,
                                                                                                     this.calibrationTriggerConductanceNumericEdit.Value,
@@ -1905,36 +1965,6 @@ namespace SBJController
         private void calibrationOpenFolderButton_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(this.calibrationPathTextBox.Text);
-        }
-
-        /// <summary>
-        /// Fired when the stepper is requested to move up.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void calibrationStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.calibrationStepperUpCheckBox.Checked)
-            {
-                if (!stepperUpBackgroundWorker.IsBusy)
-                {
-                    //
-                    // Change button text
-                    //
-                    this.calibrationStepperUpCheckBox.Text = "Stop";
-                    this.calibrationShortCircuitCkeckBox.Enabled = false;
-                    this.calibrationStartStopCheckBox.Enabled = false;
-                    this.stepperUpBackgroundWorker.RunWorkerAsync();
-                }
-                else
-                {
-                    MessageBox.Show("Can not start move stepper up." + Environment.NewLine + "Please try again in few seconds.");
-                }
-            }
-            else
-            {
-                this.stepperUpBackgroundWorker.CancelAsync();
-            }
         }
         
         /// <summary>
@@ -2207,6 +2237,16 @@ namespace SBJController
             // if we applied the bias by the DAQ device, we need to stop the task. 
             //
             m_sbjController.StopApplyingVoltageIfNeeded();
+        }
+
+        private void calibrationStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            StepperUpButtonFunction(this.calibrationStepperUpCheckBox.Checked);
+        }
+
+        private void ivStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            StepperUpButtonFunction(this.ivStepperUpCheckBox.Checked);
         }
     }
 

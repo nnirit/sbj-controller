@@ -276,9 +276,9 @@
             this.calibrationCycleNumberNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
-            this.electroMagnetUserControl2 = new SBJController.ElectroMagnetUserControl();
+            this.electroMagnetUserControl2 = new ElectroMagnetUserControl();
             this.stepperMotorGroupBox = new System.Windows.Forms.GroupBox();
-            this.stepperMotorUserControl1 = new SBJController.StepperMotorUserControl();
+            this.stepperMotorUserControl1 = new StepperMotorUserControl();
             this.aquireDataBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.stepperUpBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.fixBiasBackgroundWorker = new System.ComponentModel.BackgroundWorker();
@@ -411,7 +411,6 @@
             this.controllerTabControl.Size = new System.Drawing.Size(787, 830);
             this.controllerTabControl.TabIndex = 2;
             this.controllerTabControl.Tag = "";
-            this.controllerTabControl.Deselected += new System.Windows.Forms.TabControlEventHandler(this.controllerTabControl_Deselected);
             // 
             // dataAquisitionTabPage
             // 
@@ -2041,7 +2040,7 @@
             this.ivStepperUpCheckBox.Text = "Stepper Up";
             this.ivStepperUpCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.ivStepperUpCheckBox.UseVisualStyleBackColor = true;
-            this.ivStepperUpCheckBox.CheckedChanged += new System.EventHandler(this.moveUpCheckBox_CheckedChanged);
+            this.ivStepperUpCheckBox.CheckedChanged += new System.EventHandler(this.ivStepperUpCheckBox_CheckedChanged);
             // 
             // ivStartStopCheckBox
             // 
@@ -3030,7 +3029,10 @@
             // calibrationBothOptionsCheckBox
             // 
             this.calibrationBothOptionsCheckBox.AutoSize = true;
-            this.calibrationBothOptionsCheckBox.Location = new System.Drawing.Point(398, 157);
+            this.calibrationBothOptionsCheckBox.Checked = true;
+            this.calibrationBothOptionsCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.calibrationBothOptionsCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.calibrationBothOptionsCheckBox.Location = new System.Drawing.Point(435, 147);
             this.calibrationBothOptionsCheckBox.Name = "calibrationBothOptionsCheckBox";
             this.calibrationBothOptionsCheckBox.Size = new System.Drawing.Size(87, 17);
             this.calibrationBothOptionsCheckBox.TabIndex = 38;
@@ -3040,7 +3042,8 @@
             // calibrationCloseJunctionCheckBox
             // 
             this.calibrationCloseJunctionCheckBox.AutoSize = true;
-            this.calibrationCloseJunctionCheckBox.Location = new System.Drawing.Point(398, 134);
+            this.calibrationCloseJunctionCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.calibrationCloseJunctionCheckBox.Location = new System.Drawing.Point(435, 124);
             this.calibrationCloseJunctionCheckBox.Name = "calibrationCloseJunctionCheckBox";
             this.calibrationCloseJunctionCheckBox.Size = new System.Drawing.Size(98, 17);
             this.calibrationCloseJunctionCheckBox.TabIndex = 37;
@@ -3050,7 +3053,8 @@
             // calibrationOpenJunctionCheckBox
             // 
             this.calibrationOpenJunctionCheckBox.AutoSize = true;
-            this.calibrationOpenJunctionCheckBox.Location = new System.Drawing.Point(398, 111);
+            this.calibrationOpenJunctionCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.calibrationOpenJunctionCheckBox.Location = new System.Drawing.Point(435, 101);
             this.calibrationOpenJunctionCheckBox.Name = "calibrationOpenJunctionCheckBox";
             this.calibrationOpenJunctionCheckBox.Size = new System.Drawing.Size(98, 17);
             this.calibrationOpenJunctionCheckBox.TabIndex = 36;
@@ -3061,7 +3065,7 @@
             // 
             this.calibrationMeasurementsTypeLabel.AutoSize = true;
             this.calibrationMeasurementsTypeLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationMeasurementsTypeLabel.Location = new System.Drawing.Point(389, 92);
+            this.calibrationMeasurementsTypeLabel.Location = new System.Drawing.Point(300, 102);
             this.calibrationMeasurementsTypeLabel.Name = "calibrationMeasurementsTypeLabel";
             this.calibrationMeasurementsTypeLabel.Size = new System.Drawing.Size(103, 13);
             this.calibrationMeasurementsTypeLabel.TabIndex = 35;
@@ -3074,7 +3078,7 @@
             0,
             0,
             0});
-            this.calibrationDelayTimeNumericUpDown.Location = new System.Drawing.Point(557, 53);
+            this.calibrationDelayTimeNumericUpDown.Location = new System.Drawing.Point(434, 63);
             this.calibrationDelayTimeNumericUpDown.Maximum = new decimal(new int[] {
             500,
             0,
@@ -3093,7 +3097,7 @@
             // 
             this.calibrationDelayTimeLabel.AutoSize = true;
             this.calibrationDelayTimeLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationDelayTimeLabel.Location = new System.Drawing.Point(389, 53);
+            this.calibrationDelayTimeLabel.Location = new System.Drawing.Point(300, 65);
             this.calibrationDelayTimeLabel.Name = "calibrationDelayTimeLabel";
             this.calibrationDelayTimeLabel.Size = new System.Drawing.Size(94, 13);
             this.calibrationDelayTimeLabel.TabIndex = 33;
@@ -3115,7 +3119,7 @@
             // 
             // calibrationSampleRateNumericEdit
             // 
-            this.calibrationSampleRateNumericEdit.Location = new System.Drawing.Point(557, 24);
+            this.calibrationSampleRateNumericEdit.Location = new System.Drawing.Point(434, 31);
             this.calibrationSampleRateNumericEdit.Maximum = new decimal(new int[] {
             40000,
             0,
@@ -3134,7 +3138,7 @@
             // 
             this.calibrationSampleRateLabel.AutoSize = true;
             this.calibrationSampleRateLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationSampleRateLabel.Location = new System.Drawing.Point(389, 24);
+            this.calibrationSampleRateLabel.Location = new System.Drawing.Point(300, 33);
             this.calibrationSampleRateLabel.Name = "calibrationSampleRateLabel";
             this.calibrationSampleRateLabel.Size = new System.Drawing.Size(90, 13);
             this.calibrationSampleRateLabel.TabIndex = 26;
@@ -3144,7 +3148,7 @@
             // 
             this.calibrationTriggerVoltagrLabel.AutoSize = true;
             this.calibrationTriggerVoltagrLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationTriggerVoltagrLabel.Location = new System.Drawing.Point(6, 115);
+            this.calibrationTriggerVoltagrLabel.Location = new System.Drawing.Point(11, 98);
             this.calibrationTriggerVoltagrLabel.Name = "calibrationTriggerVoltagrLabel";
             this.calibrationTriggerVoltagrLabel.Size = new System.Drawing.Size(95, 13);
             this.calibrationTriggerVoltagrLabel.TabIndex = 12;
@@ -3163,7 +3167,7 @@
             "8",
             "9",
             "10"});
-            this.calibrationGainPowerComboBox.Location = new System.Drawing.Point(159, 68);
+            this.calibrationGainPowerComboBox.Location = new System.Drawing.Point(159, 62);
             this.calibrationGainPowerComboBox.Name = "calibrationGainPowerComboBox";
             this.calibrationGainPowerComboBox.Size = new System.Drawing.Size(75, 21);
             this.calibrationGainPowerComboBox.TabIndex = 25;
@@ -3186,7 +3190,7 @@
             // 
             this.calibrationGainPowerLabel.AutoSize = true;
             this.calibrationGainPowerLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationGainPowerLabel.Location = new System.Drawing.Point(6, 71);
+            this.calibrationGainPowerLabel.Location = new System.Drawing.Point(11, 65);
             this.calibrationGainPowerLabel.Name = "calibrationGainPowerLabel";
             this.calibrationGainPowerLabel.Size = new System.Drawing.Size(62, 13);
             this.calibrationGainPowerLabel.TabIndex = 4;
@@ -3196,7 +3200,7 @@
             // 
             this.calibrationBiasLabel.AutoSize = true;
             this.calibrationBiasLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationBiasLabel.Location = new System.Drawing.Point(6, 31);
+            this.calibrationBiasLabel.Location = new System.Drawing.Point(11, 33);
             this.calibrationBiasLabel.Name = "calibrationBiasLabel";
             this.calibrationBiasLabel.Size = new System.Drawing.Size(43, 13);
             this.calibrationBiasLabel.TabIndex = 2;
@@ -3206,7 +3210,7 @@
             // 
             this.calibrationTriggerVoltageNumericEdit.Enabled = false;
             this.calibrationTriggerVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2, true);
-            this.calibrationTriggerVoltageNumericEdit.Location = new System.Drawing.Point(159, 115);
+            this.calibrationTriggerVoltageNumericEdit.Location = new System.Drawing.Point(159, 95);
             this.calibrationTriggerVoltageNumericEdit.Name = "calibrationTriggerVoltageNumericEdit";
             this.calibrationTriggerVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.calibrationTriggerVoltageNumericEdit.TabIndex = 12;
@@ -3215,7 +3219,7 @@
             // calibrationTriggerConductanceNumericEdit
             // 
             this.calibrationTriggerConductanceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2, true);
-            this.calibrationTriggerConductanceNumericEdit.Location = new System.Drawing.Point(159, 163);
+            this.calibrationTriggerConductanceNumericEdit.Location = new System.Drawing.Point(159, 128);
             this.calibrationTriggerConductanceNumericEdit.Name = "calibrationTriggerConductanceNumericEdit";
             this.calibrationTriggerConductanceNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.calibrationTriggerConductanceNumericEdit.TabIndex = 14;
@@ -3226,7 +3230,7 @@
             // 
             this.calibrationTriggerConductanceLabel.AutoSize = true;
             this.calibrationTriggerConductanceLabel.ForeColor = System.Drawing.Color.Black;
-            this.calibrationTriggerConductanceLabel.Location = new System.Drawing.Point(3, 163);
+            this.calibrationTriggerConductanceLabel.Location = new System.Drawing.Point(11, 131);
             this.calibrationTriggerConductanceLabel.Name = "calibrationTriggerConductanceLabel";
             this.calibrationTriggerConductanceLabel.Size = new System.Drawing.Size(130, 13);
             this.calibrationTriggerConductanceLabel.TabIndex = 13;
@@ -3412,7 +3416,7 @@
             this.calibrationChannel1CheckBox.Checked = true;
             this.calibrationChannel1CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.calibrationChannel1CheckBox.ForeColor = System.Drawing.Color.Black;
-            this.calibrationChannel1CheckBox.Location = new System.Drawing.Point(9, 59);
+            this.calibrationChannel1CheckBox.Location = new System.Drawing.Point(8, 15);
             this.calibrationChannel1CheckBox.Name = "calibrationChannel1CheckBox";
             this.calibrationChannel1CheckBox.Size = new System.Drawing.Size(71, 17);
             this.calibrationChannel1CheckBox.TabIndex = 0;
@@ -3423,7 +3427,7 @@
             // calibrationChannel1ComboBox
             // 
             this.calibrationChannel1ComboBox.FormattingEnabled = true;
-            this.calibrationChannel1ComboBox.Location = new System.Drawing.Point(111, 59);
+            this.calibrationChannel1ComboBox.Location = new System.Drawing.Point(110, 15);
             this.calibrationChannel1ComboBox.Name = "calibrationChannel1ComboBox";
             this.calibrationChannel1ComboBox.Size = new System.Drawing.Size(202, 21);
             this.calibrationChannel1ComboBox.TabIndex = 1;
@@ -3480,7 +3484,7 @@
             this.calibrationStepperUpCheckBox.Text = "Stepper Up";
             this.calibrationStepperUpCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.calibrationStepperUpCheckBox.UseVisualStyleBackColor = true;
-            this.calibrationStepperUpCheckBox.Click += new System.EventHandler(this.calibrationStepperUpCheckBox_CheckedChanged);
+            this.calibrationStepperUpCheckBox.CheckedChanged += new System.EventHandler(this.calibrationStepperUpCheckBox_CheckedChanged);
             // 
             // calibrationStartStopCheckBox
             // 
