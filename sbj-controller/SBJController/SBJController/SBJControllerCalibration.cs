@@ -10,7 +10,7 @@ namespace SBJController
 {
     public partial class SBJController
     {
-        public bool AquireCalibrationData(SBJControllerSettingsForCalibration settings, BackgroundWorker worker, DoWorkEventArgs e)
+        public bool AquireCalibrationData(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             bool isCancelled = false;
             int finalFileNumber = settings.CalibirationSettings.CurrentFileNumber;
@@ -214,7 +214,7 @@ namespace SBJController
             return (isCancelled || e.Cancel);
         }
 
-        private double GetDataAfterEachStep(SBJControllerSettingsForCalibration settings, BackgroundWorker worker, DoWorkEventArgs e)
+        private double GetDataAfterEachStep(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double[,] dataAquired=null;
             AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_task.Stream);
@@ -228,7 +228,8 @@ namespace SBJController
 
             return AverageVoltageAfterEachStep(dataAquired);
         }
-        private Task GetCalibrationTask(SBJControllerSettingsForCalibration settings, BackgroundWorker worker, DoWorkEventArgs e)
+
+        private Task GetCalibrationTask(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
 
@@ -251,7 +252,8 @@ namespace SBJController
 
             return m_daqController.CreateContinuousAITask(taskProperties);
         }
-        private bool ObtainOpenJunctionByStepperMotorForCalibration(SBJControllerSettingsForCalibration settings, double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        
+        private bool ObtainOpenJunctionByStepperMotorForCalibration(CalibrationSettings settings, double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
             bool isPermanentOpenCircuit = false;
@@ -329,7 +331,8 @@ namespace SBJController
 
             return e.Cancel;
         }
-        private bool CloseJunctionByStepperMotorForCalibration(SBJControllerSettingsForCalibration settings, double TriggerVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        
+        private bool CloseJunctionByStepperMotorForCalibration(CalibrationSettings settings, double TriggerVoltage, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
             bool isPermanentClosedCircuit = false;
@@ -406,7 +409,8 @@ namespace SBJController
 
             return e.Cancel;
         }
-        private bool EMTryObtainShortCircuitForCalibration(SBJControllerSettingsForCalibration settings, BackgroundWorker worker, DoWorkEventArgs e)
+        
+        private bool EMTryObtainShortCircuitForCalibration(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             switch (EMShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.CalibirationSettings.ShortCircuitVoltage, worker, e))
             {
@@ -434,7 +438,8 @@ namespace SBJController
             }
             return true;
         }
-        private bool ObtainOpenJunctionByElectroMagnetForCalibration(SBJControllerSettingsForCalibration settings, double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        
+        private bool ObtainOpenJunctionByElectroMagnetForCalibration(CalibrationSettings settings, double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
             bool isPermanentOpenCircuit = false;
@@ -528,7 +533,8 @@ namespace SBJController
 
             return e.Cancel;
         }
-        private bool CloseJunctionByElectroMagnetForCalibration(SBJControllerSettingsForCalibration settings, double TriggerVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        
+        private bool CloseJunctionByElectroMagnetForCalibration(CalibrationSettings settings, double TriggerVoltage, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
             bool isPermanentClosedCircuit = false;
@@ -618,7 +624,8 @@ namespace SBJController
             }
             return e.Cancel;
         }
-        private int SaveData(SBJControllerSettingsForCalibration settings, IList<IDataChannel> activeChannels, IList<IDataChannel> physicalChannels, int fileNumber)
+        
+        private int SaveData(CalibrationSettings settings, IList<IDataChannel> activeChannels, IList<IDataChannel> physicalChannels, int fileNumber)
         {
             string path = settings.CalibirationSettings.Path;
             int finalNumber = fileNumber;
@@ -651,6 +658,7 @@ namespace SBJController
             }
             return finalNumber;
         }
+        
         private bool ObtainOpenJunctionByElectroMagnet(double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
@@ -713,6 +721,7 @@ namespace SBJController
             }
             return e.Cancel;
         }
+        
         private double AverageVoltageAfterEachStep(double[,] dataAfterEachSter)
         {
             double average = 0;
@@ -725,6 +734,7 @@ namespace SBJController
             }
             return average;
         }
+        
         private double[,] ConvertToMatrix(List<double> rawDataList)
         {
             double[,] data = new double[1, rawDataList.Count];
@@ -736,77 +746,4 @@ namespace SBJController
             return data;
         }
     }
-    public class SBJControllerSettingsForCalibration
-    {
-        public CalibrationSBJControllerSettings CalibirationSettings { get; set; }
-        public ElectroMagnetSBJControllerSettings ElectromagnetSettings { get; set; }
-        public ChannelsSettings ChannelsSettings { get; set; }
-
-        public SBJControllerSettingsForCalibration(CalibrationSBJControllerSettings calibirationSettings,
-                                                   ElectroMagnetSBJControllerSettings electromagnetSettings,
-                                                   ChannelsSettings channelsSettings)
-        {
-            CalibirationSettings = calibirationSettings;
-            ElectromagnetSettings = electromagnetSettings;                        
-            ChannelsSettings = channelsSettings;
-        }
-    }
-    public class CalibrationSBJControllerSettings
-    {
-    
-        public double Bias { get; set; }
-        public string Gain { get; set; }
-        public double TriggerVoltage { get; set; }
-        public double TriggerConductance { get; set; }
-        public int TotalSamples { get; set; }
-        public int SampleRate { get; set; }
-        public int PretriggerSamples { get; set; }
-        public bool IsFileSavingRequired { get; set; }
-        public string Path { get; set; }
-        public int CurrentFileNumber { get; set; }
-        public int TotalNumberOfCycles { get; set; }
-        public double ShortCircuitVoltage { get; set; }
-        public bool EnableElectroMagnet { get; set; }
-        public bool UseKeithley { get; set; }
-        public int DelayTime { get; set; }
-        public bool OpenJunctionOption { get; set; }
-        public bool CloseJunctionOption { get; set; }
-        public bool BothOptions { get; set; }
-
-        public CalibrationSBJControllerSettings (double bias, string gain, double triggerVoltage,
-                                                 double triggerConductance, bool isFileSavingRequired,
-                                                 int sampleRate, string path, int currentFileNumber, 
-                                                 int totalNUmberOfCycles, double shourtCircuitVoltage,
-                                                 bool enableElectroMagnet, bool useKeithley,int delayTime,
-                                                 bool openJunctionOption, bool closeJunctionOption,
-                                                 bool bothOptions)
-        {
-            Bias = bias;
-            Gain = gain;
-            TriggerConductance = triggerConductance;
-            TriggerVoltage = triggerVoltage;
-            SampleRate = sampleRate;
-            IsFileSavingRequired = isFileSavingRequired;
-            Path = path;
-            CurrentFileNumber = currentFileNumber;
-            TotalNumberOfCycles = totalNUmberOfCycles;
-            ShortCircuitVoltage = shourtCircuitVoltage;
-            DelayTime = delayTime;
-            EnableElectroMagnet = enableElectroMagnet;
-            UseKeithley = useKeithley;
-            OpenJunctionOption = openJunctionOption;
-            CloseJunctionOption = closeJunctionOption;
-            BothOptions = bothOptions;
-        }
-
-        public override string ToString()
-        {
-            StringBuilder toStringResult = new StringBuilder("Calibration Settings:" + Environment.NewLine);
-            foreach (var property in this.GetType().GetProperties())
-            {
-                toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString() + Environment.NewLine);
-            }
-            return toStringResult.ToString();
-        }
-    }  
 }
