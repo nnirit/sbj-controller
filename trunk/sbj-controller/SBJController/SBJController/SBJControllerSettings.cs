@@ -204,8 +204,10 @@ namespace SBJController
             return toStringResult.ToString();
         }
     }
-    
-    //TODO: add summary here
+
+    /// <summary>
+    /// This class represents the channels settinngs in the UI
+    /// </summary>
     public class ChannelsSettings
     {
         private IList<IDataChannel> m_activeChannels;
@@ -349,5 +351,81 @@ namespace SBJController
             return toStringResult.ToString();
         }
     }
+    #endregion
+
+    #region Calibration
+    public class CalibrationSettings
+    {
+        public CalibrationGeneralSettings CalibirationSettings { get; set; }
+        public ElectroMagnetSBJControllerSettings ElectromagnetSettings { get; set; }
+        public ChannelsSettings ChannelsSettings { get; set; }
+
+        public CalibrationSettings(CalibrationGeneralSettings calibirationSettings,
+                                                   ElectroMagnetSBJControllerSettings electromagnetSettings,
+                                                   ChannelsSettings channelsSettings)
+        {
+            CalibirationSettings = calibirationSettings;
+            ElectromagnetSettings = electromagnetSettings;
+            ChannelsSettings = channelsSettings;
+        }
+    }
+
+    public class CalibrationGeneralSettings
+    {
+        public double Bias { get; set; }
+        public string Gain { get; set; }
+        public double TriggerVoltage { get; set; }
+        public double TriggerConductance { get; set; }
+        public int TotalSamples { get; set; }
+        public int SampleRate { get; set; }
+        public int PretriggerSamples { get; set; }
+        public bool IsFileSavingRequired { get; set; }
+        public string Path { get; set; }
+        public int CurrentFileNumber { get; set; }
+        public int TotalNumberOfCycles { get; set; }
+        public double ShortCircuitVoltage { get; set; }
+        public bool EnableElectroMagnet { get; set; }
+        public bool UseKeithley { get; set; }
+        public int DelayTime { get; set; }
+        public bool OpenJunctionOption { get; set; }
+        public bool CloseJunctionOption { get; set; }
+        public bool BothOptions { get; set; }
+
+        public CalibrationGeneralSettings(double bias, string gain, double triggerVoltage,
+                                                 double triggerConductance, bool isFileSavingRequired,
+                                                 int sampleRate, string path, int currentFileNumber,
+                                                 int totalNUmberOfCycles, double shourtCircuitVoltage,
+                                                 bool enableElectroMagnet, bool useKeithley, int delayTime,
+                                                 bool openJunctionOption, bool closeJunctionOption,
+                                                 bool bothOptions)
+        {
+            Bias = bias;
+            Gain = gain;
+            TriggerConductance = triggerConductance;
+            TriggerVoltage = triggerVoltage;
+            SampleRate = sampleRate;
+            IsFileSavingRequired = isFileSavingRequired;
+            Path = path;
+            CurrentFileNumber = currentFileNumber;
+            TotalNumberOfCycles = totalNUmberOfCycles;
+            ShortCircuitVoltage = shourtCircuitVoltage;
+            DelayTime = delayTime;
+            EnableElectroMagnet = enableElectroMagnet;
+            UseKeithley = useKeithley;
+            OpenJunctionOption = openJunctionOption;
+            CloseJunctionOption = closeJunctionOption;
+            BothOptions = bothOptions;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder toStringResult = new StringBuilder("Calibration Settings:" + Environment.NewLine);
+            foreach (var property in this.GetType().GetProperties())
+            {
+                toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString() + Environment.NewLine);
+            }
+            return toStringResult.ToString();
+        }
+    }  
     #endregion
 }

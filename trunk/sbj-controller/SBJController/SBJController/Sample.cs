@@ -189,6 +189,7 @@ namespace SBJController
         Ti,
         Au,
         Pt,
-        Ag
+        Ag,
+        Ni
     }
 }
