@@ -135,6 +135,11 @@
             this.emFastDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.enableElectroMagnetCheckBox = new System.Windows.Forms.CheckBox();
             this.emFastDelayTimeLabel = new System.Windows.Forms.Label();
+            this.externalEMTabPage = new System.Windows.Forms.TabPage();
+            this.externalEMpanel = new System.Windows.Forms.Panel();
+            this.lambdaZupOutputVoltageNumericEdit = new NationalInstruments.UI.WindowsForms.NumericEdit();
+            this.lambdaZupOutputVoltageLabel = new System.Windows.Forms.Label();
+            this.useLambdaZupCheckBox = new System.Windows.Forms.CheckBox();
             this.channelsConfigurationTabPage = new System.Windows.Forms.TabPage();
             this.channelsSettingsPanel = new System.Windows.Forms.Panel();
             this.channel1ComboBox = new System.Windows.Forms.ComboBox();
@@ -331,6 +336,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.emShortCircuitDelayTimeNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.emSlowDelayTimeNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.emFastDelayTimeNumericUpDown)).BeginInit();
+            this.externalEMTabPage.SuspendLayout();
+            this.externalEMpanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.lambdaZupOutputVoltageNumericEdit)).BeginInit();
             this.channelsConfigurationTabPage.SuspendLayout();
             this.channelsSettingsPanel.SuspendLayout();
             this.ivAcquisition.SuspendLayout();
@@ -408,7 +416,7 @@
             this.controllerTabControl.Location = new System.Drawing.Point(0, 0);
             this.controllerTabControl.Name = "controllerTabControl";
             this.controllerTabControl.SelectedIndex = 0;
-            this.controllerTabControl.Size = new System.Drawing.Size(787, 830);
+            this.controllerTabControl.Size = new System.Drawing.Size(787, 746);
             this.controllerTabControl.TabIndex = 2;
             this.controllerTabControl.Tag = "";
             // 
@@ -423,7 +431,7 @@
             this.dataAquisitionTabPage.Location = new System.Drawing.Point(4, 22);
             this.dataAquisitionTabPage.Name = "dataAquisitionTabPage";
             this.dataAquisitionTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.dataAquisitionTabPage.Size = new System.Drawing.Size(779, 804);
+            this.dataAquisitionTabPage.Size = new System.Drawing.Size(779, 720);
             this.dataAquisitionTabPage.TabIndex = 0;
             this.dataAquisitionTabPage.Text = "DAQ";
             this.dataAquisitionTabPage.UseVisualStyleBackColor = true;
@@ -473,10 +481,10 @@
             this.operateGroupBox.Controls.Add(this.fileNumberNumericUpDown);
             this.operateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.operateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.operateGroupBox.Location = new System.Drawing.Point(3, 617);
+            this.operateGroupBox.Location = new System.Drawing.Point(3, 628);
             this.operateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.operateGroupBox.Name = "operateGroupBox";
-            this.operateGroupBox.Size = new System.Drawing.Size(773, 184);
+            this.operateGroupBox.Size = new System.Drawing.Size(756, 184);
             this.operateGroupBox.TabIndex = 23;
             this.operateGroupBox.TabStop = false;
             this.operateGroupBox.Text = "Operate";
@@ -755,7 +763,7 @@
             this.samplePropertiesGroupBox.ForeColor = System.Drawing.Color.Red;
             this.samplePropertiesGroupBox.Location = new System.Drawing.Point(553, 364);
             this.samplePropertiesGroupBox.Name = "samplePropertiesGroupBox";
-            this.samplePropertiesGroupBox.Size = new System.Drawing.Size(216, 247);
+            this.samplePropertiesGroupBox.Size = new System.Drawing.Size(182, 247);
             this.samplePropertiesGroupBox.TabIndex = 20;
             this.samplePropertiesGroupBox.TabStop = false;
             this.samplePropertiesGroupBox.Text = "Sample Properties";
@@ -791,7 +799,7 @@
             this.samplePropertiesTabControl.MinimumSize = new System.Drawing.Size(150, 0);
             this.samplePropertiesTabControl.Name = "samplePropertiesTabControl";
             this.samplePropertiesTabControl.SelectedIndex = 0;
-            this.samplePropertiesTabControl.Size = new System.Drawing.Size(210, 183);
+            this.samplePropertiesTabControl.Size = new System.Drawing.Size(176, 183);
             this.samplePropertiesTabControl.TabIndex = 0;
             // 
             // bottomTabPage
@@ -800,7 +808,7 @@
             this.bottomTabPage.Location = new System.Drawing.Point(4, 22);
             this.bottomTabPage.Name = "bottomTabPage";
             this.bottomTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.bottomTabPage.Size = new System.Drawing.Size(202, 157);
+            this.bottomTabPage.Size = new System.Drawing.Size(168, 157);
             this.bottomTabPage.TabIndex = 0;
             this.bottomTabPage.Text = "Bottom";
             this.bottomTabPage.UseVisualStyleBackColor = true;
@@ -813,7 +821,7 @@
             this.bottomPropertyGrid.MinimumSize = new System.Drawing.Size(150, 0);
             this.bottomPropertyGrid.Name = "bottomPropertyGrid";
             this.bottomPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.bottomPropertyGrid.Size = new System.Drawing.Size(196, 151);
+            this.bottomPropertyGrid.Size = new System.Drawing.Size(162, 151);
             this.bottomPropertyGrid.TabIndex = 1;
             // 
             // TopTabPage
@@ -822,7 +830,7 @@
             this.TopTabPage.Location = new System.Drawing.Point(4, 22);
             this.TopTabPage.Name = "TopTabPage";
             this.TopTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.TopTabPage.Size = new System.Drawing.Size(202, 157);
+            this.TopTabPage.Size = new System.Drawing.Size(168, 157);
             this.TopTabPage.TabIndex = 1;
             this.TopTabPage.Text = "Top";
             this.TopTabPage.UseVisualStyleBackColor = true;
@@ -834,7 +842,7 @@
             this.topPropertyGrid.Location = new System.Drawing.Point(3, 3);
             this.topPropertyGrid.Name = "topPropertyGrid";
             this.topPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.topPropertyGrid.Size = new System.Drawing.Size(196, 151);
+            this.topPropertyGrid.Size = new System.Drawing.Size(162, 151);
             this.topPropertyGrid.TabIndex = 0;
             // 
             // settingsGroupBox
@@ -842,7 +850,7 @@
             this.settingsGroupBox.AutoSize = true;
             this.settingsGroupBox.Controls.Add(this.SettingsTabControl);
             this.settingsGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.settingsGroupBox.Location = new System.Drawing.Point(13, 364);
+            this.settingsGroupBox.Location = new System.Drawing.Point(13, 384);
             this.settingsGroupBox.MinimumSize = new System.Drawing.Size(521, 200);
             this.settingsGroupBox.Name = "settingsGroupBox";
             this.settingsGroupBox.Size = new System.Drawing.Size(534, 247);
@@ -856,6 +864,7 @@
             this.SettingsTabControl.Controls.Add(this.laserSettingsTabPage);
             this.SettingsTabControl.Controls.Add(this.LockInSettingsTabPage);
             this.SettingsTabControl.Controls.Add(this.ElectroMagnetTabPage);
+            this.SettingsTabControl.Controls.Add(this.externalEMTabPage);
             this.SettingsTabControl.Controls.Add(this.channelsConfigurationTabPage);
             this.SettingsTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SettingsTabControl.Location = new System.Drawing.Point(3, 16);
@@ -1862,6 +1871,59 @@
             this.emFastDelayTimeLabel.TabIndex = 2;
             this.emFastDelayTimeLabel.Text = "Fast Delay Time [ms]";
             // 
+            // externalEMTabPage
+            // 
+            this.externalEMTabPage.Controls.Add(this.externalEMpanel);
+            this.externalEMTabPage.Location = new System.Drawing.Point(4, 22);
+            this.externalEMTabPage.Name = "externalEMTabPage";
+            this.externalEMTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.externalEMTabPage.Size = new System.Drawing.Size(520, 202);
+            this.externalEMTabPage.TabIndex = 5;
+            this.externalEMTabPage.Text = "External EM";
+            this.externalEMTabPage.UseVisualStyleBackColor = true;
+            // 
+            // externalEMpanel
+            // 
+            this.externalEMpanel.Controls.Add(this.lambdaZupOutputVoltageNumericEdit);
+            this.externalEMpanel.Controls.Add(this.lambdaZupOutputVoltageLabel);
+            this.externalEMpanel.Controls.Add(this.useLambdaZupCheckBox);
+            this.externalEMpanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.externalEMpanel.Location = new System.Drawing.Point(3, 3);
+            this.externalEMpanel.Name = "externalEMpanel";
+            this.externalEMpanel.Size = new System.Drawing.Size(514, 196);
+            this.externalEMpanel.TabIndex = 0;
+            // 
+            // lambdaZupOutputVoltageNumericEdit
+            // 
+            this.lambdaZupOutputVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(2);
+            this.lambdaZupOutputVoltageNumericEdit.Location = new System.Drawing.Point(116, 39);
+            this.lambdaZupOutputVoltageNumericEdit.Name = "lambdaZupOutputVoltageNumericEdit";
+            this.lambdaZupOutputVoltageNumericEdit.Range = new NationalInstruments.UI.Range(0D, 12D);
+            this.lambdaZupOutputVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
+            this.lambdaZupOutputVoltageNumericEdit.TabIndex = 24;
+            // 
+            // lambdaZupOutputVoltageLabel
+            // 
+            this.lambdaZupOutputVoltageLabel.AutoSize = true;
+            this.lambdaZupOutputVoltageLabel.ForeColor = System.Drawing.Color.Black;
+            this.lambdaZupOutputVoltageLabel.Location = new System.Drawing.Point(5, 41);
+            this.lambdaZupOutputVoltageLabel.Name = "lambdaZupOutputVoltageLabel";
+            this.lambdaZupOutputVoltageLabel.Size = new System.Drawing.Size(94, 13);
+            this.lambdaZupOutputVoltageLabel.TabIndex = 23;
+            this.lambdaZupOutputVoltageLabel.Text = "Output Voltage [V]";
+            // 
+            // useLambdaZupCheckBox
+            // 
+            this.useLambdaZupCheckBox.AutoSize = true;
+            this.useLambdaZupCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.useLambdaZupCheckBox.Location = new System.Drawing.Point(8, 8);
+            this.useLambdaZupCheckBox.Name = "useLambdaZupCheckBox";
+            this.useLambdaZupCheckBox.Size = new System.Drawing.Size(108, 17);
+            this.useLambdaZupCheckBox.TabIndex = 22;
+            this.useLambdaZupCheckBox.Text = "Use Lambda Zup";
+            this.useLambdaZupCheckBox.UseVisualStyleBackColor = true;
+            this.useLambdaZupCheckBox.CheckedChanged += new System.EventHandler(this.useLambdaZupCheckBox_CheckedChanged);
+            // 
             // channelsConfigurationTabPage
             // 
             this.channelsConfigurationTabPage.Controls.Add(this.channelsSettingsPanel);
@@ -1984,7 +2046,7 @@
             this.ivAcquisition.Location = new System.Drawing.Point(4, 22);
             this.ivAcquisition.Name = "ivAcquisition";
             this.ivAcquisition.Padding = new System.Windows.Forms.Padding(3);
-            this.ivAcquisition.Size = new System.Drawing.Size(779, 804);
+            this.ivAcquisition.Size = new System.Drawing.Size(779, 720);
             this.ivAcquisition.TabIndex = 2;
             this.ivAcquisition.Text = "IV Acquisition";
             this.ivAcquisition.UseVisualStyleBackColor = true;
@@ -2909,7 +2971,7 @@
             this.calibrationTabPage.Location = new System.Drawing.Point(4, 22);
             this.calibrationTabPage.Name = "calibrationTabPage";
             this.calibrationTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.calibrationTabPage.Size = new System.Drawing.Size(779, 804);
+            this.calibrationTabPage.Size = new System.Drawing.Size(779, 720);
             this.calibrationTabPage.TabIndex = 3;
             this.calibrationTabPage.Text = "Calibration";
             this.calibrationTabPage.UseVisualStyleBackColor = true;
@@ -3652,7 +3714,7 @@
             this.controlPanelsTabPage.Location = new System.Drawing.Point(4, 22);
             this.controlPanelsTabPage.Name = "controlPanelsTabPage";
             this.controlPanelsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.controlPanelsTabPage.Size = new System.Drawing.Size(779, 804);
+            this.controlPanelsTabPage.Size = new System.Drawing.Size(779, 720);
             this.controlPanelsTabPage.TabIndex = 1;
             this.controlPanelsTabPage.Text = "Control Panels";
             this.controlPanelsTabPage.UseVisualStyleBackColor = true;
@@ -3738,7 +3800,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(787, 830);
+            this.ClientSize = new System.Drawing.Size(787, 746);
             this.Controls.Add(this.controllerTabControl);
             this.Name = "SBJControllerMainForm";
             this.Text = "SBJControllerMainForm";
@@ -3798,6 +3860,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.emShortCircuitDelayTimeNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.emSlowDelayTimeNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.emFastDelayTimeNumericUpDown)).EndInit();
+            this.externalEMTabPage.ResumeLayout(false);
+            this.externalEMpanel.ResumeLayout(false);
+            this.externalEMpanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.lambdaZupOutputVoltageNumericEdit)).EndInit();
             this.channelsConfigurationTabPage.ResumeLayout(false);
             this.channelsSettingsPanel.ResumeLayout(false);
             this.channelsSettingsPanel.PerformLayout();
@@ -4132,6 +4198,11 @@
         private System.Windows.Forms.CheckBox calibrationCloseJunctionCheckBox;
         private System.Windows.Forms.CheckBox calibrationOpenJunctionCheckBox;
         private System.Windows.Forms.Label calibrationMeasurementsTypeLabel;
+        private System.Windows.Forms.TabPage externalEMTabPage;
+        private System.Windows.Forms.Panel externalEMpanel;
+        private System.Windows.Forms.CheckBox useLambdaZupCheckBox;
+        private NationalInstruments.UI.WindowsForms.NumericEdit lambdaZupOutputVoltageNumericEdit;
+        private System.Windows.Forms.Label lambdaZupOutputVoltageLabel;
                          
     }
 }

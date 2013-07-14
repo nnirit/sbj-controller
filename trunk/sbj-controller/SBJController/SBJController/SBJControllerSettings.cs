@@ -13,18 +13,21 @@ namespace SBJController
         public LaserSBJControllerSettings LaserSettings { get; set; }
         public LockInSBJControllerSettings LockInSettings { get; set; }
         public ElectroMagnetSBJControllerSettings ElectromagnetSettings { get; set; }
+        public LambdaZupSBJControllerSettings LambdaZupSettings { get; set; }
         public ChannelsSettings ChannelsSettings { get; set; }
         
         public SBJControllerSettings(GeneralSBJControllerSettings generalSettings,
                                      LaserSBJControllerSettings laserSettings,
                                      LockInSBJControllerSettings lockInSettings,
                                      ElectroMagnetSBJControllerSettings electromagnetSettings,
+                                     LambdaZupSBJControllerSettings lambdaZupSettings,
                                      ChannelsSettings channelsSettings)
         {
             GeneralSettings = generalSettings;
             LaserSettings = laserSettings;
             LockInSettings = lockInSettings;
-            ElectromagnetSettings = electromagnetSettings;                        
+            ElectromagnetSettings = electromagnetSettings;
+            LambdaZupSettings = lambdaZupSettings;     
             ChannelsSettings = channelsSettings;
         }
     }
@@ -200,6 +203,32 @@ namespace SBJController
             foreach (var property in this.GetType().GetProperties())
             {
                 toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString()+ Environment.NewLine);
+            }
+            return toStringResult.ToString();
+        }
+    }
+
+    /// <summary>
+    /// This class represents the general lockin in the UI
+    /// </summary>
+    public class LambdaZupSBJControllerSettings
+    {
+        public bool IsLambdaZupEnable { get; set; }
+        public double OutputVoltage { get; set; }
+
+
+        public LambdaZupSBJControllerSettings(bool isLambdaZupEnable, double outputVoltage)
+        {
+            IsLambdaZupEnable = isLambdaZupEnable;
+            OutputVoltage = outputVoltage;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder toStringResult = new StringBuilder("LambdaZup Settings:" + Environment.NewLine);
+            foreach (var property in this.GetType().GetProperties())
+            {
+                toStringResult.Append(property.Name + ":\t" + property.GetValue(this, null).ToString() + Environment.NewLine);
             }
             return toStringResult.ToString();
         }
