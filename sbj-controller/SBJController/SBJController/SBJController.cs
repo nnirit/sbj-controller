@@ -23,6 +23,7 @@ namespace SBJController
         private SourceMeter m_sourceMeter;
         private Tabor m_taborLaserController;
         private LockIn m_LockIn;
+        private LambdaZup m_lambdaZup;
         private DataAcquisitionController m_daqController;
         private Task m_task;
         private bool m_quitJunctionOpenningOperation;
@@ -74,6 +75,12 @@ namespace SBJController
             get { return m_taborLaserController; }
             set { m_taborLaserController = value; }
         }
+
+        public LambdaZup LambdaZup
+        {
+            get { return m_lambdaZup; }
+            set { m_lambdaZup = value; }
+        }
         #endregion
 
         #region Constructor
@@ -90,6 +97,7 @@ namespace SBJController
             m_quitJunctionOpenningOperation = false;
             m_taborLaserController = new Tabor();
             m_LockIn = new LockIn();
+            m_lambdaZup = new LambdaZup();
             InitializeComponents();
         }
         #endregion
@@ -739,6 +747,12 @@ namespace SBJController
                                  settings.GeneralSettings.BiasError);
 
             //
+            // Use Lambda Zup to apply constant voltage on external electromagnet if needed
+            //
+            UseLambdaZupIfNeeded(settings.LambdaZupSettings.IsLambdaZupEnable,
+                                 settings.LambdaZupSettings.OutputVoltage);
+
+            //
             // Configure the laser if needed for this run
             //
             ConfigureLaserIfNeeded(settings);
@@ -950,6 +964,10 @@ namespace SBJController
             if (settings.ElectromagnetSettings.IsEMEnable)
             {
                 m_electroMagnet.Shutdown();
+            }
+            if (settings.LambdaZupSettings.IsLambdaZupEnable)
+            {
+                m_lambdaZup.TurnOffOutput();
             }
             m_task.Dispose();
             m_stepperMotor.Shutdown();
@@ -1482,6 +1500,19 @@ namespace SBJController
                         throw new SBJException("Error occured when tryin to start DAQ output task", ex);
                     }
                 }
+            }
+        }
+
+
+        /// <summary>
+        /// if lambdaZup is needed, then set an output and turn it on. 
+        /// </summary>
+        public void UseLambdaZupIfNeeded(bool useLambdaZup, double voltage)
+        {
+            if (useLambdaZup)
+            {
+                m_lambdaZup.SetVoltage(voltage);
+                m_lambdaZup.TurnOnOutput();
             }
         }
 

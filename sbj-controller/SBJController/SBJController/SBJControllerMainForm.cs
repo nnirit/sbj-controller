@@ -1226,6 +1226,8 @@ namespace SBJController
                                                                                          this.emHoldOnMinConductanceNumericEdit.Value,
                                                                                          this.emHoldOnMinVoltageNumericEdit.Value,
                                                                                          this.emSkipFirstCycleByStepperMotorCheckBox.Checked),
+                                                  new LambdaZupSBJControllerSettings(this.useLambdaZupCheckBox.Checked,
+                                                                                     this.lambdaZupOutputVoltageNumericEdit.Value),
                                                   new ChannelsSettings(GetActiveChannels()));
                                                                          
 
@@ -2247,6 +2249,21 @@ namespace SBJController
         private void ivStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             StepperUpButtonFunction(this.ivStepperUpCheckBox.Checked);
+        }
+
+        private void useLambdaZupCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.useLambdaZupCheckBox.Checked)
+            {
+                try
+                {
+                    m_sbjController.LambdaZup.Connect();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Cannot connect to LambdaZup.");
+                }
+            }
         }
     }
 
