@@ -21,7 +21,8 @@ namespace SBJController
         private StepperMotor m_stepperMotor;
         private Amplifier m_amplifier;
         private SourceMeter m_sourceMeter;
-        private Tabor m_taborLaserController;
+        private ILaserController m_LaserController;
+        private TaborEOMController m_taborEOMController;
         private LockIn m_LockIn;
         private LambdaZup m_lambdaZup;
         private DataAcquisitionController m_daqController;
@@ -70,10 +71,16 @@ namespace SBJController
             set { m_LockIn = value; }
         }    
 
-        public Tabor Tabor
+        public ILaserController LaserController
         {
-            get { return m_taborLaserController; }
-            set { m_taborLaserController = value; }
+            get { return m_LaserController; }
+            set { m_LaserController = value; }
+        }
+
+        public TaborEOMController TaborEOM
+        {
+            get { return m_taborEOMController; }
+            set { m_taborEOMController = value; }
         }
 
         public LambdaZup LambdaZup
@@ -94,8 +101,7 @@ namespace SBJController
             m_amplifier = new Amplifier();
             m_sourceMeter = new SourceMeter();
             m_daqController = new DataAcquisitionController();
-            m_quitJunctionOpenningOperation = false;
-            m_taborLaserController = new Tabor();
+            m_quitJunctionOpenningOperation = false;            
             m_LockIn = new LockIn();
             m_lambdaZup = new LambdaZup();
             InitializeComponents();
@@ -166,7 +172,7 @@ namespace SBJController
                 // If voltgae had been changed in 0.0001% then switch to slow mode
                 // Note that voltage can be negative so we must take the absoulute value
                 //
-                if (!isDelayedChanged && (Math.Abs(currentVoltage) < Math.Abs(initialVoltage) * 0.9999))
+                if (!isDelayedChanged && (Math.Abs(currentVoltage) < Math.Abs(initialVoltage) * 0.95))
                 {
                     m_stepperMotor.Delay = settings.GeneralSettings.StepperWaitTime2;
                     isDelayedChanged = true;
@@ -364,7 +370,7 @@ namespace SBJController
         /// <param name="settings">The settings by which the laser is to be configured</param>
         /// <exception cref="SBJException"></exception>
         private void ConfigureLaserIfNeeded(SBJControllerSettings settings)
-        {
+        {            
             //
             // Return if no need to turn the laser on
             //
@@ -373,23 +379,38 @@ namespace SBJController
                 return;
             }
 
-            if (settings.LaserSettings.LaserMode.Equals("DC"))
+            ILaserController laserController = null;
+
+            if (settings.LaserSettings.LaserMode.Equals("IODrive"))
             {
-                m_taborLaserController.SetDCMode();
-                m_taborLaserController.SetDcModeAmplitude(settings.LaserSettings.LaserAmplitudeVolts);
+                (m_LaserController as IODriveLaserController).SetAmplitude(settings.LaserSettings.LaserAmplitudeVolts);                
             }
             else
             {
-                if (settings.LaserSettings.LaserMode.Equals("Square"))
+                if (settings.LaserSettings.LaserMode.Equals("DC"))
                 {
-                    m_taborLaserController.SetSquareMode();
-                    m_taborLaserController.SetSquareModeAmplitude(settings.LaserSettings.LaserAmplitudeVolts);
-                    m_taborLaserController.SetSquareModeFrequency(settings.LaserSettings.LaserFrequency);
+                    (laserController as TaborLaserController).SetDCMode();
+                    (laserController as TaborLaserController).SetAmplitude(settings.LaserSettings.LaserAmplitudeVolts);
                 }
                 else
                 {
-                    throw new SBJException("Invalid laser mode. Expected modes: DC or Sqaure");
+                    if (settings.LaserSettings.LaserMode.Equals("Square"))
+                    {
+                        (laserController as TaborLaserController).SetSquareMode();
+                        (laserController as TaborLaserController).SetSquareModeAmplitude(settings.LaserSettings.LaserAmplitudeVolts);
+                        (laserController as TaborLaserController).SetSquareModeFrequency(settings.LaserSettings.LaserFrequency);
+                    }
+                    else
+                    {
+                        throw new SBJException("Invalid laser mode. Expected modes: DC or Sqaure");
+                    }
                 }
+            }
+
+            if (settings.LaserSettings.IsEOMOn)
+            {
+                m_taborEOMController.SetSinusoidMode(settings.LaserSettings.ModulationFrequency);
+                m_taborEOMController.TurnOn();
             }
         }
 
@@ -464,7 +485,8 @@ namespace SBJController
             //
             // Check for complex data channels possible combinations
             //
-            List<IDataChannel> complexLockInChannels = new List<IDataChannel>();
+            List<IDataChannel> complexLockInInternalChannels = new List<IDataChannel>();
+            List<IDataChannel> complexLockInExternalChannels = new List<IDataChannel>();
             List<IDataChannel> complexIVChannels = new List<IDataChannel>();
 
             for (int i = 0; i < activeChannels.Count; i++)
@@ -472,7 +494,13 @@ namespace SBJController
                 if (activeChannels[i].GetType().Equals(typeof(LockInXInternalSourceDataChannel)) ||
                     activeChannels[i].GetType().Equals(typeof(LockInYInternalSourceDataChannel)))
                 {
-                    complexLockInChannels.Add(activeChannels[i]);
+                    complexLockInInternalChannels.Add(activeChannels[i]);
+                }
+
+                if (activeChannels[i].GetType().Equals(typeof(LockInXExternalSourceChannel)) ||
+                   activeChannels[i].GetType().Equals(typeof(LockInYExternalSourceChannel)))
+                {
+                    complexLockInExternalChannels.Add(activeChannels[i]);
                 }
 
                 if (activeChannels[i].GetType().Equals(typeof(IVInputDataChannel)) ||
@@ -489,13 +517,22 @@ namespace SBJController
             //
             IList<IDataChannel> possibleChannelsForDisplay = new List<IDataChannel>(activeChannels);
 
-            if (complexLockInChannels.Count == 2)
+            if (complexLockInInternalChannels.Count == 2)
             {
-                LockInXYInternalSourceDataChannel XYChannel = new LockInXYInternalSourceDataChannel(complexLockInChannels[0].DataConvertionSettings);
-                XYChannel.RawData = new List<double[]>(complexLockInChannels[0].RawData);
-                XYChannel.RawData.Add(complexLockInChannels[1].RawData[0]);
+                LockInXYInternalSourceDataChannel XYChannel = new LockInXYInternalSourceDataChannel(complexLockInInternalChannels[0].DataConvertionSettings);
+                XYChannel.RawData = new List<double[]>(complexLockInInternalChannels[0].RawData);
+                XYChannel.RawData.Add(complexLockInInternalChannels[1].RawData[0]);
                 possibleChannelsForDisplay.Add(XYChannel);
             }
+
+            if (complexLockInExternalChannels.Count == 2)
+            {
+                LockInXYExtrenalSourceDataChannel XYChannel = new LockInXYExtrenalSourceDataChannel(complexLockInExternalChannels[0].DataConvertionSettings);
+                XYChannel.RawData = new List<double[]>(complexLockInExternalChannels[0].RawData);
+                XYChannel.RawData.Add(complexLockInExternalChannels[1].RawData[0]);
+                possibleChannelsForDisplay.Add(XYChannel);
+            }
+
 
             if (complexIVChannels.Count == 2)
             {
@@ -801,7 +838,7 @@ namespace SBJController
                 //
                 if (settings.LaserSettings.IsLaserOn)
                 {
-                    m_taborLaserController.TurnOff();
+                    m_LaserController.TurnOff();
                     Thread.Sleep(5000);
                 }
 
@@ -835,7 +872,7 @@ namespace SBJController
 
                 if (settings.LaserSettings.IsLaserOn)
                 {
-                    m_taborLaserController.TurnOn();
+                    m_LaserController.TurnOn();
                 }
 
                 //
@@ -959,11 +996,15 @@ namespace SBJController
             //
             if (settings.LaserSettings.IsLaserOn)
             {
-                m_taborLaserController.TurnOff();
+                m_LaserController.TurnOff();
             }
             if (settings.ElectromagnetSettings.IsEMEnable)
             {
                 m_electroMagnet.Shutdown();
+            }
+            if (settings.LaserSettings.IsEOMOn)
+            {
+                m_taborEOMController.TurnOff();
             }
             if (settings.LambdaZupSettings.IsLambdaZupEnable)
             {
@@ -1035,7 +1076,7 @@ namespace SBJController
             //
             if (settings.LaserSettings.IsLaserOn)
             {
-                m_taborLaserController.TurnOff();
+                m_LaserController.TurnOff();
                 Thread.Sleep(5000);
             }
 
@@ -1070,7 +1111,7 @@ namespace SBJController
 
             if (settings.LaserSettings.IsLaserOn)
             {
-                m_taborLaserController.TurnOn();
+                m_LaserController.TurnOn();
             }
 
             //
@@ -1157,7 +1198,8 @@ namespace SBJController
                 //
                 m_task.Stop();
                 m_task.Dispose();
-                m_taborLaserController.TurnOff();
+                m_LaserController.TurnOff();
+                m_taborEOMController.TurnOff();
                 return false;
             }
 
@@ -1206,12 +1248,17 @@ namespace SBJController
             //
             if (settings.LaserSettings.IsLaserOn)
             {
-                m_taborLaserController.TurnOff();
+                m_LaserController.TurnOff();
             }
             if (settings.ElectromagnetSettings.IsEMEnable)
             {
                 m_electroMagnet.Shutdown();
             }
+            if (settings.LaserSettings.IsEOMOn)
+            {
+                m_taborEOMController.TurnOff();
+            }
+
             m_task.Dispose();
             m_stepperMotor.Shutdown();
 
@@ -1503,7 +1550,6 @@ namespace SBJController
             }
         }
 
-
         /// <summary>
         /// if lambdaZup is needed, then set an output and turn it on. 
         /// </summary>
@@ -1546,7 +1592,7 @@ namespace SBJController
             m_sourceMeter.Shutdown();
             m_amplifier.Shutdown();
             m_electroMagnet.Shutdown();
-            m_taborLaserController.Shutdown();
+            m_LaserController.Disconnect();
             m_LockIn.Shutdown();
             if (m_task != null)
             {

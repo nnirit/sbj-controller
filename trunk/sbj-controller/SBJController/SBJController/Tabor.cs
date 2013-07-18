@@ -8,10 +8,13 @@ using SBJController.Properties;
 
 namespace SBJController
 {
-    public class Tabor : VisaInstrument
+    /// <summary>
+    /// This class represents the Tabor instrumnet
+    /// </summary>
+    public class TaborController : VisaInstrument
     {  
         private const string c_dcModeCommand = "FUNCtion:SHAPe DC";
-        private const string c_squareModeCommand = "FUNCtion:SHAPe SQUare";
+        private const string c_squareModeCommand = "FUNCtion:SHAPe SQUare";        
         private const string c_dcAmplitudeCommand = "DC {0}";
         private const string c_squareAmplitudeCommand = "VOLTage {0}";
         private const string c_squareFrequencyCommand = "FREQuency {0}";
@@ -19,10 +22,16 @@ namespace SBJController
         private const string c_turnOnCommand = "OUTPut 1";
         private const string c_localCommand = "SYSTem: LOCal"; 
         
-        public Tabor() : base (Settings.Default.TaborAddress)
-        {
-        }
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="address">The GPIB address</param>
+        public TaborController(string address) : base (address)
+        {}
 
+        /// <summary>
+        /// Connect to the device
+        /// </summary>
         new public void Connect()
         {
             base.Connect();
@@ -36,9 +45,9 @@ namespace SBJController
         public void SetSquareMode()
         {
             Write(c_squareModeCommand, "Error occured while trying to set square mode.");            
-        }
+        }      
 
-        public void SetDcModeAmplitude(double voltAmplitude)
+        public void SetAmplitude(double voltAmplitude)
         {
             Write(String.Format(c_dcAmplitudeCommand, voltAmplitude), "Error occured while trying to set DC mode amplitude.");           
         }
@@ -53,7 +62,7 @@ namespace SBJController
             Write(String.Format(c_squareFrequencyCommand, frequency), "Error occured while trying to set Square mode frequency.");            
         }
 
-        public void SetLocalMode()
+        public void Disconnect()
         {
             Write(c_localCommand, "Error occured while trying to set local mode.");
         }
@@ -67,5 +76,32 @@ namespace SBJController
         {
             Write(c_turnOnCommand, "Error occured while trying to turn on Tabor.");            
         }       
+    }
+
+    /// <summary>
+    /// This class represents the Tabor as the laser controller
+    /// </summary>
+    public class TaborLaserController : TaborController, ILaserController
+    {
+        public TaborLaserController()
+            : base(Settings.Default.TaborLaserAddress)
+        { }
+    }
+
+    /// <summary>
+    /// This class represents the Tabor as the controller for the Electro Optical Modulator.
+    /// </summary>
+    public class TaborEOMController : TaborController
+    {
+        private const string c_sinusoidModeCommand = ":SOUR:APPL:SIN ";
+
+        public TaborEOMController()
+            : base(Settings.Default.TaborEOMAddress)
+        { }
+
+        public void SetSinusoidMode(int frequency)
+        {
+            Write(c_sinusoidModeCommand+frequency+",10,0,0", "Error occured while trying to set sinusoid mode.");            
+        }
     }
 }

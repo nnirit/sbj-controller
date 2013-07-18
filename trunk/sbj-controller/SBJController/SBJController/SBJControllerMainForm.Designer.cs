@@ -90,7 +90,11 @@
             this.biasLabel = new System.Windows.Forms.Label();
             this.laserSettingsTabPage = new System.Windows.Forms.TabPage();
             this.laserSettingsPanel = new System.Windows.Forms.Panel();
-            this.laseAmplitudeOnSampleNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.enableChopperCheckBox = new System.Windows.Forms.CheckBox();
+            this.externalFrequencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.externalFrequencyLabel = new System.Windows.Forms.Label();
+            this.enableEOMcheckBox = new System.Windows.Forms.CheckBox();
+            this.laserAmplitudeOnSampleNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.laserAmplitudeOnSampleLabel = new System.Windows.Forms.Label();
             this.laserAmplitudeWNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.laserAmplitudeWLabel = new System.Windows.Forms.Label();
@@ -315,7 +319,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.biasNumericEdit)).BeginInit();
             this.laserSettingsTabPage.SuspendLayout();
             this.laserSettingsPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.laseAmplitudeOnSampleNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.externalFrequencyNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeOnSampleNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeWNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.amplitudeNumericUpDown)).BeginInit();
@@ -729,7 +734,6 @@
             // waveformPlot1
             // 
             this.waveformPlot1.LineColor = System.Drawing.Color.Red;
-            this.waveformPlot1.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
             this.waveformPlot1.ToolTipsEnabled = true;
             this.waveformPlot1.XAxis = this.xAxis1;
             this.waveformPlot1.YAxis = this.yAxis1;
@@ -1030,7 +1034,7 @@
             // 
             this.sampleRateNumericUpDown.Location = new System.Drawing.Point(423, 29);
             this.sampleRateNumericUpDown.Maximum = new decimal(new int[] {
-            40000,
+            100000,
             0,
             0,
             0});
@@ -1198,7 +1202,11 @@
             // 
             // laserSettingsPanel
             // 
-            this.laserSettingsPanel.Controls.Add(this.laseAmplitudeOnSampleNumericUpDown);
+            this.laserSettingsPanel.Controls.Add(this.enableChopperCheckBox);
+            this.laserSettingsPanel.Controls.Add(this.externalFrequencyNumericUpDown);
+            this.laserSettingsPanel.Controls.Add(this.externalFrequencyLabel);
+            this.laserSettingsPanel.Controls.Add(this.enableEOMcheckBox);
+            this.laserSettingsPanel.Controls.Add(this.laserAmplitudeOnSampleNumericUpDown);
             this.laserSettingsPanel.Controls.Add(this.laserAmplitudeOnSampleLabel);
             this.laserSettingsPanel.Controls.Add(this.laserAmplitudeWNumericUpDown);
             this.laserSettingsPanel.Controls.Add(this.laserAmplitudeWLabel);
@@ -1216,25 +1224,78 @@
             this.laserSettingsPanel.Size = new System.Drawing.Size(514, 196);
             this.laserSettingsPanel.TabIndex = 5;
             // 
-            // laseAmplitudeOnSampleNumericUpDown
+            // enableChopperCheckBox
             // 
-            this.laseAmplitudeOnSampleNumericUpDown.DecimalPlaces = 3;
-            this.laseAmplitudeOnSampleNumericUpDown.Enabled = false;
-            this.laseAmplitudeOnSampleNumericUpDown.Increment = new decimal(new int[] {
+            this.enableChopperCheckBox.AutoSize = true;
+            this.enableChopperCheckBox.Enabled = false;
+            this.enableChopperCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.enableChopperCheckBox.Location = new System.Drawing.Point(409, 6);
+            this.enableChopperCheckBox.Name = "enableChopperCheckBox";
+            this.enableChopperCheckBox.Size = new System.Drawing.Size(102, 17);
+            this.enableChopperCheckBox.TabIndex = 13;
+            this.enableChopperCheckBox.Text = "Enable Chopper";
+            this.enableChopperCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // externalFrequencyNumericUpDown
+            // 
+            this.externalFrequencyNumericUpDown.Enabled = false;
+            this.externalFrequencyNumericUpDown.Location = new System.Drawing.Point(409, 35);
+            this.externalFrequencyNumericUpDown.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.externalFrequencyNumericUpDown.Name = "externalFrequencyNumericUpDown";
+            this.externalFrequencyNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.externalFrequencyNumericUpDown.TabIndex = 12;
+            this.externalFrequencyNumericUpDown.Value = new decimal(new int[] {
+            40,
+            0,
+            0,
+            0});
+            // 
+            // externalFrequencyLabel
+            // 
+            this.externalFrequencyLabel.AutoSize = true;
+            this.externalFrequencyLabel.Enabled = false;
+            this.externalFrequencyLabel.Location = new System.Drawing.Point(298, 37);
+            this.externalFrequencyLabel.Name = "externalFrequencyLabel";
+            this.externalFrequencyLabel.Size = new System.Drawing.Size(79, 13);
+            this.externalFrequencyLabel.TabIndex = 11;
+            this.externalFrequencyLabel.Text = "Frequency [Hz]";
+            // 
+            // enableEOMcheckBox
+            // 
+            this.enableEOMcheckBox.AutoSize = true;
+            this.enableEOMcheckBox.Enabled = false;
+            this.enableEOMcheckBox.ForeColor = System.Drawing.Color.Black;
+            this.enableEOMcheckBox.Location = new System.Drawing.Point(301, 6);
+            this.enableEOMcheckBox.Name = "enableEOMcheckBox";
+            this.enableEOMcheckBox.Size = new System.Drawing.Size(86, 17);
+            this.enableEOMcheckBox.TabIndex = 10;
+            this.enableEOMcheckBox.Text = "Enable EOM";
+            this.enableEOMcheckBox.UseVisualStyleBackColor = true;
+            this.enableEOMcheckBox.CheckedChanged += new System.EventHandler(this.enableEOMcheckBox_CheckedChanged);
+            // 
+            // laserAmplitudeOnSampleNumericUpDown
+            // 
+            this.laserAmplitudeOnSampleNumericUpDown.DecimalPlaces = 3;
+            this.laserAmplitudeOnSampleNumericUpDown.Enabled = false;
+            this.laserAmplitudeOnSampleNumericUpDown.Increment = new decimal(new int[] {
             1,
             0,
             0,
             65536});
-            this.laseAmplitudeOnSampleNumericUpDown.Location = new System.Drawing.Point(161, 98);
-            this.laseAmplitudeOnSampleNumericUpDown.Maximum = new decimal(new int[] {
-            5,
+            this.laserAmplitudeOnSampleNumericUpDown.Location = new System.Drawing.Point(161, 98);
+            this.laserAmplitudeOnSampleNumericUpDown.Maximum = new decimal(new int[] {
+            20,
             0,
             0,
             0});
-            this.laseAmplitudeOnSampleNumericUpDown.Name = "laseAmplitudeOnSampleNumericUpDown";
-            this.laseAmplitudeOnSampleNumericUpDown.Size = new System.Drawing.Size(75, 20);
-            this.laseAmplitudeOnSampleNumericUpDown.TabIndex = 9;
-            this.laseAmplitudeOnSampleNumericUpDown.Value = new decimal(new int[] {
+            this.laserAmplitudeOnSampleNumericUpDown.Name = "laserAmplitudeOnSampleNumericUpDown";
+            this.laserAmplitudeOnSampleNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.laserAmplitudeOnSampleNumericUpDown.TabIndex = 9;
+            this.laserAmplitudeOnSampleNumericUpDown.Value = new decimal(new int[] {
             4,
             0,
             0,
@@ -1262,7 +1323,7 @@
             65536});
             this.laserAmplitudeWNumericUpDown.Location = new System.Drawing.Point(161, 67);
             this.laserAmplitudeWNumericUpDown.Maximum = new decimal(new int[] {
-            5,
+            20,
             0,
             0,
             0});
@@ -1291,8 +1352,10 @@
             this.laserModeComboBox.Enabled = false;
             this.laserModeComboBox.FormattingEnabled = true;
             this.laserModeComboBox.Items.AddRange(new object[] {
+            "IODrive",
             "DC",
-            "Square"});
+            "Square",
+            "Sine"});
             this.laserModeComboBox.Location = new System.Drawing.Point(161, 4);
             this.laserModeComboBox.Name = "laserModeComboBox";
             this.laserModeComboBox.Size = new System.Drawing.Size(75, 21);
@@ -1304,6 +1367,11 @@
             // 
             this.frequencyNumericUpDown.Enabled = false;
             this.frequencyNumericUpDown.Location = new System.Drawing.Point(161, 129);
+            this.frequencyNumericUpDown.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
             this.frequencyNumericUpDown.Name = "frequencyNumericUpDown";
             this.frequencyNumericUpDown.Size = new System.Drawing.Size(75, 20);
             this.frequencyNumericUpDown.TabIndex = 5;
@@ -2309,7 +2377,6 @@
             // ivWaveformPlot
             // 
             this.ivWaveformPlot.LineColor = System.Drawing.Color.Red;
-            this.ivWaveformPlot.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
             this.ivWaveformPlot.ToolTipsEnabled = true;
             this.ivWaveformPlot.XAxis = this.ivXAxis;
             this.ivWaveformPlot.YAxis = this.ivYAxis;
@@ -3023,7 +3090,6 @@
             // calibrationWaveformPlot
             // 
             this.calibrationWaveformPlot.LineColor = System.Drawing.Color.Red;
-            this.calibrationWaveformPlot.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
             this.calibrationWaveformPlot.ToolTipsEnabled = true;
             this.calibrationWaveformPlot.XAxis = this.calibrationXAxis;
             this.calibrationWaveformPlot.YAxis = this.calibrationYAxis;
@@ -3809,7 +3875,8 @@
             this.laserSettingsTabPage.ResumeLayout(false);
             this.laserSettingsPanel.ResumeLayout(false);
             this.laserSettingsPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.laseAmplitudeOnSampleNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.externalFrequencyNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeOnSampleNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeWNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.amplitudeNumericUpDown)).EndInit();
@@ -4001,8 +4068,6 @@
         private System.Windows.Forms.Label emHoldOnMinConductanceLabel;
         private NationalInstruments.UI.WindowsForms.NumericEdit emHoldOnMinConductanceNumericEdit;
         private System.Windows.Forms.GroupBox groupBox1;
-        private ElectroMagnetUserControl electroMagnetUserControl2;
-        private StepperMotorUserControl stepperMotorUserControl1;
         private System.Windows.Forms.Label biasErrorLabel;
         private System.Windows.Forms.CheckBox fixBiasCheckBoxButton;
         private System.ComponentModel.BackgroundWorker fixBiasBackgroundWorker;
@@ -4158,8 +4223,12 @@
         private System.ComponentModel.BackgroundWorker manualStartBackgroundWorker;
         private System.Windows.Forms.NumericUpDown laserAmplitudeWNumericUpDown;
         private System.Windows.Forms.Label laserAmplitudeWLabel;
-        private System.Windows.Forms.NumericUpDown laseAmplitudeOnSampleNumericUpDown;
+        private System.Windows.Forms.NumericUpDown laserAmplitudeOnSampleNumericUpDown;
         private System.Windows.Forms.Label laserAmplitudeOnSampleLabel;
+        private System.Windows.Forms.NumericUpDown externalFrequencyNumericUpDown;
+        private System.Windows.Forms.Label externalFrequencyLabel;
+        private System.Windows.Forms.CheckBox enableEOMcheckBox;
+        private System.Windows.Forms.CheckBox enableChopperCheckBox;
         private System.Windows.Forms.GroupBox calibrationPlotGroupBox;
         private System.Windows.Forms.ListView calibrationChannelsListView;
         private System.Windows.Forms.NumericUpDown calibrationDelayTimeNumericUpDown;
