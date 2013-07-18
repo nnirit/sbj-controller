@@ -12,7 +12,7 @@ namespace SBJController
         #region Static Members
 
         private static byte s_analogOutChannel = 0;
-        private static int s_minEMDelay = 2;
+        private static int s_minEMDelay = 5;
         private static double s_voltInterval = 0.0048828125; //5/1024;
         private static double s_maxEMVoltage = 9.995;         //Maximal output voltage for the EM (10*2047/2048)
         private static double s_minEMVoltage = 0;        

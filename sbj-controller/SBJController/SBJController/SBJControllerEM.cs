@@ -379,7 +379,7 @@ namespace SBJController
         }
 
         /// <summary>
-        /// Obtain open circuit by stepper motor (returns when open circuit acheived)
+        /// Obtain open circuit by stepper motor (returns when open circuit acheived).
         /// This function does NOT wait for an outside sign! 
         /// </summary>
         /// <param name="openCircuitVoltage">the "trigger" voltage</param>

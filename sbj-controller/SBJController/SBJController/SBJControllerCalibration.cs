@@ -10,6 +10,13 @@ namespace SBJController
 {
     public partial class SBJController
     {
+        /// <summary>
+        /// Acquire data for Calibration.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
         public bool AquireCalibrationData(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             bool isCancelled = false;
@@ -35,24 +42,28 @@ namespace SBJController
             ApplyVoltageOnElectroMagnetIfNeeded(settings.ElectromagnetSettings.IsEMEnable);
 
             //
+            // Reach to contact before we start doint the cycles
+            //
+            isCancelled = CalibrationInitialShortCircuit(settings, worker, e);
+               
+            //
+            // if user cancelled work during the execution of the last function, close everything and exit.
+            //
+            if (isCancelled)
+            {
+                m_stepperMotor.Shutdown();
+                if (settings.ElectromagnetSettings.IsEMEnable)
+                {
+                    m_electroMagnet.Shutdown();
+                }
+                return isCancelled;
+            }
+
+            //
             // Create the task
             //
             m_task = GetCalibrationTask(settings, worker, e);
 
-            //
-            // Reach to contact before we start openning the junction
-            // If EM is enabled and we're after the first cycle, use the EM.
-            // If user asked to stop than exit
-            //
-            isCancelled = (settings.ElectromagnetSettings.IsEMEnable) ?
-                           EMTryObtainShortCircuitForCalibration(settings, worker, e) :
-                           TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
-            if (isCancelled)
-            {
-                m_stepperMotor.Shutdown();
-                return isCancelled;
-            }
-            
             //
             // physical channel will include both simple and complex channels. 
             // 
@@ -71,16 +82,6 @@ namespace SBJController
                     e.Cancel = true;
                     break;
                 }
-
-                //
-                // if EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
-                // move on to the next cycle.
-                //
-                if (settings.ElectromagnetSettings.IsEMEnable && settings.ElectromagnetSettings.IsEMSkipFirstCycleEnable && i == 0)
-                {
-                    m_stepperMotor.Shutdown();
-                    continue;
-                }
                 
                 //
                 // Start the task and wait for the data
@@ -97,88 +98,97 @@ namespace SBJController
                 currentVoltage = Math.Abs(AnalogIn(0));
 
                 //
-                // Start openning the junction.
-                // If EM is enabled and we're after the first cycle, use the EM.
+                // Start opening and/or closing the junction.
+                // If EM is enabled, use the EM.
                 //
-
                 if (settings.ElectromagnetSettings.IsEMEnable)
                 {
-                    if (i == 0)
+                    if (settings.CalibirationSettings.MeasurementType == CalibrationMeasurementType.OpenJunction)
                     {
                         //
-                        // open the junction by stepper motor. this function does it indipendently; 
-                        // it doesn't wait for the trigger task to finish. and we stay on the current thread. 
+                        // save only the opening process
                         //
-                        ObtainOpenJunctionByStepperMotorForCalibration(settings, settings.CalibirationSettings.TriggerVoltage, worker, e);
-
-                        //
-                        // from now on we will use the EM, so we don't want the stepper motor to stay on. 
-                        //
-                        m_stepperMotor.Shutdown();
-                        continue;
+                        ObtainOpenJunctionByElectroMagnetForCalibration(settings, worker, e);
+                        EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
                     }
-                    else
+
+                    if (settings.CalibirationSettings.MeasurementType == CalibrationMeasurementType.CloseJunction)
                     {
-                        if (settings.CalibirationSettings.OpenJunctionOption)
+                        //
+                        // save only the closing process
+                        //
+                        ObtainOpenJunctionByElectroMagnet(settings.CalibirationSettings.TriggerVoltage, worker, e);
+                        CloseJunctionByElectroMagnetForCalibration(settings, worker, e);
+                    }
+
+                    if (settings.CalibirationSettings.MeasurementType == CalibrationMeasurementType.BothOpenAndClose)
+                    {
+                        if (currentVoltage > 0.7 * settings.CalibirationSettings.ShortCircuitVoltage)
                         {
-                            ObtainOpenJunctionByElectroMagnetForCalibration(settings, settings.CalibirationSettings.TriggerVoltage, worker, e);
-                            EMTryObtainShortCircuitForCalibration(settings, worker, e);
+                            //
+                            // Open the Junction with saving
+                            //
+                            ObtainOpenJunctionByElectroMagnetForCalibration(settings, worker, e);
                         }
-                        if (settings.CalibirationSettings.CloseJunctionOption)
+                        else
                         {
-                            CloseJunctionByElectroMagnetForCalibration(settings, settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
-                            ObtainOpenJunctionByElectroMagnet(settings.CalibirationSettings.TriggerVoltage, worker, e);
-                        }
-                        if (settings.CalibirationSettings.BothOptions)
-                        {
-                            if (currentVoltage > 0.7 * settings.CalibirationSettings.ShortCircuitVoltage)
-                            {
-                                //
-                                // Open the Junction 
-                                //
-                                ObtainOpenJunctionByElectroMagnetForCalibration(settings, settings.CalibirationSettings.TriggerVoltage, worker, e);
-                            }
-                            else
-                            {
-                                //
-                                // Close the Junction
-                                //
-                                CloseJunctionByElectroMagnetForCalibration(settings, settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
-                            }
+                            //
+                            // Close the Junction with saving
+                            //
+                            CloseJunctionByElectroMagnetForCalibration(settings, worker, e);
                         }
                     }
                 }
                 else
                 {
-                    if (settings.CalibirationSettings.OpenJunctionOption)
+                    if (settings.CalibirationSettings.MeasurementType == CalibrationMeasurementType.OpenJunction)
                     {
-                        ObtainOpenJunctionByStepperMotorForCalibration(settings, settings.CalibirationSettings.TriggerVoltage, worker, e);
+                        //
+                        // save only the opening process
+                        //
+                        ObtainOpenJunctionByStepperMotorForCalibration(settings, worker, e);
                         TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
                     }
-                    if (settings.CalibirationSettings.CloseJunctionOption)
+
+                    if (settings.CalibirationSettings.MeasurementType == CalibrationMeasurementType.CloseJunction)
                     {
-                        CloseJunctionByStepperMotorForCalibration(settings, settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
+                        //
+                        // save only the closing process
+                        //
                         ObtainOpenJunctionByStepperMotor(settings.CalibirationSettings.TriggerVoltage, worker, e);
+                        CloseJunctionByStepperMotorForCalibration(settings, worker, e);
                     }
-                    if (settings.CalibirationSettings.BothOptions)
+
+                    if (settings.CalibirationSettings.MeasurementType == CalibrationMeasurementType.BothOpenAndClose)
                     {
                         if (currentVoltage > 0.7 * settings.CalibirationSettings.ShortCircuitVoltage)
                         {
                             //
-                            // Open the Junction 
+                            // Open the Junction with saving
                             //
-                            ObtainOpenJunctionByStepperMotorForCalibration(settings, settings.CalibirationSettings.TriggerVoltage, worker, e);
-                         }
-                         else
-                         {
+                            ObtainOpenJunctionByStepperMotorForCalibration(settings, worker, e);
+                        }
+                        else
+                        {
                             //
-                            // Close the Junction
+                            // Close the Junction with saving
                             //
-                            CloseJunctionByStepperMotorForCalibration(settings, settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
-                         }
-                      }
+                            CloseJunctionByStepperMotorForCalibration(settings, worker, e);
+                        }
+                    }  
+                }
 
-                    m_task.Stop();
+                //
+                // data acquisition is done for this trace, stop the task
+                //
+                m_task.Stop();
+
+                //
+                // if operation was cancelled by user during the closing/opening, quit without saving this trace.
+                //
+                if (e.Cancel)
+                {
+                    break;
                 }
 
                 //
@@ -193,7 +203,7 @@ namespace SBJController
 
                 if (settings.CalibirationSettings.IsFileSavingRequired)
                 {
-                    finalFileNumber = SaveData(settings, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+                    finalFileNumber = SaveData(settings.CalibirationSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
                 }
 
                 //
@@ -210,10 +220,65 @@ namespace SBJController
             //
             m_task.Dispose();
             m_stepperMotor.Shutdown();
+            if (settings.ElectromagnetSettings.IsEMEnable)
+            {
+                m_electroMagnet.Shutdown();
+            }
 
             return (isCancelled || e.Cancel);
         }
 
+        /// <summary>
+        /// Reach to contact by EM or Stepper motor.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns>did the user stopped the work.</returns>
+        private bool CalibrationInitialShortCircuit(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            bool isCancelled = false;
+           
+            //
+            // Reach to contact by stepper motor.
+            // We don't want to use stepper motor ONLY in the case we use the EM AND the skip-steppermotor is checked. 
+            //
+            if (!(settings.ElectromagnetSettings.IsEMEnable && settings.ElectromagnetSettings.IsEMSkipFirstCycleEnable))
+            {
+                isCancelled = TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
+                
+                //
+                // if we want to use EM, than we need to open the junction by the stepper motor and only then close it by the EM
+                //
+                if (settings.ElectromagnetSettings.IsEMEnable && !isCancelled)
+                {
+                    isCancelled = ObtainOpenJunctionByStepperMotor(settings.CalibirationSettings.TriggerVoltage, worker, e);
+
+                    //
+                    // from now on we will be using the electroMagnet, so lets turn the stepper motor off and move to the next cycle
+                    //
+                    m_stepperMotor.Shutdown();
+                }
+            }
+
+            //
+            // if EM is enabled, then reach contact by EM
+            //
+            if (settings.ElectromagnetSettings.IsEMEnable && !isCancelled)
+            {
+                EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
+            }
+
+            return isCancelled;
+        }
+
+        /// <summary>
+        /// read data and average it. 
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
         private double GetDataAfterEachStep(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double[,] dataAquired=null;
@@ -226,34 +291,49 @@ namespace SBJController
                 throw new SBJException("Number of data channels doesn't fit the recieved data.");
             }
 
-            return AverageVoltageAfterEachStep(dataAquired);
+            return AverageOverOneRawMatrix(dataAquired);
         }
 
+        /// <summary>
+        /// Get continuous analog-in task (calibration task)
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
         private Task GetCalibrationTask(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
-            TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
+            //TODO: delete the following note
+            //TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
 
-            //
-            // Determines the direction of the current - 
-            // Either positive (then voltage is negative) or negative (then voltage is positive number)
-            //
-            bool isPositiveVoltage = AnalogIn(0) > 0;
+            ////
+            //// Determines the direction of the current - 
+            //// Either positive (then voltage is negative) or negative (then voltage is positive number)
+            ////
+            //bool isPositiveVoltage = AnalogIn(0) > 0;
 
 
-            AnalogEdgeReferenceTriggerSlope triggerSlope = isPositiveVoltage ? AnalogEdgeReferenceTriggerSlope.Falling : AnalogEdgeReferenceTriggerSlope.Rising;
-            double triggerVoltage = isPositiveVoltage ? settings.CalibirationSettings.TriggerVoltage * (-1) : settings.CalibirationSettings.TriggerVoltage;
+            //AnalogEdgeReferenceTriggerSlope triggerSlope = isPositiveVoltage ? AnalogEdgeReferenceTriggerSlope.Falling : AnalogEdgeReferenceTriggerSlope.Rising;
+            //double triggerVoltage = isPositiveVoltage ? settings.CalibirationSettings.TriggerVoltage * (-1) : settings.CalibirationSettings.TriggerVoltage;
 
             //
             // Create the task with its propertites
             //
-            TaskProperties taskProperties = new TaskProperties(settings.CalibirationSettings.SampleRate,
-                                                               settings.CalibirationSettings.PretriggerSamples,
+            TaskProperties taskProperties = new TaskProperties(settings.CalibirationSettings.SampleRate, 
                                                                settings.ChannelsSettings.ActiveChannels);
 
             return m_daqController.CreateContinuousAITask(taskProperties);
         }
         
-        private bool ObtainOpenJunctionByStepperMotorForCalibration(CalibrationSettings settings, double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        /// <summary>
+        /// Open the junction using the stepper motor, while saving the current after each step.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="openCircuitVoltage"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool ObtainOpenJunctionByStepperMotorForCalibration(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
             bool isPermanentOpenCircuit = false;
@@ -294,8 +374,7 @@ namespace SBJController
                 }
 
                 //
-                // Get Data after each step and save it.
-                // Save the data for each cycle
+                // Get Data after each step and add it to rawDataList.
                 //
                 rawDataList.Add(GetDataAfterEachStep(settings, worker, e));
                 
@@ -303,18 +382,18 @@ namespace SBJController
                 // If the junction is open, both current voltage and voltgae after stepping
                 // should be smaller than the open circuit threshold.
                 //
-                isTempOpenCircuit = (currentVoltage < Math.Abs(openCircuitVoltage)) &&
-                                     (voltageAfterStepping < Math.Abs(openCircuitVoltage));
+                isTempOpenCircuit = (currentVoltage < Math.Abs(settings.CalibirationSettings.TriggerVoltage)) &&
+                                     (voltageAfterStepping < Math.Abs(settings.CalibirationSettings.TriggerVoltage));
 
                 //
                 // If we think we've reached open circuit than wait
-                // for 10msec and than check again to verify this is permanent.
+                // for 10msec and then check again to verify this is permanent.
                 //
                 if (isTempOpenCircuit)
                 {
                     Thread.Sleep(10);
                     currentVoltage = Math.Abs(AnalogIn(0));
-                    isPermanentOpenCircuit = currentVoltage < Math.Abs(openCircuitVoltage);
+                    isPermanentOpenCircuit = currentVoltage < Math.Abs(settings.CalibirationSettings.TriggerVoltage);
                 }
                 else
                 {
@@ -332,7 +411,14 @@ namespace SBJController
             return e.Cancel;
         }
         
-        private bool CloseJunctionByStepperMotorForCalibration(CalibrationSettings settings, double TriggerVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        /// <summary>
+        /// Close Junction by stepper motor, saves current after each step. 
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool CloseJunctionByStepperMotorForCalibration(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
             bool isPermanentClosedCircuit = false;
@@ -373,8 +459,7 @@ namespace SBJController
                 }
 
                 //
-                // Get Data after each step and save it.
-                // Save the data for each cycle
+                // Get Data after each step and add it to rawDataList.
                 //
                 rawDataList.Add(GetDataAfterEachStep(settings, worker, e));
 
@@ -382,8 +467,8 @@ namespace SBJController
                 // If the junction is closed, both current voltage and voltgae after stepping
                 // should be bigger than the closed circuit threshold.
                 //
-                isTempClosedCircuit = (currentVoltage > Math.Abs(TriggerVoltage)) &&
-                                     (voltageAfterStepping > Math.Abs(TriggerVoltage));
+                isTempClosedCircuit = (currentVoltage > Math.Abs(settings.CalibirationSettings.ShortCircuitVoltage)) &&
+                                     (voltageAfterStepping > Math.Abs(settings.CalibirationSettings.ShortCircuitVoltage));
 
                 //
                 // If we think we've reached closed circuit than wait
@@ -393,7 +478,7 @@ namespace SBJController
                 {
                     Thread.Sleep(10);
                     currentVoltage = Math.Abs(AnalogIn(0));
-                    isPermanentClosedCircuit = currentVoltage > Math.Abs(TriggerVoltage);
+                    isPermanentClosedCircuit = currentVoltage > Math.Abs(settings.CalibirationSettings.ShortCircuitVoltage);
                 }
                 else
                 {
@@ -410,36 +495,15 @@ namespace SBJController
             return e.Cancel;
         }
         
-        private bool EMTryObtainShortCircuitForCalibration(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
-        {
-            switch (EMShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.CalibirationSettings.ShortCircuitVoltage, worker, e))
-            {
-                case 0:
-                    //
-                    // short contact succeeded. 
-                    //
-                    return false;
-
-                case 1:
-                    //
-                    // the proccess was cancelled by the user.
-                    //
-                    return true;
-
-                case 2:
-                    //
-                    // we've reached the max voltage on the EM without getting to contact.
-                    // return voltage to zero and get the electrodes closer by the stepper motor, 
-                    // then start over again. 
-                    //
-                    m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
-                    MoveStepsByStepperMotor(StepperDirection.DOWN, 100);
-                    return EMTryObtainShortCircuitForCalibration(settings, worker, e);
-            }
-            return true;
-        }
-        
-        private bool ObtainOpenJunctionByElectroMagnetForCalibration(CalibrationSettings settings, double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        /// <summary>
+        /// Open Junction by EM, while saving the voltage after each step.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="openCircuitVoltage"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool ObtainOpenJunctionByElectroMagnetForCalibration(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
             bool isPermanentOpenCircuit = false;
@@ -452,10 +516,11 @@ namespace SBJController
             double currentVoltage = Math.Abs(AnalogIn(0));
 
             //
-            // Set EM direction, mode and delay
+            // Set EM direction and delay
             // 
             m_electroMagnet.Direction = StepperDirection.UP;
-            m_electroMagnet.ReachEMVoltageGradually(settings.ElectromagnetSettings.EMFastDelayTime, c_initialEMVoltage);
+            m_electroMagnet.Delay = settings.ElectromagnetSettings.EMFastDelayTime;
+             
             //
             // Open the junction
             //
@@ -471,39 +536,41 @@ namespace SBJController
                 }
 
                 //
-                // Move up one step and check the voltage afterwards
+                // Move up one step.
+                // If reached min Voltage, do 200 steps by stepper motor, clear the list that saves the data and keep trying to open the junction...
                 //
-                m_electroMagnet.MoveSingleStep();
-                Thread.Sleep(m_stepperMotor.Delay);
+                if (!m_electroMagnet.MoveSingleStep())
+                {
+                    m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
+                    MoveStepsByStepperMotor(StepperDirection.UP, 200);
+                    rawDataList = new List<double>();
+                }
+
+                //
+                // wait the delay time, and check the voltage after stepping. 
+                //
+                Thread.Sleep(m_electroMagnet.Delay);
                 voltageAfterStepping = Math.Abs(AnalogIn(0));
 
-                if(voltageAfterStepping > 0.9*settings.CalibirationSettings.ShortCircuitVoltage)
+                //
+                // if voltage after stepping starts decreasing, switch delay time to the longer (slower) one.  
+                //
+                if(voltageAfterStepping < 0.9*settings.CalibirationSettings.ShortCircuitVoltage)
                 {
                     m_electroMagnet.Delay = settings.ElectromagnetSettings.EMSlowDelayTime;
                 }
 
-                if (!m_electroMagnet.MoveSingleStep())
-                {
-                    while (!m_electroMagnet.MoveSingleStep())
-                    {
-                         m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
-                         MoveStepsByStepperMotor(StepperDirection.UP, 300);
-                         rawDataList = new List<double>();
-                    }
-                }
-
                 //
-                // Get Data after each step and save it.
-                // Save the data for each cycle
+                // get data after each step and add it to the rawDataList.
                 //
                 rawDataList.Add(GetDataAfterEachStep(settings, worker, e));
 
                 //
-                // If the junction is open, both current voltage and voltgae after stepping
+                // If the junction is open, both current voltage and voltage after stepping
                 // should be smaller than the open circuit threshold.
                 //
-                isTempOpenCircuit = (currentVoltage < Math.Abs(openCircuitVoltage)) &&
-                                     (voltageAfterStepping < Math.Abs(openCircuitVoltage));
+                isTempOpenCircuit = (currentVoltage < Math.Abs(settings.CalibirationSettings.TriggerVoltage)) &&
+                                     (voltageAfterStepping < Math.Abs(settings.CalibirationSettings.TriggerVoltage));
 
                 //
                 // If we think we've reached open circuit than wait
@@ -513,7 +580,7 @@ namespace SBJController
                 {
                     Thread.Sleep(10);
                     currentVoltage = Math.Abs(AnalogIn(0));
-                    isPermanentOpenCircuit = currentVoltage < Math.Abs(openCircuitVoltage);
+                    isPermanentOpenCircuit = currentVoltage < Math.Abs(settings.CalibirationSettings.TriggerVoltage);
                 }
                 else
                 {
@@ -534,7 +601,17 @@ namespace SBJController
             return e.Cancel;
         }
         
-        private bool CloseJunctionByElectroMagnetForCalibration(CalibrationSettings settings, double TriggerVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        /// <summary>
+        /// Closing the junction by the ElectroMagnet, while saving the data. 
+        /// Notice: Only one delay-time is applied, the longer (slower) one. 
+        /// [Changing the delay in the middle of the trace will be too late when closing the junction]  
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="TriggerVoltage"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool CloseJunctionByElectroMagnetForCalibration(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
             bool isPermanentClosedCircuit = false;
@@ -547,11 +624,12 @@ namespace SBJController
             double currentVoltage = Math.Abs(AnalogIn(0));
 
             //
-            // Set EM direction, mode and delay
+            // Set EM direction and delay
             // 
             m_electroMagnet.Direction = StepperDirection.DOWN;
-            m_electroMagnet.ReachEMVoltageGradually(settings.ElectromagnetSettings.EMFastDelayTime, c_initialEMVoltage);
-
+            m_electroMagnet.Delay = settings.ElectromagnetSettings.EMSlowDelayTime;
+            
+         
             //
             // Close the junction
             //
@@ -567,27 +645,24 @@ namespace SBJController
                 }
 
                 //
-                // Move up one step and check the voltage afterwards
+                // Move down one step.
+                // If reached min Voltage, do 200 steps by stepper motor, clear the list that saves the data and keep trying to open the junction...
                 //
-                m_stepperMotor.MoveSingleStep();
-                Thread.Sleep(m_stepperMotor.Delay);
-                voltageAfterStepping = Math.Abs(AnalogIn(0));
-
-                if (voltageAfterStepping > 0.9 * settings.CalibirationSettings.TriggerVoltage)
-                {
-                    m_electroMagnet.Delay = settings.ElectromagnetSettings.EMSlowDelayTime;
-                }
-
                 if (!m_electroMagnet.MoveSingleStep())
                 {
-                        m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
-                        MoveStepsByStepperMotor(StepperDirection.UP, 300);
-                        rawDataList = null;
+                    m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
+                    MoveStepsByStepperMotor(StepperDirection.UP, 200);
+                    rawDataList = new List<double>();
                 }
 
                 //
-                // Get Data after each step and save it.
-                // Save the data for each cycle
+                // wait the delay time, and check the voltage after stepping. 
+                //
+                Thread.Sleep(m_electroMagnet.Delay);
+                voltageAfterStepping = Math.Abs(AnalogIn(0));
+
+                //
+                // Get Data since the last step and add it to rawDataList.
                 //
                 rawDataList.Add(GetDataAfterEachStep(settings, worker, e));
 
@@ -595,8 +670,8 @@ namespace SBJController
                 // If the junction is closed, both current voltage and voltgae after stepping
                 // should be bigger than the closed circuit threshold.
                 //
-                isTempClosedCircuit = (currentVoltage > Math.Abs(TriggerVoltage)) &&
-                                     (voltageAfterStepping > Math.Abs(TriggerVoltage));
+                isTempClosedCircuit = (currentVoltage > Math.Abs(settings.CalibirationSettings.ShortCircuitVoltage)) &&
+                                     (voltageAfterStepping > Math.Abs(settings.CalibirationSettings.ShortCircuitVoltage));
 
                 //
                 // If we think we've reached closed circuit than wait
@@ -606,7 +681,7 @@ namespace SBJController
                 {
                     Thread.Sleep(10);
                     currentVoltage = Math.Abs(AnalogIn(0));
-                    isPermanentClosedCircuit = currentVoltage > Math.Abs(TriggerVoltage);
+                    isPermanentClosedCircuit = currentVoltage > Math.Abs(settings.CalibirationSettings.ShortCircuitVoltage);
                 }
                 else
                 {
@@ -624,41 +699,14 @@ namespace SBJController
             }
             return e.Cancel;
         }
-        
-        private int SaveData(CalibrationSettings settings, IList<IDataChannel> activeChannels, IList<IDataChannel> physicalChannels, int fileNumber)
-        {
-            string path = settings.CalibirationSettings.Path;
-            int finalNumber = fileNumber;
-
-            //
-            // we need to save the raw data only from the active channels, since the complex channels has the same raw data.
-            //
-            foreach (var channel in activeChannels)
-            {
-                //
-                // save raw data to file
-                //
-                finalNumber = WriteSingleArrayToFile(path, c_rawDataFolderName, channel.Name, fileNumber, channel.RawData[0]);
-            }
-
-            //
-            // saveing the physical and additional data from all the channels, including the complex
-            //
-            foreach (var channel in physicalChannels)
-            {
-                //
-                // save physical data to file
-                //
-                finalNumber = WriteSingleArrayToFile(path, c_physicalDataFolderName, channel.Name, finalNumber, channel.PhysicalData[0]);
-
-                //
-                // save addition data to files
-                //
-                fileNumber = WriteListOfArraysToFile(path, c_additionalDataFolderName, channel.Name, finalNumber, channel.AdditionalData);
-            }
-            return finalNumber;
-        }
-        
+                
+        /// <summary>
+        /// Obtain open junction by the ElectroMagnet, whithout saving any data. 
+        /// </summary>
+        /// <param name="openCircuitVoltage"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns>true if the user cancelled the process, false if the process was done successfuly.</returns>
         private bool ObtainOpenJunctionByElectroMagnet(double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
@@ -674,7 +722,7 @@ namespace SBJController
             // Set stepper direction, mode and delay
             // 
             m_electroMagnet.Direction = StepperDirection.UP;
-            m_electroMagnet.Delay = m_stepperMotor.MinDelay;
+            m_electroMagnet.Delay = m_electroMagnet.MinDelay;
 
             //
             // Open the junction
@@ -691,10 +739,15 @@ namespace SBJController
                 }
            
                 //
-                // Move up 5 steps and check the voltage afterwards
+                // Move up 5 steps and check the voltage afterwards.
+                // If reached to minimum voltage on EM, change the voltage to the initial one and do some steps by the stepper motor. 
                 //
-                m_electroMagnet.MoveMultipleSteps(5);
-                Thread.Sleep(m_stepperMotor.Delay*20);
+                if (!m_electroMagnet.MoveMultipleSteps(5))
+                {
+                    m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
+                    MoveStepsByStepperMotor(StepperDirection.UP, 200);
+                }
+                Thread.Sleep(m_electroMagnet.Delay);
                 voltageAfterStepping = Math.Abs(AnalogIn(0));
 
                 //
@@ -722,19 +775,34 @@ namespace SBJController
             return e.Cancel;
         }
         
-        private double AverageVoltageAfterEachStep(double[,] dataAfterEachSter)
+        /// <summary>
+        /// Calculate the average of a vector-matrix of type double[1,X]
+        /// </summary>
+        /// <param name="data">The vector (matrix) to be averaged. </param>
+        /// <returns>The average.</returns>
+        private double AverageOverOneRawMatrix(double[,] data)
         {
             double average = 0;
-            for (int i = 0; i < dataAfterEachSter.GetLength(0); i++)
+            for (int i = 0; i < data.GetLength(1); i++)
             {
-                for (int j = 0; j < dataAfterEachSter.GetLength(1); j++)
-                {
-                    average = average + dataAfterEachSter[i,j] / dataAfterEachSter.GetLength(1);
-                }
+                average = average + data[0,i] / data.GetLength(1);
             }
+            //TODO: delete after verifing it works
+            //for (int i = 0; i < dataAfterEachStep.GetLength(0); i++)
+            //{
+            //    for (int j = 0; j < dataAfterEachStep.GetLength(1); j++)
+            //    {
+            //        average = average + dataAfterEachStep[i,j] / dataAfterEachStep.GetLength(1);
+            //    }
+            //}
             return average;
         }
         
+        /// <summary>
+        /// Convert list of double to a 2D matrix of type double[1,length of list]
+        /// </summary>
+        /// <param name="rawDataList">list to convert</param>
+        /// <returns>2D matrix</returns>
         private double[,] ConvertToMatrix(List<double> rawDataList)
         {
             double[,] data = new double[1, rawDataList.Count];
@@ -745,5 +813,76 @@ namespace SBJController
             }
             return data;
         }
+
+        //TODO: delete
+        ///// <summary>
+        ///// Try obtain short circuit by the EM, using the settings of the calibration tab.
+        ///// </summary>
+        ///// <param name="settings"></param>
+        ///// <param name="worker"></param>
+        ///// <param name="e"></param>
+        ///// <returns></returns>
+        //private bool EMTryObtainShortCircuitForCalibration(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        //{
+        //    switch (EMShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.CalibirationSettings.ShortCircuitVoltage, worker, e))
+        //    {
+        //        case 0:
+        //            //
+        //            // short contact succeeded. 
+        //            //
+        //            return false;
+
+        //        case 1:
+        //            //
+        //            // the proccess was cancelled by the user.
+        //            //
+        //            return true;
+
+        //        case 2:
+        //            //
+        //            // we've reached the max voltage on the EM without getting to contact.
+        //            // return voltage to zero and get the electrodes closer by the stepper motor, 
+        //            // then start over again. 
+        //            //
+        //            m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
+        //            MoveStepsByStepperMotor(StepperDirection.DOWN, 100);
+        //            return EMTryObtainShortCircuitForCalibration(settings, worker, e);
+        //    }
+        //    return true;
+        //}
+
+        //private int SaveData(CalibrationSettings settings, IList<IDataChannel> activeChannels, IList<IDataChannel> physicalChannels, int fileNumber)
+        //{
+        //    string path = settings.CalibirationSettings.Path;
+        //    int finalNumber = fileNumber;
+
+        //    //
+        //    // we need to save the raw data only from the active channels, since the complex channels has the same raw data.
+        //    //
+        //    foreach (var channel in activeChannels)
+        //    {
+        //        //
+        //        // save raw data to file
+        //        //
+        //        finalNumber = WriteSingleArrayToFile(path, c_rawDataFolderName, channel.Name, fileNumber, channel.RawData[0]);
+        //    }
+
+        //    //
+        //    // saveing the physical and additional data from all the channels, including the complex
+        //    //
+        //    foreach (var channel in physicalChannels)
+        //    {
+        //        //
+        //        // save physical data to file
+        //        //
+        //        finalNumber = WriteSingleArrayToFile(path, c_physicalDataFolderName, channel.Name, finalNumber, channel.PhysicalData[0]);
+
+        //        //
+        //        // save addition data to files
+        //        //
+        //        fileNumber = WriteListOfArraysToFile(path, c_additionalDataFolderName, channel.Name, finalNumber, channel.AdditionalData);
+        //    }
+        //    return finalNumber;
+        //}
     }
 }

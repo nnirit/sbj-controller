@@ -42,4 +42,11 @@ namespace SBJController
         StepperMotor = 1,
         ElectroMagnet = 2
     }
+
+    public enum CalibrationMeasurementType
+    {
+        OpenJunction = 1,
+        CloseJunction = 2,
+        BothOpenAndClose = 3
+    }
 }

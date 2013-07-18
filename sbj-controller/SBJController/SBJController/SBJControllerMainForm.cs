@@ -51,7 +51,49 @@ namespace SBJController
         /// <param name="e"></param>
         private void shortCircuitButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (shortCircuitCheckBoxButton.Checked)
+            ShortCircuitButtonFunction(this.shortCircuitCheckBoxButton.Checked);
+            //if (shortCircuitCheckBoxButton.Checked)
+            //{
+            //    //
+            //    // Short Circuit request.
+            //    // Verify first that the worker is nor busy otherwise this means that it is a double request.
+            //    //
+            //    if (!obtainShortCircuitBackgroundWorker.IsBusy)
+            //    {
+            //        //
+            //        // Change button text and behavior of other related controls
+            //        //
+            //        shortCircuitCheckBoxButton.Text = "Stop";
+            //        startStopCheckBoxButton.Enabled = false;
+            //        manualStartCheckBoxButton.Enabled = false;
+            //        moveUpCheckBoxButton.Enabled = false;
+            //        fixBiasCheckBoxButton.Enabled = false;
+
+            //        //
+            //        // Do work async
+            //        //
+            //        obtainShortCircuitBackgroundWorker.RunWorkerAsync();
+            //    }
+            //    else
+            //    {
+            //        MessageBox.Show("Can not start Short Circuit operation." + Environment.NewLine + "Please try again in few seconds.");
+            //    }
+            //}
+            //else
+            //{
+            //    //
+            //    // If we reached here that means that we were requested to stop the short circuit.
+            //    //
+            //    if (obtainShortCircuitBackgroundWorker.WorkerSupportsCancellation == true)
+            //    {
+            //        obtainShortCircuitBackgroundWorker.CancelAsync();
+            //    }
+            //}
+        }
+
+        private void ShortCircuitButtonFunction(bool isShortCircuitButtonChecked)
+        {
+            if (isShortCircuitButtonChecked)
             {
                 //
                 // Short Circuit request.
@@ -63,9 +105,19 @@ namespace SBJController
                     // Change button text and behavior of other related controls
                     //
                     shortCircuitCheckBoxButton.Text = "Stop";
+                    ivShortCircuitCheckBox.Text = "Stop";
+                    calibrationShortCircuitCheckBox.Text = "Stop";
+
                     startStopCheckBoxButton.Enabled = false;
-                    manualStartCheckBoxButton.Enabled = false;
+                    ivStartStopCheckBox.Enabled = false;
+                    calibrationStartStopCheckBox.Enabled = false;
+
                     moveUpCheckBoxButton.Enabled = false;
+                    ivStepperUpCheckBox.Enabled = false;
+                    calibrationStepperUpCheckBox.Enabled = false;
+
+                    manualStartCheckBoxButton.Enabled = false;
+                    
                     fixBiasCheckBoxButton.Enabled = false;
 
                     //
@@ -119,9 +171,21 @@ namespace SBJController
             // So let's bring back the appearance of the UI.
             //
             shortCircuitCheckBoxButton.Text = "Short Circuit";
+            ivShortCircuitCheckBox.Text = "Short Circuit";
+            calibrationShortCircuitCheckBox.Text = "Short Circuit";
+
             shortCircuitCheckBoxButton.Checked = false;
+            ivShortCircuitCheckBox.Checked = false;
+            calibrationShortCircuitCheckBox.Checked = false;
+
             startStopCheckBoxButton.Enabled = true;
+            ivStartStopCheckBox.Enabled = true;
+            calibrationStartStopCheckBox.Enabled = true;
+
             moveUpCheckBoxButton.Enabled = true;
+            ivStepperUpCheckBox.Enabled = true;
+            calibrationStepperUpCheckBox.Enabled = true;
+
             manualStartCheckBoxButton.Enabled = true;
             fixBiasCheckBoxButton.Enabled = true;
 
@@ -246,48 +310,16 @@ namespace SBJController
         private void moveUpCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             StepperUpButtonFunction(this.moveUpCheckBoxButton.Checked);
-            //if (this.moveUpCheckBoxButton.Checked)
-            //{
-            //    if (!stepperUpBackgroundWorker.IsBusy)
-            //    {
-            //        //
-            //        // Change button text
-            //        //
-            //        this.moveUpCheckBoxButton.Text = "Stop";
-            //        this.ivStepperUpCheckBox.Text = "Stop";
-            //        this.calibrationStepperUpCheckBox.Text = "Stop";
-
-            //        this.shortCircuitCheckBoxButton.Enabled = false;
-            //        this.ivShortCircuitCheckBox.Enabled = false;
-            //        this.calibrationShortCircuitCkeckBox.Enabled = false;
-
-            //        this.startStopCheckBoxButton.Enabled = false;
-            //        this.ivStartStopCheckBox.Enabled = false;
-            //        this.calibrationStartStopCheckBox.Enabled = false;
-
-            //        this.manualStartCheckBoxButton.Enabled = false;
-
-            //        this.stepperUpBackgroundWorker.RunWorkerAsync();
-            //    }
-            //    else
-            //    {
-            //        MessageBox.Show("Can not start move stepper up." + Environment.NewLine + "Please try again in few seconds.");
-            //    }
-            //}
-            //else
-            //{
-            //    this.stepperUpBackgroundWorker.CancelAsync();
-            //}
         }
 
         /// <summary>
         /// according to the status (checked/unchecked) of the Stepper Up button, this function starts or stops
         /// the stepping-up process
         /// </summary>
-        /// <param name="isButtonChecked"></param>
-        private void StepperUpButtonFunction(bool isButtonChecked)
+        /// <param name="isStepperUpButtonChecked"></param>
+        private void StepperUpButtonFunction(bool isStepperUpButtonChecked)
         {
-            if (isButtonChecked)
+            if (isStepperUpButtonChecked)
             {
                 if (!stepperUpBackgroundWorker.IsBusy)
                 {
@@ -303,7 +335,7 @@ namespace SBJController
                     //
                     this.shortCircuitCheckBoxButton.Enabled = false;
                     this.ivShortCircuitCheckBox.Enabled = false;
-                    this.calibrationShortCircuitCkeckBox.Enabled = false;
+                    this.calibrationShortCircuitCheckBox.Enabled = false;
 
                     this.startStopCheckBoxButton.Enabled = false;
                     this.ivStartStopCheckBox.Enabled = false;
@@ -352,7 +384,7 @@ namespace SBJController
 
             this.shortCircuitCheckBoxButton.Enabled = true;
             this.ivShortCircuitCheckBox.Enabled = true;
-            this.calibrationShortCircuitCkeckBox.Enabled = true;
+            this.calibrationShortCircuitCheckBox.Enabled = true;
 
             this.startStopCheckBoxButton.Enabled = true;
             this.ivStartStopCheckBox.Enabled = true;
@@ -1708,7 +1740,7 @@ namespace SBJController
                     // Change button text and UI appearance
                     //
                     calibrationStartStopCheckBox.Text = "Stop";
-                    calibrationShortCircuitCkeckBox.Enabled = false;
+                    calibrationShortCircuitCheckBox.Enabled = false;
                     calibrationStepperUpCheckBox.Enabled = false;
                     generalSettingsPanel.Enabled = false;
                     calibrationBackGroundWorker.RunWorkerAsync();
@@ -1749,7 +1781,7 @@ namespace SBJController
             //
             calibrationStartStopCheckBox.Text = "Start";
             calibrationStartStopCheckBox.Checked = false;
-            calibrationShortCircuitCkeckBox.Enabled = true;
+            calibrationShortCircuitCheckBox.Enabled = true;
             calibrationStepperUpCheckBox.Enabled = true;
             generalSettingsPanel.Enabled = true;
 
@@ -1763,10 +1795,10 @@ namespace SBJController
         {
             BackgroundWorker worker = sender as BackgroundWorker;
 
-            m_sbjController.AquireCalibrationData(GetCalibrationSBJControllerSettings(), worker, e);
+            m_sbjController.AquireCalibrationData(GetCalibrationSettings(), worker, e);
         }
 
-        private CalibrationSettings GetCalibrationSBJControllerSettings()
+        private CalibrationSettings GetCalibrationSettings()
         {
             //
             // Using windows forms one must know that UI controls cannot be accessed from a different thread than
@@ -1779,7 +1811,7 @@ namespace SBJController
                 // This tells us that we are not in the safe thread and so this function must be re-invoked
                 // from an appropriate thread.
                 //
-                return (CalibrationSettings)this.Invoke(new Func<CalibrationSettings>(() => GetCalibrationSBJControllerSettings()));
+                return (CalibrationSettings)this.Invoke(new Func<CalibrationSettings>(() => GetCalibrationSettings()));
             }
             else
             {
@@ -1800,9 +1832,7 @@ namespace SBJController
                                                                                                     this.calibrationEnableElectroMagnetCheckBox.Checked,
                                                                                                     this.calibrationKeithleyCheckBox.Checked,
                                                                                                     (int)this.calibrationDelayTimeNumericUpDown.Value,
-                                                                                                    this.calibrationOpenJunctionCheckBox.Checked,
-                                                                                                    this.calibrationCloseJunctionCheckBox.Checked,
-                                                                                                    this.calibrationBothOptionsCheckBox.Checked),
+                                                                                                    GetCalibrationMeasurementType()),
                                                                new ElectroMagnetSBJControllerSettings(this.calibrationEnableElectroMagnetCheckBox.Checked,
                                                                                                     (int)this.calibrationEMShortCircuitDelayTimeNumericUpDown.Value,
                                                                                                     (int)this.calibrationEMFastDelayTimeNumericUpDown.Value,
@@ -1812,9 +1842,28 @@ namespace SBJController
                                                                                                     this.emHoldOnMaxVoltageNumericEdit.Value,
                                                                                                     this.emHoldOnMinConductanceNumericEdit.Value,
                                                                                                     this.emHoldOnMinVoltageNumericEdit.Value,
-                                                                                                    this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.Checked),
+                                                                                                    this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.Checked),
                                                                new ChannelsSettings(GetCalibrationActiveChannels()));
 
+            }
+        }
+
+        private CalibrationMeasurementType GetCalibrationMeasurementType()
+        {
+            if (this.calibrationMeasurementTypeComboBox.SelectedText.Equals("Open Junction"))
+            {
+                return CalibrationMeasurementType.OpenJunction;
+            }
+            else 
+            {
+                if (this.calibrationMeasurementTypeComboBox.SelectedText.Equals("Close Junction"))
+                {
+                    return CalibrationMeasurementType.CloseJunction;
+                }
+                else
+                {
+                    return CalibrationMeasurementType.BothOpenAndClose;
+                }
             }
         }
 
@@ -1866,7 +1915,7 @@ namespace SBJController
             this.calibrationEMSlowDelayTimeNumericUpDown.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
             this.calibrationEMShortCircuitDelayTimeLabel.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
             this.calibrationEMShortCircuitDelayTimeNumericUpDown.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
         }
         
         /// <summary>
@@ -1922,41 +1971,7 @@ namespace SBJController
         /// <param name="e"></param>
         private void calibrationShortCircuitButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (calibrationShortCircuitCkeckBox.Checked)
-            {
-                //
-                // Short Circuit request.
-                // Verify first that the worker is nor busy otherwise this means that it is a double request.
-                //
-                if (!obtainShortCircuitBackgroundWorker.IsBusy)
-                {
-                    //
-                    // Change button text and behavior of other related controls
-                    //
-                    calibrationShortCircuitCkeckBox.Text = "Stop";
-                    calibrationStartStopCheckBox.Enabled = false;
-                    calibrationStepperUpCheckBox.Enabled = false;
-
-                    //
-                    // Do work async
-                    //
-                    obtainShortCircuitBackgroundWorker.RunWorkerAsync();
-                }
-                else
-                {
-                    MessageBox.Show("Can not start Short Circuit operation." + Environment.NewLine + "Please try again in few seconds.");
-                }
-            }
-            else
-            {
-                //
-                // If we reached here that means that we were requested to stop the short circuit.
-                //
-                if (obtainShortCircuitBackgroundWorker.WorkerSupportsCancellation == true)
-                {
-                    obtainShortCircuitBackgroundWorker.CancelAsync();
-                }
-            }
+            ShortCircuitButtonFunction(this.calibrationShortCircuitCheckBox.Checked);
         }
         
         /// <summary>
@@ -2264,6 +2279,11 @@ namespace SBJController
                     MessageBox.Show("Cannot connect to LambdaZup.");
                 }
             }
+        }
+
+        private void ivShortCircuitCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            ShortCircuitButtonFunction(this.ivShortCircuitCheckBox.Checked);
         }
     }
 
