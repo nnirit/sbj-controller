@@ -138,6 +138,9 @@ namespace SBJController
     /// </summary>
     public class LockInInternalSourceDataChannel : LockInDataChannel
     {
+        private static double s_1G0 = 77.5E-6;
+        private static double s_rmsToPPFactor = Math.Sqrt(2);
+
         public LockInInternalSourceDataChannel(string physicalName, DataConvertorSettings settings)
             : base(physicalName, settings) {}
 
@@ -152,9 +155,10 @@ namespace SBJController
             // When the lock in is internally referenced, the measured signal is in the form of:
             // Vsig ~= (dI/dV)|Vdc  * Vac.
             // We must divide in the ac voltage applied internally from the lock - in in order to extract the
-            // the physical data.
+            // the physical data. We also change to G0 units.
+            // Since the AC voltage from the mixer is also rms, we need to convert it to p-p.
             //
-            return base.ConvertVoltageToPhysicalValue(rawVoltageValue) / DataConvertionSettings.ACVoltage;
+            return base.ConvertVoltageToPhysicalValue(rawVoltageValue) / (DataConvertionSettings.ACVoltage * s_rmsToPPFactor) / s_1G0;
         }
     }
 
@@ -166,24 +170,14 @@ namespace SBJController
     /// and only by having both data sets we can take out the signal itself.
     /// </summary>
     [DAQAttribute()]
-    public class LockInXYInternalSourceDataChannel : ComplexDataChannel, IDataChannel
+    public class LockInXYInternalSourceDataChannel : LockInXYSourceDataChannel, IDataChannel
     {
-        /// <summary>
-        /// The signal from the lock in is alwyas in the range of 0-10V
-        /// so the measured signal, Vsig, is always proportinal to the range.
-        /// That is: the sensetivity value which is the upper voltage to be measured will be scaled 
-        /// and appeared as 10V.
-        /// </summary>
-        private double m_normalizationFactor;
-       
         private static double s_1G0 = 77.5E-6;
+        private static double s_rmsToPPFactor = Math.Sqrt(2);
 
         public LockInXYInternalSourceDataChannel(DataConvertorSettings settings)
             : base(settings)
-        {
-            // Calculate the scaling factor in the voltage 
-            // by dividing the maximum of the lock-in, 10V, withe upper limit of the measurement.
-            m_normalizationFactor = 10 / settings.Sensitivity;
+        {           
             Name = "LockInXYInternalSourceDataChannel";
         }
 
@@ -197,7 +191,119 @@ namespace SBJController
         /// <returns></returns>
         internal override IList<double[]> ConvertVoltageToPhysicalValue(double[] rawVoltageDataX, double[] rawVoltageDataY)     
         {
-            double[] conductanceValues = new double[rawVoltageDataX.Length];
+            IList<double[]> data = GetData(rawVoltageDataX, rawVoltageDataY);
+            double[] normalizedCurrentValues = data[0];
+            double[] phaseValues = data[1];
+            double[] normalizedConductanceValues = new double[normalizedCurrentValues.Length];
+            for (int i = 0; i < normalizedCurrentValues.Length; i++)
+            {
+                normalizedConductanceValues[i] = ConvertVoltageToConductanceValue(normalizedCurrentValues[i]);
+            }
+
+            List<double[]> convertedData = new List<double[]>();
+            convertedData.Add(normalizedConductanceValues);
+            convertedData.Add(phaseValues);
+            PhysicalData = convertedData;
+            return convertedData;
+        }
+
+        /// <summary>
+        /// Convert to physical data
+        /// </summary>
+        /// <param name="rawVoltageValue"></param>
+        /// <returns></returns>
+        internal double ConvertVoltageToConductanceValue(double currentValue)
+        {
+            return currentValue / (DataConvertionSettings.ACVoltage * s_rmsToPPFactor)/ s_1G0;
+        }
+    }
+
+    [DAQAttribute()]
+    public class LockInXYExtrenalSourceDataChannel : LockInXYSourceDataChannel, IDataChannel
+    {
+        private static double s_1G0 = 77.5E-6;
+
+        public LockInXYExtrenalSourceDataChannel(DataConvertorSettings settings)
+            : base(settings)
+        {
+            Name = "LockInXYExtrenalSourceDataChannel";
+        }
+
+        /// <summary>
+        /// Override.
+        /// Converts the raw data to physical one.
+        /// Since this is a complex data channel we need both data set to retrieve the physical data.
+        /// </summary>
+        /// <param name="rawVoltageDataX">The X data set</param>
+        /// <param name="rawVoltageDataY">The Y data set</param>
+        /// <returns></returns>
+        internal override IList<double[]> ConvertVoltageToPhysicalValue(double[] rawVoltageDataX, double[] rawVoltageDataY)
+        {
+            IList<double[]> data = GetData(rawVoltageDataX, rawVoltageDataY);
+            double[] normalizedCurrentValues = data[0];
+            double[] phaseValues = data[1];
+            double[] normalizedConductanceValues = new double[normalizedCurrentValues.Length];
+            for (int i = 0; i < normalizedCurrentValues.Length; i++)
+            {
+                normalizedConductanceValues[i] = ConvertVoltageToConductanceValue(normalizedCurrentValues[i]);
+            }
+
+            List<double[]> convertedData = new List<double[]>();
+            convertedData.Add(normalizedConductanceValues);
+            convertedData.Add(phaseValues);
+            PhysicalData = convertedData;
+            return convertedData;
+        }
+
+        /// <summary>
+        /// Convert to physical data
+        /// </summary>
+        /// <param name="rawVoltageValue"></param>
+        /// <returns></returns>
+        internal double ConvertVoltageToConductanceValue(double currentValue)
+        {
+            return currentValue / DataConvertionSettings.Bias / s_1G0;
+        }
+    }   
+
+    /// <summary>
+    /// This class represents the data channel aquired from the lock in when it is internal referenced.
+    /// Internal referenced means that the reference frequency is dictated by the lock in itself.
+    /// The XY data channel is a complex one which means that in order to extract the physical data
+    /// from the measurement one must have both X and Y data channels. These channels complete one another
+    /// and only by having both data sets we can take out the signal itself.
+    /// </summary>
+    public abstract class LockInXYSourceDataChannel : ComplexDataChannel
+    {
+        /// <summary>
+        /// The signal from the lock in is alwyas in the range of 0-10V
+        /// so the measured signal, Vsig, is always proportinal to the range.
+        /// That is: the sensetivity value which is the upper voltage to be measured will be scaled 
+        /// and appeared as 10V.
+        /// </summary>
+        private double m_normalizationFactor;
+        private static double s_rmsToPPFactor = Math.Sqrt(2);
+
+        public LockInXYSourceDataChannel(DataConvertorSettings settings)
+            : base(settings)
+        {
+            // Calculate the scaling factor in the voltage 
+            // by dividing the maximum of the lock-in, 10V, withe upper limit of the measurement.
+            m_normalizationFactor = 10 / settings.Sensitivity;
+            Name = "LockInXYSourceDataChannel";
+        }
+
+        /// <summary>
+        /// Override.
+        /// Converts the raw data to physical one.
+        /// Since this is a complex data channel we need both data set to retrieve the physical data.
+        /// </summary>
+        /// <param name="rawVoltageDataX">The X data set</param>
+        /// <param name="rawVoltageDataY">The Y data set</param>
+        /// <returns></returns>
+        internal IList<double[]> GetData(double[] rawVoltageDataX, double[] rawVoltageDataY)
+        {
+            double[] normalizedCurrentValues = new double[rawVoltageDataX.Length];
             double[] phaseValues = new double[rawVoltageDataX.Length];
             for (int i = 0; i < rawVoltageDataX.Length; i++)
             {
@@ -213,30 +319,46 @@ namespace SBJController
                 //
                 // After extracting the phase, the Vsig can be calculated by the X point
                 // as X = Vsig * cos(phase).
+                // We also normalize the result according to the sensitivity factor and change from rms ro peak-peak.
+                // The result is current units since we divide in the gain.
                 //
-                conductanceValues[i] = ConvertVoltageToConductanceValue(rawVoltageDataX[i] / Math.Cos(phase));
+                normalizedCurrentValues[i] = rawVoltageDataX[i] / Math.Cos(phase) / Math.Pow(10, DataConvertionSettings.Gain) / m_normalizationFactor * s_rmsToPPFactor;
             }
 
             List<double[]> convertedData = new List<double[]>();
-            convertedData.Add(conductanceValues);
+            convertedData.Add(normalizedCurrentValues);
             convertedData.Add(phaseValues);
-            PhysicalData = convertedData;
             return convertedData;
         }
+        internal override abstract IList<double[]> ConvertVoltageToPhysicalValue(double[] firstRawDataSet, double[] secondRawDataSet);
+    }
+
+    /// <summary>
+    /// This class represents the data channel aquired from the lock in when it is internal referenced.
+    /// Internal referenced means that the reference frequency is dictated by the lock in itself.
+    /// </summary>
+    public class LockInExternalSourceDataChannel : LockInDataChannel
+    {
+        private static double s_1G0 = 77.5E-6;
+
+        public LockInExternalSourceDataChannel(string physicalName, DataConvertorSettings settings)
+            : base(physicalName, settings) { }
 
         /// <summary>
-        /// Convert to physical data
+        /// Override.
         /// </summary>
-        /// <param name="rawVoltageValue"></param>
-        /// <returns></returns>
-        internal double ConvertVoltageToConductanceValue(double rawVoltageValue)
+        /// <param name="rawVoltageValue">One raw data point to be converted to physicak data.</param>
+        /// <returns>The physical data representation of the input data point.</returns>
+        internal override double ConvertVoltageToPhysicalValue(double rawVoltageValue)
         {
             //
-            // rawVoltageValue is proportional to ~= (dI/dV)|Vdc * Vac
-            //
-            return rawVoltageValue / Math.Pow(10, DataConvertionSettings.Gain) / s_1G0 / m_normalizationFactor / DataConvertionSettings.ACVoltage;
+            // When the lock in is externally referenced we measure a signal in [V].
+            // In order to convert it to conductance units we first converts it to normalized (sensitivity + rms)
+            // current units [I] and then need to divide with the bias and get the units in G0.
+     
+            return base.ConvertVoltageToPhysicalValue(rawVoltageValue) / DataConvertionSettings.Bias / s_1G0;
         }
-    }   
+    }
 
     /// <summary>
     /// This class represents a lock in data channel which is externally referenced.
@@ -246,13 +368,33 @@ namespace SBJController
     /// Sampling X and Y separatley improve accuracy as these channels are updated more frequently.
     /// </summary>
     [DAQAttribute()]
-    public class LockInRExternalSourceChannel : LockInDataChannel, IDataChannel
+    public class LockInRExternalSourceChannel : LockInExternalSourceDataChannel, IDataChannel
     {
         public LockInRExternalSourceChannel(string physicalName, DataConvertorSettings settings)
             : base(physicalName, settings) 
         {
             Name = "LockInRExternalSourceChannel";
         }   
+    }
+
+    [DAQAttribute()]
+    public class LockInXExternalSourceChannel : LockInExternalSourceDataChannel, IDataChannel
+    {
+        public LockInXExternalSourceChannel(string physicalName, DataConvertorSettings settings)
+            : base(physicalName, settings)
+        {
+            Name = "LockInXExternalSourceChannel";
+        }
+    }
+
+    [DAQAttribute()]
+    public class LockInYExternalSourceChannel : LockInExternalSourceDataChannel, IDataChannel
+    {
+        public LockInYExternalSourceChannel(string physicalName, DataConvertorSettings settings)
+            : base(physicalName, settings)
+        {
+            Name = "LockInYExternalSourceChannel";
+        }
     }
 
     /// <summary>
@@ -275,8 +417,6 @@ namespace SBJController
         /// </summary>
         private static double s_rmsToPPFactor = Math.Sqrt(2);
 
-        private static double s_1G0 = 77.5E-6;
-
         public LockInDataChannel(string physicalName, DataConvertorSettings settings)
             :base(physicalName, settings)
         {
@@ -287,7 +427,11 @@ namespace SBJController
 
         internal override double ConvertVoltageToPhysicalValue(double rawVoltageValue)
         {
-            return rawVoltageValue / Math.Pow(10, DataConvertionSettings.Gain) / s_1G0 / m_normalizationFactor * s_rmsToPPFactor;
+            //
+            // We convert it to  normalized current [I] units:
+            // Divide with the gain results current and then we normalized it by the sensitivity factor and the rms.
+            //
+            return rawVoltageValue / Math.Pow(10, DataConvertionSettings.Gain) / m_normalizationFactor * s_rmsToPPFactor;
         }
     }
 
