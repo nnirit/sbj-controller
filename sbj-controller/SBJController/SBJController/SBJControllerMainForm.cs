@@ -646,11 +646,19 @@ namespace SBJController
         {
             if (this.enableLaserCheckBox.Checked)
             {
-                m_sbjController.Tabor.Connect();
+                if (this.laserModeComboBox.Text.Equals("IODrive"))
+                {
+                    m_sbjController.LaserController = new IODriveLaserController(Settings.Default.IODriveOutputAddress);
+                }
+                else
+                {
+                    m_sbjController.LaserController = new TaborLaserController();                
+                }
+                m_sbjController.LaserController.Connect();                
             }
             else
             {
-                m_sbjController.Tabor.SetLocalMode();
+                m_sbjController.LaserController.Disconnect();
             }
 
             //
@@ -658,7 +666,15 @@ namespace SBJController
             //
             this.laserModeComboBox.Enabled = this.enableLaserCheckBox.Checked;
             this.amplitudeNumericUpDown.Enabled = this.enableLaserCheckBox.Checked;
-            this.laserAmplitudeLabel.Enabled = this.enableLaserCheckBox.Checked;            
+            this.laserAmplitudeLabel.Enabled = this.enableLaserCheckBox.Checked;
+            this.laserAmplitudeOnSampleNumericUpDown.Enabled = this.enableLaserCheckBox.Checked;
+            this.laserAmplitudeOnSampleLabel.Enabled = this.enableLaserCheckBox.Checked;
+            this.laserAmplitudeWNumericUpDown.Enabled = this.enableLaserCheckBox.Checked;
+            this.laserAmplitudeWLabel.Enabled = this.enableLaserCheckBox.Checked;
+            this.externalFrequencyLabel.Enabled = this.enableLaserCheckBox.Checked;
+            this.externalFrequencyNumericUpDown.Enabled = this.enableLaserCheckBox.Checked;
+            this.enableEOMcheckBox.Enabled = this.enableLaserCheckBox.Checked;
+            this.enableChopperCheckBox.Enabled = this.enableLaserCheckBox.Checked;
             laserModeComboBox_SelectedValueChanged(sender, e);
         }
         
@@ -728,8 +744,19 @@ namespace SBJController
         /// <param name="e"></param>
         private void laserModeComboBox_SelectedValueChanged(object sender, EventArgs e)
         {
-            this.frequencyLabel.Enabled = laserModeComboBox.Text.Equals("Square") && this.enableLaserCheckBox.Checked;
-            this.frequencyNumericUpDown.Enabled = laserModeComboBox.Text.Equals("Square") && this.enableLaserCheckBox.Checked;
+            if (laserModeComboBox.Text.Equals("IODrive") && ((m_sbjController.LaserController as IODriveLaserController) == null))
+            {
+                m_sbjController.LaserController = new IODriveLaserController(Settings.Default.IODriveOutputAddress);
+            }
+            else
+            {
+                if ((m_sbjController.LaserController as TaborLaserController) == null)
+                {
+                    m_sbjController.LaserController = new TaborLaserController(); 
+                }
+            }
+            this.frequencyLabel.Enabled = (laserModeComboBox.Text.Equals("Square")||laserModeComboBox.Text.Equals("Sine")) && this.enableLaserCheckBox.Checked;
+            this.frequencyNumericUpDown.Enabled = (laserModeComboBox.Text.Equals("Square") || laserModeComboBox.Text.Equals("Sine")) && this.enableLaserCheckBox.Checked;
         }
 
         /// <summary>
@@ -740,7 +767,7 @@ namespace SBJController
         private void amplitudeNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             double amplitude = (double)this.amplitudeNumericUpDown.Value;
-            m_sbjController.Tabor.SetDcModeAmplitude(amplitude);
+            m_sbjController.LaserController.SetAmplitude(amplitude);            
         }
 
         /// <summary>
@@ -1044,6 +1071,109 @@ namespace SBJController
             }
         }
 
+        private void manualStartCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (manualStartCheckBoxButton.Checked)
+            {
+                //
+                // We were requested to start data acquisition so we must verify
+                // first that the worker is free for doing the job.
+                //
+                if (!manualStartBackgroundWorker.IsBusy)
+                {
+                    //
+                    // Change button text and UI appearance
+                    //
+                    manualStartCheckBoxButton.Text = "Stop";
+                    startStopCheckBoxButton.Enabled = false;
+                    shortCircuitCheckBoxButton.Enabled = false;
+                    fixBiasCheckBoxButton.Enabled = false;
+                    moveUpCheckBoxButton.Enabled = false;
+                    generalSettingsPanel.Enabled = false;
+                    laserSettingsPanel.Enabled = false;
+                    lockInPanel.Enabled = false;
+                    electroMagnetSettingsPanel.Enabled = false;
+                    channelsSettingsPanel.Enabled = false;
+                    manualStartBackgroundWorker.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Can not start data aquisition operation." + Environment.NewLine + "Please try again in few seconds.");
+                }
+            }
+            else
+            {
+                //
+                // We were requested to stop data acquisition process
+                //
+                if (manualStartBackgroundWorker.WorkerSupportsCancellation == true)
+                {
+                    manualStartBackgroundWorker.CancelAsync();
+                }
+                m_sbjController.QuitJunctionOpenningOperation = true;
+                m_sbjController.StepperMotor.Shutdown();
+            }
+        }
+
+        private void manualStartBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            m_sbjController.AquireDataManually(GetSBJControllerSettings(), worker, e);
+        }
+
+        private void manualStartBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //
+            // We've done taking data so we must bring the UI appearance
+            //
+            manualStartCheckBoxButton.Text = "Manual Start";
+            manualStartCheckBoxButton.Checked = false;
+            startStopCheckBoxButton.Enabled = true;
+            fixBiasCheckBoxButton.Enabled = true;
+            shortCircuitCheckBoxButton.Enabled = true;
+            moveUpCheckBoxButton.Enabled = true;
+            generalSettingsPanel.Enabled = true;
+            laserSettingsPanel.Enabled = true;
+            lockInPanel.Enabled = true;
+            channelsSettingsPanel.Enabled = true;
+            electroMagnetSettingsPanel.Enabled = true;
+
+            //
+            // if we applied the bias by the DAQ device, we need to stop the task. 
+            //
+            m_sbjController.StopApplyingVoltageIfNeeded();
+        }
+
+        private void useLambdaZupCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.useLambdaZupCheckBox.Checked)
+            {
+                try
+                {
+                    m_sbjController.LambdaZup.Connect();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Cannot connect to LambdaZup.");
+                }
+            }
+        }
+
+        private void enableEOMcheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            m_sbjController.TaborEOM = new TaborEOMController();
+            if (this.enableEOMcheckBox.Checked)
+            {
+                m_sbjController.TaborEOM.Connect();
+            }
+            else
+            {
+                m_sbjController.TaborEOM.Disconnect();
+            }
+
+            this.externalFrequencyLabel.Enabled = this.enableEOMcheckBox.Checked;
+            this.externalFrequencyNumericUpDown.Enabled = this.enableEOMcheckBox.Checked;
+        }
         #endregion
         
         #endregion
@@ -1239,8 +1369,11 @@ namespace SBJController
                                                                                  this.laserModeComboBox.SelectedItem.ToString(),
                                                                                  (double)this.amplitudeNumericUpDown.Value,
                                                                                  (double)this.laserAmplitudeWNumericUpDown.Value,
-                                                                                 (double)this.laseAmplitudeOnSampleNumericUpDown.Value,
-                                                                                 (int)this.frequencyNumericUpDown.Value),
+                                                                                 (double)this.laserAmplitudeOnSampleNumericUpDown.Value,
+                                                                                 (int)this.frequencyNumericUpDown.Value,
+                                                                                 this.enableEOMcheckBox.Checked,
+                                                                                 this.enableChopperCheckBox.Checked,
+                                                                                 (int)this.externalFrequencyNumericUpDown.Value),
                                                   new LockInSBJControllerSettings(this.enableLockInCheckBox.Checked,
                                                                                   this.internalSourceLockInCheckBoxcheckBox.Checked,
                                                                                   Double.Parse(this.sensitivityComboBox.Text),
@@ -1983,6 +2116,11 @@ namespace SBJController
                 m_sbjController.SourceMeter.SetBias(this.calibrationBiasNumericEdit.Value);
             }
         }
+
+        private void calibrationStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            StepperUpButtonFunction(this.calibrationStepperUpCheckBox.Checked);
+        }
     
         #region Native Dll
         [DllImport("IODrive2007.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -2099,6 +2237,16 @@ namespace SBJController
             this.ivOutputUpdateRateNumericEdit.Value = 1000 / e.NewValue;
             }
 
+        private void ivStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            StepperUpButtonFunction(this.ivStepperUpCheckBox.Checked);
+        }
+
+        private void ivShortCircuitCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            ShortCircuitButtonFunction(this.ivShortCircuitCheckBox.Checked);
+        }
+
         /// <summary>
         /// IV Tab - get settings from UI
         /// </summary>
@@ -2167,110 +2315,6 @@ namespace SBJController
                 return SteppingDevice.ElectroMagnet;
             }
         }        
-        #endregion
-
-        private void manualStartCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (manualStartCheckBoxButton.Checked)
-            {
-                //
-                // We were requested to start data acquisition so we must verify
-                // first that the worker is free for doing the job.
-                //
-                if (!manualStartBackgroundWorker.IsBusy)
-                {
-                    //
-                    // Change button text and UI appearance
-                    //
-                    manualStartCheckBoxButton.Text = "Stop";
-                    startStopCheckBoxButton.Enabled = false;
-                    shortCircuitCheckBoxButton.Enabled = false;
-                    fixBiasCheckBoxButton.Enabled = false;
-                    moveUpCheckBoxButton.Enabled = false;
-                    generalSettingsPanel.Enabled = false;
-                    laserSettingsPanel.Enabled = false;
-                    lockInPanel.Enabled = false;
-                    electroMagnetSettingsPanel.Enabled = false;
-                    channelsSettingsPanel.Enabled = false;
-                    manualStartBackgroundWorker.RunWorkerAsync();
-                }
-                else
-                {
-                    MessageBox.Show("Can not start data aquisition operation." + Environment.NewLine + "Please try again in few seconds.");
-                }
-            }
-            else
-            {
-                //
-                // We were requested to stop data acquisition process
-                //
-                if (manualStartBackgroundWorker.WorkerSupportsCancellation == true)
-                {
-                    manualStartBackgroundWorker.CancelAsync();
-                }                
-                m_sbjController.QuitJunctionOpenningOperation = true;
-                m_sbjController.StepperMotor.Shutdown();
-            }
-        }
-
-        private void manualStartBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            BackgroundWorker worker = sender as BackgroundWorker;
-            m_sbjController.AquireDataManually(GetSBJControllerSettings(), worker, e);
-        }
-
-        private void manualStartBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            //
-            // We've done taking data so we must bring the UI appearance
-            //
-            manualStartCheckBoxButton.Text = "Manual Start";
-            manualStartCheckBoxButton.Checked = false;
-            startStopCheckBoxButton.Enabled = true;
-            fixBiasCheckBoxButton.Enabled = true;
-            shortCircuitCheckBoxButton.Enabled = true;
-            moveUpCheckBoxButton.Enabled = true;
-            generalSettingsPanel.Enabled = true;
-            laserSettingsPanel.Enabled = true;
-            lockInPanel.Enabled = true;
-            channelsSettingsPanel.Enabled = true;
-            electroMagnetSettingsPanel.Enabled = true;
-
-            //
-            // if we applied the bias by the DAQ device, we need to stop the task. 
-            //
-            m_sbjController.StopApplyingVoltageIfNeeded();
-        }
-
-        private void calibrationStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            StepperUpButtonFunction(this.calibrationStepperUpCheckBox.Checked);
-        }
-
-        private void ivStepperUpCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            StepperUpButtonFunction(this.ivStepperUpCheckBox.Checked);
-        }
-
-        private void useLambdaZupCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.useLambdaZupCheckBox.Checked)
-            {
-                try
-                {
-                    m_sbjController.LambdaZup.Connect();
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Cannot connect to LambdaZup.");
-                }
-            }
-        }
-
-        private void ivShortCircuitCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            ShortCircuitButtonFunction(this.ivShortCircuitCheckBox.Checked);
-        }
+        #endregion        
     }
-
 }

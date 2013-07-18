@@ -100,13 +100,17 @@ namespace SBJController
     public class LaserSBJControllerSettings
     {
         public bool IsLaserOn { get; set; }
+        public bool IsEOMOn { get; set; }
+        public bool IsChopperOn { get; set; }
         public string LaserMode { get; set; }
         public double LaserAmplitudeVolts { get; set; }
         public double LaserAmplitudeMiliWatt { get; set; }
         public double LaserAmplitudeOnSample { get; set; }
         public int LaserFrequency { get; set; }
+        public int ModulationFrequency { get; set; }
 
-        public LaserSBJControllerSettings(bool isLaserOn, string laserMode, double laserAmplitudeVolts, double laserAmplitudeMiliWatt, double laserAmplitudeOnSample, int laserFrequency)
+        public LaserSBJControllerSettings(bool isLaserOn, string laserMode, double laserAmplitudeVolts, double laserAmplitudeMiliWatt,
+            double laserAmplitudeOnSample, int laserFrequency, bool isEomON, bool isChopperON, int modulationFrequency)
         {
             IsLaserOn = isLaserOn;
             LaserMode = laserMode;
@@ -114,6 +118,9 @@ namespace SBJController
             LaserAmplitudeMiliWatt = laserAmplitudeMiliWatt;
             LaserAmplitudeOnSample = laserAmplitudeOnSample;
             LaserFrequency = laserFrequency;
+            IsEOMOn = isEomON;
+            IsChopperOn = isChopperON;
+            ModulationFrequency = modulationFrequency;
         }
 
         public override string ToString()
