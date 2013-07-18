@@ -1850,21 +1850,7 @@ namespace SBJController
 
         private CalibrationMeasurementType GetCalibrationMeasurementType()
         {
-            if (this.calibrationMeasurementTypeComboBox.SelectedText.Equals("Open Junction"))
-            {
-                return CalibrationMeasurementType.OpenJunction;
-            }
-            else 
-            {
-                if (this.calibrationMeasurementTypeComboBox.SelectedText.Equals("Close Junction"))
-                {
-                    return CalibrationMeasurementType.CloseJunction;
-                }
-                else
-                {
-                    return CalibrationMeasurementType.BothOpenAndClose;
-                }
-            }
+            return (CalibrationMeasurementType)Enum.Parse(typeof(CalibrationMeasurementType), this.calibrationMeasurementTypeComboBox.Text);
         }
 
         /// <summary>

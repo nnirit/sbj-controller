@@ -302,20 +302,7 @@ namespace SBJController
         /// <param name="e"></param>
         /// <returns></returns>
         private Task GetCalibrationTask(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
-        {
-            //TODO: delete the following note
-            //TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
-
-            ////
-            //// Determines the direction of the current - 
-            //// Either positive (then voltage is negative) or negative (then voltage is positive number)
-            ////
-            //bool isPositiveVoltage = AnalogIn(0) > 0;
-
-
-            //AnalogEdgeReferenceTriggerSlope triggerSlope = isPositiveVoltage ? AnalogEdgeReferenceTriggerSlope.Falling : AnalogEdgeReferenceTriggerSlope.Rising;
-            //double triggerVoltage = isPositiveVoltage ? settings.CalibirationSettings.TriggerVoltage * (-1) : settings.CalibirationSettings.TriggerVoltage;
-
+        { 
             //
             // Create the task with its propertites
             //
@@ -787,14 +774,6 @@ namespace SBJController
             {
                 average = average + data[0,i] / data.GetLength(1);
             }
-            //TODO: delete after verifing it works
-            //for (int i = 0; i < dataAfterEachStep.GetLength(0); i++)
-            //{
-            //    for (int j = 0; j < dataAfterEachStep.GetLength(1); j++)
-            //    {
-            //        average = average + dataAfterEachStep[i,j] / dataAfterEachStep.GetLength(1);
-            //    }
-            //}
             return average;
         }
         
@@ -813,76 +792,5 @@ namespace SBJController
             }
             return data;
         }
-
-        //TODO: delete
-        ///// <summary>
-        ///// Try obtain short circuit by the EM, using the settings of the calibration tab.
-        ///// </summary>
-        ///// <param name="settings"></param>
-        ///// <param name="worker"></param>
-        ///// <param name="e"></param>
-        ///// <returns></returns>
-        //private bool EMTryObtainShortCircuitForCalibration(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
-        //{
-        //    switch (EMShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.CalibirationSettings.ShortCircuitVoltage, worker, e))
-        //    {
-        //        case 0:
-        //            //
-        //            // short contact succeeded. 
-        //            //
-        //            return false;
-
-        //        case 1:
-        //            //
-        //            // the proccess was cancelled by the user.
-        //            //
-        //            return true;
-
-        //        case 2:
-        //            //
-        //            // we've reached the max voltage on the EM without getting to contact.
-        //            // return voltage to zero and get the electrodes closer by the stepper motor, 
-        //            // then start over again. 
-        //            //
-        //            m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
-        //            MoveStepsByStepperMotor(StepperDirection.DOWN, 100);
-        //            return EMTryObtainShortCircuitForCalibration(settings, worker, e);
-        //    }
-        //    return true;
-        //}
-
-        //private int SaveData(CalibrationSettings settings, IList<IDataChannel> activeChannels, IList<IDataChannel> physicalChannels, int fileNumber)
-        //{
-        //    string path = settings.CalibirationSettings.Path;
-        //    int finalNumber = fileNumber;
-
-        //    //
-        //    // we need to save the raw data only from the active channels, since the complex channels has the same raw data.
-        //    //
-        //    foreach (var channel in activeChannels)
-        //    {
-        //        //
-        //        // save raw data to file
-        //        //
-        //        finalNumber = WriteSingleArrayToFile(path, c_rawDataFolderName, channel.Name, fileNumber, channel.RawData[0]);
-        //    }
-
-        //    //
-        //    // saveing the physical and additional data from all the channels, including the complex
-        //    //
-        //    foreach (var channel in physicalChannels)
-        //    {
-        //        //
-        //        // save physical data to file
-        //        //
-        //        finalNumber = WriteSingleArrayToFile(path, c_physicalDataFolderName, channel.Name, finalNumber, channel.PhysicalData[0]);
-
-        //        //
-        //        // save addition data to files
-        //        //
-        //        fileNumber = WriteListOfArraysToFile(path, c_additionalDataFolderName, channel.Name, finalNumber, channel.AdditionalData);
-        //    }
-        //    return finalNumber;
-        //}
     }
 }

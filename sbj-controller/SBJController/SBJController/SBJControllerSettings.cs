@@ -436,7 +436,7 @@ namespace SBJController
             DelayTime = delayTime;
             EnableElectroMagnet = enableElectroMagnet;
             UseKeithley = useKeithley;
-            measurementType = MeasurementType;
+            MeasurementType = measurementType;
         }
 
         public override string ToString()

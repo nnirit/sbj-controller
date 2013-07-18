@@ -233,6 +233,7 @@
             this.calibrationSettingsGroupBox = new System.Windows.Forms.GroupBox();
             this.calibrationSettingsTabControl = new System.Windows.Forms.TabControl();
             this.CalibrationGeneralTabPage = new System.Windows.Forms.TabPage();
+            this.calibrationMeasurementTypeComboBox = new System.Windows.Forms.ComboBox();
             this.calibrationMeasurementsTypeLabel = new System.Windows.Forms.Label();
             this.calibrationDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.calibrationDelayTimeLabel = new System.Windows.Forms.Label();
@@ -278,14 +279,15 @@
             this.calibrationCycleNumberNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
+            this.electroMagnetUserControl1 = new ElectroMagnetUserControl();
             this.stepperMotorGroupBox = new System.Windows.Forms.GroupBox();
+            this.stepperMotorUserControl2 = new StepperMotorUserControl();
             this.aquireDataBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.stepperUpBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.fixBiasBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.ivCyclesBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.calibrationBackGroundWorker = new System.ComponentModel.BackgroundWorker();
             this.manualStartBackgroundWorker = new System.ComponentModel.BackgroundWorker();
-            this.calibrationMeasurementTypeComboBox = new System.Windows.Forms.ComboBox();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
             this.plotGroupBox.SuspendLayout();
@@ -391,6 +393,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.calibrationShortCircuitVoltageumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationCycleNumberNumericUpDown)).BeginInit();
             this.controlPanelsTabPage.SuspendLayout();
+            this.electroMagnetGroupBox.SuspendLayout();
+            this.stepperMotorGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // obtainShortCircuitBackgroundWorker
@@ -3080,6 +3084,19 @@
             this.CalibrationGeneralTabPage.Text = "General";
             this.CalibrationGeneralTabPage.UseVisualStyleBackColor = true;
             // 
+            // calibrationMeasurementTypeComboBox
+            // 
+            this.calibrationMeasurementTypeComboBox.FormattingEnabled = true;
+            this.calibrationMeasurementTypeComboBox.Items.AddRange(new object[] {
+            "OpenJunction",
+            "CloseJunction",
+            "BothOpenAndClose"});
+            this.calibrationMeasurementTypeComboBox.Location = new System.Drawing.Point(434, 99);
+            this.calibrationMeasurementTypeComboBox.Name = "calibrationMeasurementTypeComboBox";
+            this.calibrationMeasurementTypeComboBox.Size = new System.Drawing.Size(129, 21);
+            this.calibrationMeasurementTypeComboBox.TabIndex = 39;
+            this.calibrationMeasurementTypeComboBox.Text = "BothOpenAndClose";
+            // 
             // calibrationMeasurementsTypeLabel
             // 
             this.calibrationMeasurementsTypeLabel.AutoSize = true;
@@ -3678,6 +3695,7 @@
             // 
             // electroMagnetGroupBox
             // 
+            this.electroMagnetGroupBox.Controls.Add(this.electroMagnetUserControl1);
             this.electroMagnetGroupBox.Location = new System.Drawing.Point(13, 183);
             this.electroMagnetGroupBox.Name = "electroMagnetGroupBox";
             this.electroMagnetGroupBox.Size = new System.Drawing.Size(281, 278);
@@ -3685,14 +3703,29 @@
             this.electroMagnetGroupBox.TabStop = false;
             this.electroMagnetGroupBox.Text = "ElectroMagnet";
             // 
+            // electroMagnetUserControl1
+            // 
+            this.electroMagnetUserControl1.Location = new System.Drawing.Point(7, 12);
+            this.electroMagnetUserControl1.Name = "electroMagnetUserControl1";
+            this.electroMagnetUserControl1.Size = new System.Drawing.Size(266, 265);
+            this.electroMagnetUserControl1.TabIndex = 0;
+            // 
             // stepperMotorGroupBox
             // 
+            this.stepperMotorGroupBox.Controls.Add(this.stepperMotorUserControl2);
             this.stepperMotorGroupBox.Location = new System.Drawing.Point(12, 6);
             this.stepperMotorGroupBox.Name = "stepperMotorGroupBox";
             this.stepperMotorGroupBox.Size = new System.Drawing.Size(282, 170);
             this.stepperMotorGroupBox.TabIndex = 1;
             this.stepperMotorGroupBox.TabStop = false;
             this.stepperMotorGroupBox.Text = "Stepper Motor";
+            // 
+            // stepperMotorUserControl2
+            // 
+            this.stepperMotorUserControl2.Location = new System.Drawing.Point(6, 19);
+            this.stepperMotorUserControl2.Name = "stepperMotorUserControl2";
+            this.stepperMotorUserControl2.Size = new System.Drawing.Size(266, 134);
+            this.stepperMotorUserControl2.TabIndex = 0;
             // 
             // aquireDataBackgroundWorker
             // 
@@ -3733,19 +3766,6 @@
             this.manualStartBackgroundWorker.WorkerSupportsCancellation = true;
             this.manualStartBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.manualStartBackgroundWorker_DoWork);
             this.manualStartBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.manualStartBackgroundWorker_RunWorkerCompleted);
-            // 
-            // calibrationMeasurementTypeComboBox
-            // 
-            this.calibrationMeasurementTypeComboBox.FormattingEnabled = true;
-            this.calibrationMeasurementTypeComboBox.Items.AddRange(new object[] {
-            "Open Junction",
-            "Close Junction",
-            "Both Open and Close"});
-            this.calibrationMeasurementTypeComboBox.Location = new System.Drawing.Point(434, 99);
-            this.calibrationMeasurementTypeComboBox.Name = "calibrationMeasurementTypeComboBox";
-            this.calibrationMeasurementTypeComboBox.Size = new System.Drawing.Size(129, 21);
-            this.calibrationMeasurementTypeComboBox.TabIndex = 39;
-            this.calibrationMeasurementTypeComboBox.Text = "Both Open and Close";
             // 
             // SBJControllerMainForm
             // 
@@ -3885,6 +3905,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.calibrationShortCircuitVoltageumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationCycleNumberNumericUpDown)).EndInit();
             this.controlPanelsTabPage.ResumeLayout(false);
+            this.electroMagnetGroupBox.ResumeLayout(false);
+            this.stepperMotorGroupBox.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -4151,6 +4173,8 @@
         private NationalInstruments.UI.WindowsForms.NumericEdit lambdaZupOutputVoltageNumericEdit;
         private System.Windows.Forms.Label lambdaZupOutputVoltageLabel;
         private System.Windows.Forms.ComboBox calibrationMeasurementTypeComboBox;
+        private ElectroMagnetUserControl electroMagnetUserControl1;
+        private StepperMotorUserControl stepperMotorUserControl2;
                          
     }
 }
