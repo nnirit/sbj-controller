@@ -40,6 +40,15 @@ namespace SBJController
         }
 
         /// <summary>
+        /// Constuctor
+        /// </summary>
+        /// <param name="channel">The analog out channel on the IO Drove card</param>
+        public IODriveLaserController(byte channel)
+        {            
+            m_channel = channel;
+        }
+
+        /// <summary>
         /// Set the amplitude for the laser
         /// </summary>
         /// <param name="newPower"></param>
