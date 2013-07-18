@@ -233,9 +233,6 @@
             this.calibrationSettingsGroupBox = new System.Windows.Forms.GroupBox();
             this.calibrationSettingsTabControl = new System.Windows.Forms.TabControl();
             this.CalibrationGeneralTabPage = new System.Windows.Forms.TabPage();
-            this.calibrationBothOptionsCheckBox = new System.Windows.Forms.CheckBox();
-            this.calibrationCloseJunctionCheckBox = new System.Windows.Forms.CheckBox();
-            this.calibrationOpenJunctionCheckBox = new System.Windows.Forms.CheckBox();
             this.calibrationMeasurementsTypeLabel = new System.Windows.Forms.Label();
             this.calibrationDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.calibrationDelayTimeLabel = new System.Windows.Forms.Label();
@@ -252,7 +249,7 @@
             this.calibrationTriggerConductanceLabel = new System.Windows.Forms.Label();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.calibrationElectroMagnetPanel = new System.Windows.Forms.Panel();
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox = new System.Windows.Forms.CheckBox();
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox = new System.Windows.Forms.CheckBox();
             this.calibrationEMShortCircuitDelayTimeLabel = new System.Windows.Forms.Label();
             this.calibrationEMShortCircuitDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.calibrationEMSlowDelayTimeNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -268,7 +265,7 @@
             this.calibrationOpenFolderButton = new System.Windows.Forms.Button();
             this.calibrationStepperUpCheckBox = new System.Windows.Forms.CheckBox();
             this.calibrationStartStopCheckBox = new System.Windows.Forms.CheckBox();
-            this.calibrationShortCircuitCkeckBox = new System.Windows.Forms.CheckBox();
+            this.calibrationShortCircuitCheckBox = new System.Windows.Forms.CheckBox();
             this.calibrationNumberOfCyclesNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.calibrationNumberOfCyclesLabel = new System.Windows.Forms.Label();
             this.calibrationShortCircuitVoltageumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -281,15 +278,14 @@
             this.calibrationCycleNumberNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
-            this.electroMagnetUserControl2 = new ElectroMagnetUserControl();
             this.stepperMotorGroupBox = new System.Windows.Forms.GroupBox();
-            this.stepperMotorUserControl1 = new StepperMotorUserControl();
             this.aquireDataBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.stepperUpBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.fixBiasBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.ivCyclesBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.calibrationBackGroundWorker = new System.ComponentModel.BackgroundWorker();
             this.manualStartBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.calibrationMeasurementTypeComboBox = new System.Windows.Forms.ComboBox();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
             this.plotGroupBox.SuspendLayout();
@@ -395,8 +391,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.calibrationShortCircuitVoltageumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationCycleNumberNumericUpDown)).BeginInit();
             this.controlPanelsTabPage.SuspendLayout();
-            this.electroMagnetGroupBox.SuspendLayout();
-            this.stepperMotorGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // obtainShortCircuitBackgroundWorker
@@ -416,7 +410,7 @@
             this.controllerTabControl.Location = new System.Drawing.Point(0, 0);
             this.controllerTabControl.Name = "controllerTabControl";
             this.controllerTabControl.SelectedIndex = 0;
-            this.controllerTabControl.Size = new System.Drawing.Size(787, 746);
+            this.controllerTabControl.Size = new System.Drawing.Size(787, 825);
             this.controllerTabControl.TabIndex = 2;
             this.controllerTabControl.Tag = "";
             // 
@@ -431,7 +425,7 @@
             this.dataAquisitionTabPage.Location = new System.Drawing.Point(4, 22);
             this.dataAquisitionTabPage.Name = "dataAquisitionTabPage";
             this.dataAquisitionTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.dataAquisitionTabPage.Size = new System.Drawing.Size(779, 720);
+            this.dataAquisitionTabPage.Size = new System.Drawing.Size(779, 799);
             this.dataAquisitionTabPage.TabIndex = 0;
             this.dataAquisitionTabPage.Text = "DAQ";
             this.dataAquisitionTabPage.UseVisualStyleBackColor = true;
@@ -481,10 +475,10 @@
             this.operateGroupBox.Controls.Add(this.fileNumberNumericUpDown);
             this.operateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.operateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.operateGroupBox.Location = new System.Drawing.Point(3, 628);
+            this.operateGroupBox.Location = new System.Drawing.Point(3, 612);
             this.operateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.operateGroupBox.Name = "operateGroupBox";
-            this.operateGroupBox.Size = new System.Drawing.Size(756, 184);
+            this.operateGroupBox.Size = new System.Drawing.Size(773, 184);
             this.operateGroupBox.TabIndex = 23;
             this.operateGroupBox.TabStop = false;
             this.operateGroupBox.Text = "Operate";
@@ -763,7 +757,7 @@
             this.samplePropertiesGroupBox.ForeColor = System.Drawing.Color.Red;
             this.samplePropertiesGroupBox.Location = new System.Drawing.Point(553, 364);
             this.samplePropertiesGroupBox.Name = "samplePropertiesGroupBox";
-            this.samplePropertiesGroupBox.Size = new System.Drawing.Size(182, 247);
+            this.samplePropertiesGroupBox.Size = new System.Drawing.Size(183, 247);
             this.samplePropertiesGroupBox.TabIndex = 20;
             this.samplePropertiesGroupBox.TabStop = false;
             this.samplePropertiesGroupBox.Text = "Sample Properties";
@@ -799,7 +793,7 @@
             this.samplePropertiesTabControl.MinimumSize = new System.Drawing.Size(150, 0);
             this.samplePropertiesTabControl.Name = "samplePropertiesTabControl";
             this.samplePropertiesTabControl.SelectedIndex = 0;
-            this.samplePropertiesTabControl.Size = new System.Drawing.Size(176, 183);
+            this.samplePropertiesTabControl.Size = new System.Drawing.Size(177, 183);
             this.samplePropertiesTabControl.TabIndex = 0;
             // 
             // bottomTabPage
@@ -808,7 +802,7 @@
             this.bottomTabPage.Location = new System.Drawing.Point(4, 22);
             this.bottomTabPage.Name = "bottomTabPage";
             this.bottomTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.bottomTabPage.Size = new System.Drawing.Size(168, 157);
+            this.bottomTabPage.Size = new System.Drawing.Size(169, 157);
             this.bottomTabPage.TabIndex = 0;
             this.bottomTabPage.Text = "Bottom";
             this.bottomTabPage.UseVisualStyleBackColor = true;
@@ -821,7 +815,7 @@
             this.bottomPropertyGrid.MinimumSize = new System.Drawing.Size(150, 0);
             this.bottomPropertyGrid.Name = "bottomPropertyGrid";
             this.bottomPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.bottomPropertyGrid.Size = new System.Drawing.Size(162, 151);
+            this.bottomPropertyGrid.Size = new System.Drawing.Size(163, 151);
             this.bottomPropertyGrid.TabIndex = 1;
             // 
             // TopTabPage
@@ -830,7 +824,7 @@
             this.TopTabPage.Location = new System.Drawing.Point(4, 22);
             this.TopTabPage.Name = "TopTabPage";
             this.TopTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.TopTabPage.Size = new System.Drawing.Size(168, 157);
+            this.TopTabPage.Size = new System.Drawing.Size(169, 157);
             this.TopTabPage.TabIndex = 1;
             this.TopTabPage.Text = "Top";
             this.TopTabPage.UseVisualStyleBackColor = true;
@@ -842,7 +836,7 @@
             this.topPropertyGrid.Location = new System.Drawing.Point(3, 3);
             this.topPropertyGrid.Name = "topPropertyGrid";
             this.topPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.topPropertyGrid.Size = new System.Drawing.Size(162, 151);
+            this.topPropertyGrid.Size = new System.Drawing.Size(163, 151);
             this.topPropertyGrid.TabIndex = 0;
             // 
             // settingsGroupBox
@@ -850,7 +844,7 @@
             this.settingsGroupBox.AutoSize = true;
             this.settingsGroupBox.Controls.Add(this.SettingsTabControl);
             this.settingsGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.settingsGroupBox.Location = new System.Drawing.Point(13, 384);
+            this.settingsGroupBox.Location = new System.Drawing.Point(13, 364);
             this.settingsGroupBox.MinimumSize = new System.Drawing.Size(521, 200);
             this.settingsGroupBox.Name = "settingsGroupBox";
             this.settingsGroupBox.Size = new System.Drawing.Size(534, 247);
@@ -2046,7 +2040,7 @@
             this.ivAcquisition.Location = new System.Drawing.Point(4, 22);
             this.ivAcquisition.Name = "ivAcquisition";
             this.ivAcquisition.Padding = new System.Windows.Forms.Padding(3);
-            this.ivAcquisition.Size = new System.Drawing.Size(779, 720);
+            this.ivAcquisition.Size = new System.Drawing.Size(779, 799);
             this.ivAcquisition.TabIndex = 2;
             this.ivAcquisition.Text = "IV Acquisition";
             this.ivAcquisition.UseVisualStyleBackColor = true;
@@ -2070,7 +2064,7 @@
             this.ivOperateGroupBox.Controls.Add(this.ivFileNumberNumericUpDown);
             this.ivOperateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.ivOperateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.ivOperateGroupBox.Location = new System.Drawing.Point(3, 617);
+            this.ivOperateGroupBox.Location = new System.Drawing.Point(3, 612);
             this.ivOperateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.ivOperateGroupBox.Name = "ivOperateGroupBox";
             this.ivOperateGroupBox.Size = new System.Drawing.Size(773, 184);
@@ -2132,7 +2126,7 @@
             this.ivShortCircuitCheckBox.Text = "Short Circuit";
             this.ivShortCircuitCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.ivShortCircuitCheckBox.UseVisualStyleBackColor = true;
-            this.ivShortCircuitCheckBox.CheckedChanged += new System.EventHandler(this.shortCircuitButton_CheckedChanged);
+            this.ivShortCircuitCheckBox.CheckedChanged += new System.EventHandler(this.ivShortCircuitCheckBox_CheckedChanged);
             // 
             // ivNumberOfCyclesNumericUpDown
             // 
@@ -2971,7 +2965,7 @@
             this.calibrationTabPage.Location = new System.Drawing.Point(4, 22);
             this.calibrationTabPage.Name = "calibrationTabPage";
             this.calibrationTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.calibrationTabPage.Size = new System.Drawing.Size(779, 720);
+            this.calibrationTabPage.Size = new System.Drawing.Size(779, 799);
             this.calibrationTabPage.TabIndex = 3;
             this.calibrationTabPage.Text = "Calibration";
             this.calibrationTabPage.UseVisualStyleBackColor = true;
@@ -3063,9 +3057,7 @@
             // 
             // CalibrationGeneralTabPage
             // 
-            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationBothOptionsCheckBox);
-            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationCloseJunctionCheckBox);
-            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationOpenJunctionCheckBox);
+            this.CalibrationGeneralTabPage.Controls.Add(this.calibrationMeasurementTypeComboBox);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationMeasurementsTypeLabel);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationDelayTimeNumericUpDown);
             this.CalibrationGeneralTabPage.Controls.Add(this.calibrationDelayTimeLabel);
@@ -3087,41 +3079,6 @@
             this.CalibrationGeneralTabPage.TabIndex = 0;
             this.CalibrationGeneralTabPage.Text = "General";
             this.CalibrationGeneralTabPage.UseVisualStyleBackColor = true;
-            // 
-            // calibrationBothOptionsCheckBox
-            // 
-            this.calibrationBothOptionsCheckBox.AutoSize = true;
-            this.calibrationBothOptionsCheckBox.Checked = true;
-            this.calibrationBothOptionsCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.calibrationBothOptionsCheckBox.ForeColor = System.Drawing.Color.Black;
-            this.calibrationBothOptionsCheckBox.Location = new System.Drawing.Point(435, 147);
-            this.calibrationBothOptionsCheckBox.Name = "calibrationBothOptionsCheckBox";
-            this.calibrationBothOptionsCheckBox.Size = new System.Drawing.Size(87, 17);
-            this.calibrationBothOptionsCheckBox.TabIndex = 38;
-            this.calibrationBothOptionsCheckBox.Text = "Both Options";
-            this.calibrationBothOptionsCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // calibrationCloseJunctionCheckBox
-            // 
-            this.calibrationCloseJunctionCheckBox.AutoSize = true;
-            this.calibrationCloseJunctionCheckBox.ForeColor = System.Drawing.Color.Black;
-            this.calibrationCloseJunctionCheckBox.Location = new System.Drawing.Point(435, 124);
-            this.calibrationCloseJunctionCheckBox.Name = "calibrationCloseJunctionCheckBox";
-            this.calibrationCloseJunctionCheckBox.Size = new System.Drawing.Size(98, 17);
-            this.calibrationCloseJunctionCheckBox.TabIndex = 37;
-            this.calibrationCloseJunctionCheckBox.Text = "Close Junction ";
-            this.calibrationCloseJunctionCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // calibrationOpenJunctionCheckBox
-            // 
-            this.calibrationOpenJunctionCheckBox.AutoSize = true;
-            this.calibrationOpenJunctionCheckBox.ForeColor = System.Drawing.Color.Black;
-            this.calibrationOpenJunctionCheckBox.Location = new System.Drawing.Point(435, 101);
-            this.calibrationOpenJunctionCheckBox.Name = "calibrationOpenJunctionCheckBox";
-            this.calibrationOpenJunctionCheckBox.Size = new System.Drawing.Size(98, 17);
-            this.calibrationOpenJunctionCheckBox.TabIndex = 36;
-            this.calibrationOpenJunctionCheckBox.Text = "Open Junction ";
-            this.calibrationOpenJunctionCheckBox.UseVisualStyleBackColor = true;
             // 
             // calibrationMeasurementsTypeLabel
             // 
@@ -3311,7 +3268,7 @@
             // 
             // calibrationElectroMagnetPanel
             // 
-            this.calibrationElectroMagnetPanel.Controls.Add(this.calibrationEMSkipFirstCycleByStepperMotorCheckBox);
+            this.calibrationElectroMagnetPanel.Controls.Add(this.calibrationEMSkipShortCircuitByStepperMotorCheckBox);
             this.calibrationElectroMagnetPanel.Controls.Add(this.calibrationEMShortCircuitDelayTimeLabel);
             this.calibrationElectroMagnetPanel.Controls.Add(this.calibrationEMShortCircuitDelayTimeNumericUpDown);
             this.calibrationElectroMagnetPanel.Controls.Add(this.calibrationEMSlowDelayTimeNumericUpDown);
@@ -3325,17 +3282,17 @@
             this.calibrationElectroMagnetPanel.Size = new System.Drawing.Size(709, 201);
             this.calibrationElectroMagnetPanel.TabIndex = 4;
             // 
-            // calibrationEMSkipFirstCycleByStepperMotorCheckBox
+            // calibrationEMSkipShortCircuitByStepperMotorCheckBox
             // 
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.AutoSize = true;
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.Enabled = false;
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.ForeColor = System.Drawing.Color.Black;
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.Location = new System.Drawing.Point(8, 164);
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.Name = "calibrationEMSkipFirstCycleByStepperMotorCheckBox";
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.Size = new System.Drawing.Size(182, 17);
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.TabIndex = 13;
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.Text = "Skip First Cycle by Stepper Motor";
-            this.calibrationEMSkipFirstCycleByStepperMotorCheckBox.UseVisualStyleBackColor = true;
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.AutoSize = true;
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.Enabled = false;
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.Location = new System.Drawing.Point(8, 164);
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.Name = "calibrationEMSkipShortCircuitByStepperMotorCheckBox";
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.Size = new System.Drawing.Size(191, 17);
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.TabIndex = 13;
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.Text = "Skip Short Circuit by Stepper Motor";
+            this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.UseVisualStyleBackColor = true;
             // 
             // calibrationEMShortCircuitDelayTimeLabel
             // 
@@ -3501,7 +3458,7 @@
             this.calibrationOperateGroupBox.Controls.Add(this.calibrationOpenFolderButton);
             this.calibrationOperateGroupBox.Controls.Add(this.calibrationStepperUpCheckBox);
             this.calibrationOperateGroupBox.Controls.Add(this.calibrationStartStopCheckBox);
-            this.calibrationOperateGroupBox.Controls.Add(this.calibrationShortCircuitCkeckBox);
+            this.calibrationOperateGroupBox.Controls.Add(this.calibrationShortCircuitCheckBox);
             this.calibrationOperateGroupBox.Controls.Add(this.calibrationNumberOfCyclesNumericUpDown);
             this.calibrationOperateGroupBox.Controls.Add(this.calibrationNumberOfCyclesLabel);
             this.calibrationOperateGroupBox.Controls.Add(this.calibrationShortCircuitVoltageumericUpDown);
@@ -3514,7 +3471,7 @@
             this.calibrationOperateGroupBox.Controls.Add(this.calibrationCycleNumberNumericUpDown);
             this.calibrationOperateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.calibrationOperateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.calibrationOperateGroupBox.Location = new System.Drawing.Point(3, 617);
+            this.calibrationOperateGroupBox.Location = new System.Drawing.Point(3, 612);
             this.calibrationOperateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.calibrationOperateGroupBox.Name = "calibrationOperateGroupBox";
             this.calibrationOperateGroupBox.Size = new System.Drawing.Size(773, 184);
@@ -3563,20 +3520,20 @@
             this.calibrationStartStopCheckBox.UseVisualStyleBackColor = true;
             this.calibrationStartStopCheckBox.CheckedChanged += new System.EventHandler(this.StartStopCalibrationcheckBox_CheckedChanged);
             // 
-            // calibrationShortCircuitCkeckBox
+            // calibrationShortCircuitCheckBox
             // 
-            this.calibrationShortCircuitCkeckBox.Appearance = System.Windows.Forms.Appearance.Button;
-            this.calibrationShortCircuitCkeckBox.AutoSize = true;
-            this.calibrationShortCircuitCkeckBox.ForeColor = System.Drawing.Color.Black;
-            this.calibrationShortCircuitCkeckBox.Location = new System.Drawing.Point(459, 142);
-            this.calibrationShortCircuitCkeckBox.MinimumSize = new System.Drawing.Size(74, 23);
-            this.calibrationShortCircuitCkeckBox.Name = "calibrationShortCircuitCkeckBox";
-            this.calibrationShortCircuitCkeckBox.Size = new System.Drawing.Size(74, 23);
-            this.calibrationShortCircuitCkeckBox.TabIndex = 15;
-            this.calibrationShortCircuitCkeckBox.Text = "Short Circuit";
-            this.calibrationShortCircuitCkeckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.calibrationShortCircuitCkeckBox.UseVisualStyleBackColor = true;
-            this.calibrationShortCircuitCkeckBox.Click += new System.EventHandler(this.calibrationShortCircuitButton_CheckedChanged);
+            this.calibrationShortCircuitCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
+            this.calibrationShortCircuitCheckBox.AutoSize = true;
+            this.calibrationShortCircuitCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.calibrationShortCircuitCheckBox.Location = new System.Drawing.Point(459, 142);
+            this.calibrationShortCircuitCheckBox.MinimumSize = new System.Drawing.Size(74, 23);
+            this.calibrationShortCircuitCheckBox.Name = "calibrationShortCircuitCheckBox";
+            this.calibrationShortCircuitCheckBox.Size = new System.Drawing.Size(74, 23);
+            this.calibrationShortCircuitCheckBox.TabIndex = 15;
+            this.calibrationShortCircuitCheckBox.Text = "Short Circuit";
+            this.calibrationShortCircuitCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.calibrationShortCircuitCheckBox.UseVisualStyleBackColor = true;
+            this.calibrationShortCircuitCheckBox.Click += new System.EventHandler(this.calibrationShortCircuitButton_CheckedChanged);
             // 
             // calibrationNumberOfCyclesNumericUpDown
             // 
@@ -3714,14 +3671,13 @@
             this.controlPanelsTabPage.Location = new System.Drawing.Point(4, 22);
             this.controlPanelsTabPage.Name = "controlPanelsTabPage";
             this.controlPanelsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.controlPanelsTabPage.Size = new System.Drawing.Size(779, 720);
+            this.controlPanelsTabPage.Size = new System.Drawing.Size(779, 799);
             this.controlPanelsTabPage.TabIndex = 1;
             this.controlPanelsTabPage.Text = "Control Panels";
             this.controlPanelsTabPage.UseVisualStyleBackColor = true;
             // 
             // electroMagnetGroupBox
             // 
-            this.electroMagnetGroupBox.Controls.Add(this.electroMagnetUserControl2);
             this.electroMagnetGroupBox.Location = new System.Drawing.Point(13, 183);
             this.electroMagnetGroupBox.Name = "electroMagnetGroupBox";
             this.electroMagnetGroupBox.Size = new System.Drawing.Size(281, 278);
@@ -3729,31 +3685,14 @@
             this.electroMagnetGroupBox.TabStop = false;
             this.electroMagnetGroupBox.Text = "ElectroMagnet";
             // 
-            // electroMagnetUserControl2
-            // 
-            this.electroMagnetUserControl2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.electroMagnetUserControl2.Location = new System.Drawing.Point(3, 16);
-            this.electroMagnetUserControl2.Name = "electroMagnetUserControl2";
-            this.electroMagnetUserControl2.Size = new System.Drawing.Size(275, 259);
-            this.electroMagnetUserControl2.TabIndex = 0;
-            // 
             // stepperMotorGroupBox
             // 
-            this.stepperMotorGroupBox.Controls.Add(this.stepperMotorUserControl1);
             this.stepperMotorGroupBox.Location = new System.Drawing.Point(12, 6);
             this.stepperMotorGroupBox.Name = "stepperMotorGroupBox";
             this.stepperMotorGroupBox.Size = new System.Drawing.Size(282, 170);
             this.stepperMotorGroupBox.TabIndex = 1;
             this.stepperMotorGroupBox.TabStop = false;
             this.stepperMotorGroupBox.Text = "Stepper Motor";
-            // 
-            // stepperMotorUserControl1
-            // 
-            this.stepperMotorUserControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.stepperMotorUserControl1.Location = new System.Drawing.Point(3, 16);
-            this.stepperMotorUserControl1.Name = "stepperMotorUserControl1";
-            this.stepperMotorUserControl1.Size = new System.Drawing.Size(276, 151);
-            this.stepperMotorUserControl1.TabIndex = 0;
             // 
             // aquireDataBackgroundWorker
             // 
@@ -3795,12 +3734,25 @@
             this.manualStartBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.manualStartBackgroundWorker_DoWork);
             this.manualStartBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.manualStartBackgroundWorker_RunWorkerCompleted);
             // 
+            // calibrationMeasurementTypeComboBox
+            // 
+            this.calibrationMeasurementTypeComboBox.FormattingEnabled = true;
+            this.calibrationMeasurementTypeComboBox.Items.AddRange(new object[] {
+            "Open Junction",
+            "Close Junction",
+            "Both Open and Close"});
+            this.calibrationMeasurementTypeComboBox.Location = new System.Drawing.Point(434, 99);
+            this.calibrationMeasurementTypeComboBox.Name = "calibrationMeasurementTypeComboBox";
+            this.calibrationMeasurementTypeComboBox.Size = new System.Drawing.Size(129, 21);
+            this.calibrationMeasurementTypeComboBox.TabIndex = 39;
+            this.calibrationMeasurementTypeComboBox.Text = "Both Open and Close";
+            // 
             // SBJControllerMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(787, 746);
+            this.ClientSize = new System.Drawing.Size(787, 825);
             this.Controls.Add(this.controllerTabControl);
             this.Name = "SBJControllerMainForm";
             this.Text = "SBJControllerMainForm";
@@ -3933,8 +3885,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.calibrationShortCircuitVoltageumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.calibrationCycleNumberNumericUpDown)).EndInit();
             this.controlPanelsTabPage.ResumeLayout(false);
-            this.electroMagnetGroupBox.ResumeLayout(false);
-            this.stepperMotorGroupBox.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -4151,7 +4101,7 @@
         private System.Windows.Forms.Label calibrationTriggerConductanceLabel;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.Panel calibrationElectroMagnetPanel;
-        private System.Windows.Forms.CheckBox calibrationEMSkipFirstCycleByStepperMotorCheckBox;
+        private System.Windows.Forms.CheckBox calibrationEMSkipShortCircuitByStepperMotorCheckBox;
         private System.Windows.Forms.Label calibrationEMShortCircuitDelayTimeLabel;
         private System.Windows.Forms.NumericUpDown calibrationEMShortCircuitDelayTimeNumericUpDown;
         private System.Windows.Forms.NumericUpDown calibrationEMFastDelayTimeNumericUpDown;
@@ -4165,7 +4115,7 @@
         private System.Windows.Forms.Button calibrationOpenFolderButton;
         private System.Windows.Forms.CheckBox calibrationStepperUpCheckBox;
         private System.Windows.Forms.CheckBox calibrationStartStopCheckBox;
-        private System.Windows.Forms.CheckBox calibrationShortCircuitCkeckBox;
+        private System.Windows.Forms.CheckBox calibrationShortCircuitCheckBox;
         private System.Windows.Forms.NumericUpDown calibrationNumberOfCyclesNumericUpDown;
         private System.Windows.Forms.Label calibrationNumberOfCyclesLabel;
         private System.Windows.Forms.NumericUpDown calibrationShortCircuitVoltageumericUpDown;
@@ -4194,15 +4144,13 @@
         private System.Windows.Forms.Label calibrationDelayTimeLabel;
         private System.Windows.Forms.NumericUpDown calibrationEMSlowDelayTimeNumericUpDown;
         private System.Windows.Forms.Label calibrationEMSlowDelayTimeLabel;
-        private System.Windows.Forms.CheckBox calibrationBothOptionsCheckBox;
-        private System.Windows.Forms.CheckBox calibrationCloseJunctionCheckBox;
-        private System.Windows.Forms.CheckBox calibrationOpenJunctionCheckBox;
         private System.Windows.Forms.Label calibrationMeasurementsTypeLabel;
         private System.Windows.Forms.TabPage externalEMTabPage;
         private System.Windows.Forms.Panel externalEMpanel;
         private System.Windows.Forms.CheckBox useLambdaZupCheckBox;
         private NationalInstruments.UI.WindowsForms.NumericEdit lambdaZupOutputVoltageNumericEdit;
         private System.Windows.Forms.Label lambdaZupOutputVoltageLabel;
+        private System.Windows.Forms.ComboBox calibrationMeasurementTypeComboBox;
                          
     }
 }

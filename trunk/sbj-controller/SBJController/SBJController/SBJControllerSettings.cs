@@ -405,9 +405,7 @@ namespace SBJController
         public string Gain { get; set; }
         public double TriggerVoltage { get; set; }
         public double TriggerConductance { get; set; }
-        public int TotalSamples { get; set; }
         public int SampleRate { get; set; }
-        public int PretriggerSamples { get; set; }
         public bool IsFileSavingRequired { get; set; }
         public string Path { get; set; }
         public int CurrentFileNumber { get; set; }
@@ -416,17 +414,14 @@ namespace SBJController
         public bool EnableElectroMagnet { get; set; }
         public bool UseKeithley { get; set; }
         public int DelayTime { get; set; }
-        public bool OpenJunctionOption { get; set; }
-        public bool CloseJunctionOption { get; set; }
-        public bool BothOptions { get; set; }
+        public CalibrationMeasurementType MeasurementType { get; set; }
 
         public CalibrationGeneralSettings(double bias, string gain, double triggerVoltage,
                                                  double triggerConductance, bool isFileSavingRequired,
                                                  int sampleRate, string path, int currentFileNumber,
                                                  int totalNUmberOfCycles, double shourtCircuitVoltage,
                                                  bool enableElectroMagnet, bool useKeithley, int delayTime,
-                                                 bool openJunctionOption, bool closeJunctionOption,
-                                                 bool bothOptions)
+                                                 CalibrationMeasurementType measurementType)
         {
             Bias = bias;
             Gain = gain;
@@ -441,9 +436,7 @@ namespace SBJController
             DelayTime = delayTime;
             EnableElectroMagnet = enableElectroMagnet;
             UseKeithley = useKeithley;
-            OpenJunctionOption = openJunctionOption;
-            CloseJunctionOption = closeJunctionOption;
-            BothOptions = bothOptions;
+            measurementType = MeasurementType;
         }
 
         public override string ToString()
