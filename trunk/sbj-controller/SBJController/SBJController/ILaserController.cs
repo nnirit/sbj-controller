@@ -15,5 +15,6 @@ namespace SBJController
         void Connect();
         void Disconnect();
         void SetAmplitude(double amplitude);
+        void SetFrequency(double frequency);
     }
 }

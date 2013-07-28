@@ -652,7 +652,9 @@ namespace SBJController
                 }
                 else
                 {
-                    m_sbjController.LaserController = new TaborLaserController();                
+                    TaborModel laserModel = (TaborModel)Enum.Parse(typeof(TaborModel), Settings.Default.TaborLaserModel);
+                    string laserAddress = Settings.Default["Tabor" + Settings.Default.TaborLaserModel + "Address"].ToString();                    
+                    m_sbjController.LaserController = new TaborLaserController(laserModel, laserAddress);                
                 }
                 m_sbjController.LaserController.Connect();                
             }
@@ -665,15 +667,14 @@ namespace SBJController
             // Update the appearance of other UI related parameters.
             //
             this.laserModeComboBox.Enabled = this.enableLaserCheckBox.Checked;
-            this.amplitudeNumericUpDown.Enabled = this.enableLaserCheckBox.Checked;
+            this.laserAmplitudeNumericUpDown.Enabled = this.enableLaserCheckBox.Checked;
             this.laserAmplitudeLabel.Enabled = this.enableLaserCheckBox.Checked;
             this.laserAmplitudeOnSampleNumericUpDown.Enabled = this.enableLaserCheckBox.Checked;
             this.laserAmplitudeOnSampleLabel.Enabled = this.enableLaserCheckBox.Checked;
             this.laserAmplitudeWNumericUpDown.Enabled = this.enableLaserCheckBox.Checked;
-            this.laserAmplitudeWLabel.Enabled = this.enableLaserCheckBox.Checked;
-            this.externalFrequencyLabel.Enabled = this.enableLaserCheckBox.Checked;
-            this.externalFrequencyNumericUpDown.Enabled = this.enableLaserCheckBox.Checked;
-            this.enableEOMcheckBox.Enabled = this.enableLaserCheckBox.Checked;
+            this.laserAmplitudeWLabel.Enabled = this.enableLaserCheckBox.Checked;            
+            this.enableFirstEOMcheckBox.Enabled = this.enableLaserCheckBox.Checked;
+            this.enableSecondEOMCheckBox.Enabled = this.enableLaserCheckBox.Checked;
             this.enableChopperCheckBox.Enabled = this.enableLaserCheckBox.Checked;
             laserModeComboBox_SelectedValueChanged(sender, e);
         }
@@ -744,19 +745,45 @@ namespace SBJController
         /// <param name="e"></param>
         private void laserModeComboBox_SelectedValueChanged(object sender, EventArgs e)
         {
-            if (laserModeComboBox.Text.Equals("IODrive") && ((m_sbjController.LaserController as IODriveLaserController) == null))
+            if (laserModeComboBox.Text.Equals("IODrive")) 
             {
-                m_sbjController.LaserController = new IODriveLaserController(Settings.Default.IODriveOutputAddress);
+                //
+                // Assign the correct type of laser control if haven't been done before
+                //
+                if ((m_sbjController.LaserController as IODriveLaserController) == null)
+                {
+                    m_sbjController.LaserController = new IODriveLaserController(Settings.Default.IODriveOutputAddress);             
+                }
+
+                //
+                // Set the amplitude
+                //
+                m_sbjController.LaserController.SetAmplitude((double)this.laserAmplitudeNumericUpDown.Value);
             }
             else
             {
+                //
+                // All othe types of wave forms require Tabor as the laser controller
+                //
                 if ((m_sbjController.LaserController as TaborLaserController) == null)
                 {
-                    m_sbjController.LaserController = new TaborLaserController(); 
+                    TaborModel laserModel = (TaborModel)Enum.Parse(typeof(TaborModel), Settings.Default.TaborLaserModel);
+                    string laserAddress = Settings.Default["Tabor" + Settings.Default.TaborLaserModel + "Address"].ToString();                    
+                    m_sbjController.LaserController = new TaborLaserController(laserModel, laserAddress);  
                 }
-            }
-            this.frequencyLabel.Enabled = (laserModeComboBox.Text.Equals("Square")||laserModeComboBox.Text.Equals("Sine")) && this.enableLaserCheckBox.Checked;
-            this.frequencyNumericUpDown.Enabled = (laserModeComboBox.Text.Equals("Square") || laserModeComboBox.Text.Equals("Sine")) && this.enableLaserCheckBox.Checked;
+
+                if (laserModeComboBox.Text.Equals("Square"))
+                {
+                    (m_sbjController.LaserController as TaborLaserController).SetSquareMode((double)this.frequencyNumericUpDown.Value, (double)this.laserAmplitudeNumericUpDown.Value);                    
+                }
+
+                if (laserModeComboBox.Text.Equals("DC"))
+                {
+                    (m_sbjController.LaserController as TaborLaserController).SetDCMode((double)this.laserAmplitudeNumericUpDown.Value);
+                }
+            }            
+            this.frequencyLabel.Enabled = laserModeComboBox.Text.Equals("Square") && this.enableLaserCheckBox.Checked;
+            this.frequencyNumericUpDown.Enabled = laserModeComboBox.Text.Equals("Square") && this.enableLaserCheckBox.Checked;
         }
 
         /// <summary>
@@ -766,8 +793,31 @@ namespace SBJController
         /// <param name="e"></param>
         private void amplitudeNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            double amplitude = (double)this.amplitudeNumericUpDown.Value;
+            double amplitude = (double)this.laserAmplitudeNumericUpDown.Value;
             m_sbjController.LaserController.SetAmplitude(amplitude);            
+        }
+
+        /// <summary>
+        /// Change the frequency
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void frequencyNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            double frequency = (double)this.frequencyNumericUpDown.Value;
+            m_sbjController.LaserController.SetFrequency(frequency);
+        }
+
+        private void firstEOMFrequencyNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            double frequency = (double)this.firstEOMFrequencyNumericUpDown.Value;
+            m_sbjController.TaborFirstEOM.SetFrequency(frequency);
+        }
+
+        private void secondEOMFrequencyNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            double frequency = (double)this.secondEOMFrequencyNumericUpDown.Value;
+            m_sbjController.TaborSecondEOM.SetFrequency(frequency);
         }
 
         /// <summary>
@@ -1161,19 +1211,58 @@ namespace SBJController
 
         private void enableEOMcheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            m_sbjController.TaborEOM = new TaborEOMController();
-            if (this.enableEOMcheckBox.Checked)
+            if (m_sbjController.TaborFirstEOM == null)
             {
-                m_sbjController.TaborEOM.Connect();
+                TaborModel eomModel = (TaborModel)Enum.Parse(typeof(TaborModel), Settings.Default.TaborFirstEOMModel);
+                string eomAddress = Settings.Default["Tabor" + Settings.Default.TaborFirstEOMModel + "Address"].ToString();
+                m_sbjController.TaborFirstEOM = new TaborEOMController(eomModel, eomAddress);
+            }
+
+            if (this.enableFirstEOMcheckBox.Checked)
+            {
+                m_sbjController.TaborFirstEOM.Connect();
+                m_sbjController.TaborFirstEOM.SetSinusoidMode((double)this.firstEOMFrequencyNumericUpDown.Value);
             }
             else
             {
-                m_sbjController.TaborEOM.Disconnect();
+                m_sbjController.TaborFirstEOM.Disconnect();
             }
 
-            this.externalFrequencyLabel.Enabled = this.enableEOMcheckBox.Checked;
-            this.externalFrequencyNumericUpDown.Enabled = this.enableEOMcheckBox.Checked;
+            this.firstEOMFrequencyLabel.Enabled = this.enableFirstEOMcheckBox.Checked;
+            this.firstEOMFrequencyNumericUpDown.Enabled = this.enableFirstEOMcheckBox.Checked;
         }
+        
+        private void enableSecondEOMCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (m_sbjController.TaborSecondEOM == null)
+            {
+                TaborModel eomModel = (TaborModel)Enum.Parse(typeof(TaborModel), Settings.Default.TaborSecondEOMModel);
+                string eomAddress = Settings.Default["Tabor" + Settings.Default.TaborSecondEOMModel + "Address"].ToString();
+                m_sbjController.TaborSecondEOM = new TaborEOMController(eomModel, eomAddress);
+            }
+            
+            if (this.enableSecondEOMCheckBox.Checked)
+            {
+                m_sbjController.TaborSecondEOM.Connect();
+                m_sbjController.TaborSecondEOM.SetSinusoidMode((double)this.secondEOMFrequencyNumericUpDown.Value);
+            }
+            else
+            {
+                m_sbjController.TaborSecondEOM.Disconnect();
+            }
+
+            this.secondEOMFrequencyLabel.Enabled = this.enableSecondEOMCheckBox.Checked;
+            this.secondEOMFrequencyNumericUpDown.Enabled = this.enableSecondEOMCheckBox.Checked;
+            this.eomCOnfigurationComboBox.Enabled = this.enableSecondEOMCheckBox.Checked;
+        }
+
+        private void enableChopperCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            this.externalFrequencyLabel.Enabled = this.enableChopperCheckBox.Checked;
+            this.externalFrequencyNumericUpDown.Enabled = this.enableChopperCheckBox.Checked;
+        }
+
+
         #endregion
         
         #endregion
@@ -1367,13 +1456,17 @@ namespace SBJController
                                                                                   (Sample)this.bottomPropertyGrid.SelectedObject),
                                                   new LaserSBJControllerSettings(this.enableLaserCheckBox.Checked,
                                                                                  this.laserModeComboBox.SelectedItem.ToString(),
-                                                                                 (double)this.amplitudeNumericUpDown.Value,
+                                                                                 (double)this.laserAmplitudeNumericUpDown.Value,
                                                                                  (double)this.laserAmplitudeWNumericUpDown.Value,
                                                                                  (double)this.laserAmplitudeOnSampleNumericUpDown.Value,
                                                                                  (int)this.frequencyNumericUpDown.Value,
-                                                                                 this.enableEOMcheckBox.Checked,
+                                                                                 this.enableFirstEOMcheckBox.Checked,
+                                                                                 this.enableSecondEOMCheckBox.Checked,
                                                                                  this.enableChopperCheckBox.Checked,
-                                                                                 (int)this.externalFrequencyNumericUpDown.Value),
+                                                                                 this.eomCOnfigurationComboBox.Text,
+                                                                                 (int)this.externalFrequencyNumericUpDown.Value,
+                                                                                 (int)this.firstEOMFrequencyNumericUpDown.Value,
+                                                                                 (int)this.secondEOMFrequencyNumericUpDown.Value),
                                                   new LockInSBJControllerSettings(this.enableLockInCheckBox.Checked,
                                                                                   this.internalSourceLockInCheckBoxcheckBox.Checked,
                                                                                   Double.Parse(this.sensitivityComboBox.Text),
@@ -2315,6 +2408,6 @@ namespace SBJController
                 return SteppingDevice.ElectroMagnet;
             }
         }        
-        #endregion        
+        #endregion    
     }
 }

@@ -100,17 +100,22 @@ namespace SBJController
     public class LaserSBJControllerSettings
     {
         public bool IsLaserOn { get; set; }
-        public bool IsEOMOn { get; set; }
+        public bool IsFirstEOMOn { get; set; }
+        public bool IsSecondEOMOn { get; set; }
         public bool IsChopperOn { get; set; }
         public string LaserMode { get; set; }
         public double LaserAmplitudeVolts { get; set; }
         public double LaserAmplitudeMiliWatt { get; set; }
         public double LaserAmplitudeOnSample { get; set; }
         public int LaserFrequency { get; set; }
-        public int ModulationFrequency { get; set; }
+        public int ExternalModulationFrequency { get; set; }
+        public int FirstEOMFrequency { get; set; }
+        public int SecondEOMFrequency { get; set; }
+        public string EOMConfiguration { get; set; }
 
         public LaserSBJControllerSettings(bool isLaserOn, string laserMode, double laserAmplitudeVolts, double laserAmplitudeMiliWatt,
-            double laserAmplitudeOnSample, int laserFrequency, bool isEomON, bool isChopperON, int modulationFrequency)
+            double laserAmplitudeOnSample, int laserFrequency, bool isFirstEomON, bool isSecondEomON, bool isChopperON, string eomConfiguration, 
+            int externalModulationFrequency, int firstEOMFrequency, int secondEOMFrequency)
         {
             IsLaserOn = isLaserOn;
             LaserMode = laserMode;
@@ -118,9 +123,13 @@ namespace SBJController
             LaserAmplitudeMiliWatt = laserAmplitudeMiliWatt;
             LaserAmplitudeOnSample = laserAmplitudeOnSample;
             LaserFrequency = laserFrequency;
-            IsEOMOn = isEomON;
+            IsFirstEOMOn = isFirstEomON;
+            IsSecondEOMOn = isSecondEomON;
+            EOMConfiguration = eomConfiguration;
             IsChopperOn = isChopperON;
-            ModulationFrequency = modulationFrequency;
+            ExternalModulationFrequency = externalModulationFrequency;
+            FirstEOMFrequency = firstEOMFrequency;
+            SecondEOMFrequency = secondEOMFrequency;
         }
 
         public override string ToString()

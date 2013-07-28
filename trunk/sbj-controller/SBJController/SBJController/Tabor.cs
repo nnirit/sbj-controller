@@ -13,21 +13,98 @@ namespace SBJController
     /// </summary>
     public class TaborController : VisaInstrument
     {  
-        private const string c_dcModeCommand = "FUNCtion:SHAPe DC";
-        private const string c_squareModeCommand = "FUNCtion:SHAPe SQUare";        
-        private const string c_dcAmplitudeCommand = "DC {0}";
-        private const string c_squareAmplitudeCommand = "VOLTage {0}";
-        private const string c_squareFrequencyCommand = "FREQuency {0}";
+        protected static Dictionary<TaborModel, Dictionary<string, string>> s_commandsRepository;
+
+        //
+        // WW2571 Commands
+        //
+        private const string c_ww2571DcModeCommand = "FUNCtion:SHAPe DC;:DC:AMPLitude {0}";
+        private const string c_ww2571SquareModeCommand = "FUNCtion:SHAPe SQUare;:SOURce:FREQuency {0};:SOURce:VOLTage {1}";
+        private const string c_ww2571SinusoidModeCommand = "FUNCtion:SHAPe SINusoid;:SOURce:FREQuency {0};:SOURce:VOLTage {1}";
+        private const string c_ww2571SetAmplitudeCommand = "SOURce:VOLTage:LEVel:AMPLitude {0};:DC:AMPLitude {0}";
+
+        //
+        // WW5061Commands
+        //
+        private const string c_ww5061SinusoidModeCommand = ":SOUR:APPL:SIN {0},{1},0,0";
+        private const string c_ww5061DCModeCommand = ":SOUR:APPL:DC;:SOURce:VOLTage {0}";
+        private const string c_ww5061SqaureModeCommand = ":SOUR:APPL:SQUare {0},{1},0,50";
+        private const string c_ww5061SetAmplitudeCommand = "SOURce:VOLTage {0}";
+
+        //
+        // Common Commands
+        //
         private const string c_turnOffCommand = "OUTPut 0";
         private const string c_turnOnCommand = "OUTPut 1";
-        private const string c_localCommand = "SYSTem: LOCal"; 
+        private const string c_localCommand = "SYSTem: LOCal";
+        private const string c_setFrequencyCommand = "SOURce:FREQuency {0}";
+
+        //
+        // Commands 
+        //
+        protected const string c_setDCMode = "SetDCMode";
+        protected const string c_setSqaureMode = "SetSqaureMode";
+        protected const string c_setSinusoidMode = "SetSinusoidMode";
+        protected const string c_setFrequency = "SetFrequency";
+        protected const string c_setAmplitude = "SetAmplitude";
+        protected const string c_turnOff = "TurnOff";
+        protected const string c_turnOn = "TurnOn";
+        protected const string c_local = "Local";
+        
+        //
+        // Non static members
+        //
+        protected TaborModel m_taborModel;
+        protected string m_address;
+
+        /// <summary>
+        /// Static constructor
+        /// </summary>
+        static TaborController()
+        {
+            PopulateCommandsRepository();
+        }
+
+        /// <summary>
+        /// Populate commands repository according to Tabor's model.
+        /// </summary>
+        private static void PopulateCommandsRepository()
+        {
+            s_commandsRepository = new Dictionary<TaborModel, Dictionary<string, string>>();
+            Dictionary<string, string> commandsWW2571 = new Dictionary<string, string>();
+            commandsWW2571.Add(c_turnOff, c_turnOffCommand);
+            commandsWW2571.Add(c_turnOn, c_turnOnCommand);
+            commandsWW2571.Add(c_setDCMode, c_ww2571DcModeCommand);
+            commandsWW2571.Add(c_setSqaureMode, c_ww2571SquareModeCommand);
+            commandsWW2571.Add(c_setSinusoidMode, c_ww2571SinusoidModeCommand);
+            commandsWW2571.Add(c_setAmplitude, c_ww2571SetAmplitudeCommand);
+            commandsWW2571.Add(c_setFrequency, c_setFrequencyCommand);
+            commandsWW2571.Add(c_local, c_localCommand);
+
+            Dictionary<string, string> commandsWW5061 = new Dictionary<string, string>();
+            commandsWW5061.Add(c_turnOff, c_turnOffCommand);
+            commandsWW5061.Add(c_turnOn, c_turnOnCommand);
+            commandsWW5061.Add(c_setDCMode, c_ww5061DCModeCommand);
+            commandsWW5061.Add(c_setSqaureMode, c_ww5061SqaureModeCommand);
+            commandsWW5061.Add(c_setSinusoidMode, c_ww5061SinusoidModeCommand);
+            commandsWW5061.Add(c_setAmplitude, c_ww5061SetAmplitudeCommand);
+            commandsWW5061.Add(c_setFrequency, c_setFrequencyCommand);
+            commandsWW5061.Add(c_local, c_localCommand);
+
+            s_commandsRepository.Add(TaborModel.WW2571, commandsWW2571);
+            s_commandsRepository.Add(TaborModel.WW5061, commandsWW5061);
+        }
         
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="model">The function generator model - WW2571 \ WW5061</param>
         /// <param name="address">The GPIB address</param>
-        public TaborController(string address) : base (address)
-        {}
+        public TaborController(TaborModel model, string address) : base (address)
+        {
+            m_address = address;
+            m_taborModel = model;
+        }
 
         /// <summary>
         /// Connect to the device
@@ -35,47 +112,31 @@ namespace SBJController
         new public void Connect()
         {
             base.Connect();
-        }
-
-        public void SetDCMode()
-        {
-            this.Write(c_dcModeCommand, "Error occured while trying to set DC mode.");           
-        }
-
-        public void SetSquareMode()
-        {
-            Write(c_squareModeCommand, "Error occured while trying to set square mode.");            
-        }      
-
-        public void SetAmplitude(double voltAmplitude)
-        {
-            Write(String.Format(c_dcAmplitudeCommand, voltAmplitude), "Error occured while trying to set DC mode amplitude.");           
-        }
-
-        public void SetSquareModeAmplitude(double voltAmplitude)
-        {
-            Write(String.Format(c_squareAmplitudeCommand, voltAmplitude), "Error occured while trying to set Square mode amplitude.");            
-        }
-
-        public void SetSquareModeFrequency(int frequency)
-        {
-            Write(String.Format(c_squareFrequencyCommand, frequency), "Error occured while trying to set Square mode frequency.");            
-        }
+        }       
 
         public void Disconnect()
         {
-            Write(c_localCommand, "Error occured while trying to set local mode.");
+            string command = s_commandsRepository[m_taborModel][c_local];
+            Write(command, "Error occured while trying to set local mode.");
         }
 
         public void TurnOff()
         {
-            Write(c_turnOffCommand, "Error occured while trying to turn off Tabor.");            
+            string command = s_commandsRepository[m_taborModel][c_turnOff];
+            Write(command, "Error occured while trying to turn off Tabor.");            
         }
 
         public void TurnOn()
         {
-            Write(c_turnOnCommand, "Error occured while trying to turn on Tabor.");            
-        }       
+            string command = s_commandsRepository[m_taborModel][c_turnOn];
+            Write(command, "Error occured while trying to turn on Tabor.");            
+        }
+
+        public void SetFrequency(double frequency)
+        {
+            string command = s_commandsRepository[m_taborModel][c_setFrequency];
+            Write(string.Format(command, frequency), "Error occured while trying to change frequency."); 
+        }
     }
 
     /// <summary>
@@ -83,9 +144,27 @@ namespace SBJController
     /// </summary>
     public class TaborLaserController : TaborController, ILaserController
     {
-        public TaborLaserController()
-            : base(Settings.Default.TaborLaserAddress)
+        public TaborLaserController(TaborModel model, string address)
+            : base(model, address)
         { }
+
+        public void SetDCMode(double amplitude)
+        {
+            string command = s_commandsRepository[m_taborModel][c_setDCMode];
+            this.Write(string.Format(command, amplitude), "Error occured while trying to set DC mode.");
+        }
+
+        public void SetSquareMode(double frequency, double amplitude)
+        {
+            string command = s_commandsRepository[m_taborModel][c_setSqaureMode];
+            Write(string.Format(command, frequency, amplitude), "Error occured while trying to set square mode.");
+        }
+
+        public void SetAmplitude(double amplitude)
+        {
+            string command = s_commandsRepository[m_taborModel][c_setAmplitude];
+            Write(string.Format(command, amplitude), "Error occured while trying to set the new amplitude.");
+        } 
     }
 
     /// <summary>
@@ -93,15 +172,19 @@ namespace SBJController
     /// </summary>
     public class TaborEOMController : TaborController
     {
-        private const string c_sinusoidModeCommand = ":SOUR:APPL:SIN ";
+        //
+        // EOM only works with 10V amplitude.
+        //
+        private const double c_amplitude = 10.0;
 
-        public TaborEOMController()
-            : base(Settings.Default.TaborEOMAddress)
+        public TaborEOMController(TaborModel model, string address)
+            : base(model, address)
         { }
 
-        public void SetSinusoidMode(int frequency)
+        public void SetSinusoidMode(double frequency)
         {
-            Write(c_sinusoidModeCommand+frequency+",10,0,0", "Error occured while trying to set sinusoid mode.");            
-        }
+            string command = s_commandsRepository[m_taborModel][c_setSinusoidMode];
+            Write(string.Format(command, frequency, c_amplitude), "Error occured while trying to set sinusoid mode.");            
+        } 
     }
 }

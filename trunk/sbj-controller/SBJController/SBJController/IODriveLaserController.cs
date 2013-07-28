@@ -62,6 +62,14 @@ namespace SBJController
         }
 
         /// <summary>
+        /// Implements ILaserController.SetFrequency
+        /// Empty implementation.
+        /// </summary>
+        /// <param name="frequency"></param>
+        public void SetFrequency(double frequency)
+        {}
+
+        /// <summary>
         /// Turn off power supply
         /// </summary>
         public void TurnOff()
