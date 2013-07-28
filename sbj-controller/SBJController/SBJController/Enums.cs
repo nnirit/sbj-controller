@@ -49,4 +49,10 @@ namespace SBJController
         CloseJunction = 2,
         BothOpenAndClose = 3
     }
+
+    public enum TaborModel
+    {
+        WW2571 = 1,
+        WW5061 =2
+    }
 }

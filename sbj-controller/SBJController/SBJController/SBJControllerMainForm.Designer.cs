@@ -90,10 +90,16 @@
             this.biasLabel = new System.Windows.Forms.Label();
             this.laserSettingsTabPage = new System.Windows.Forms.TabPage();
             this.laserSettingsPanel = new System.Windows.Forms.Panel();
+            this.eomCOnfigurationComboBox = new System.Windows.Forms.ComboBox();
+            this.secondEOMFrequencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.secondEOMFrequencyLabel = new System.Windows.Forms.Label();
+            this.enableSecondEOMCheckBox = new System.Windows.Forms.CheckBox();
+            this.firstEOMFrequencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.firstEOMFrequencyLabel = new System.Windows.Forms.Label();
             this.enableChopperCheckBox = new System.Windows.Forms.CheckBox();
             this.externalFrequencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.externalFrequencyLabel = new System.Windows.Forms.Label();
-            this.enableEOMcheckBox = new System.Windows.Forms.CheckBox();
+            this.enableFirstEOMcheckBox = new System.Windows.Forms.CheckBox();
             this.laserAmplitudeOnSampleNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.laserAmplitudeOnSampleLabel = new System.Windows.Forms.Label();
             this.laserAmplitudeWNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -102,7 +108,7 @@
             this.frequencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.enableLaserCheckBox = new System.Windows.Forms.CheckBox();
             this.frequencyLabel = new System.Windows.Forms.Label();
-            this.amplitudeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.laserAmplitudeNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.laserAmplitudeLabel = new System.Windows.Forms.Label();
             this.LockInSettingsTabPage = new System.Windows.Forms.TabPage();
             this.lockInPanel = new System.Windows.Forms.Panel();
@@ -319,11 +325,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.biasNumericEdit)).BeginInit();
             this.laserSettingsTabPage.SuspendLayout();
             this.laserSettingsPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.secondEOMFrequencyNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.firstEOMFrequencyNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.externalFrequencyNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeOnSampleNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeWNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyNumericUpDown)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.amplitudeNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeNumericUpDown)).BeginInit();
             this.LockInSettingsTabPage.SuspendLayout();
             this.lockInPanel.SuspendLayout();
             this.internalSourceLockInGroupBox.SuspendLayout();
@@ -711,13 +719,13 @@
             this.traceWaveformGraph.CaptionBackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.traceWaveformGraph.CaptionFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.traceWaveformGraph.CaptionForeColor = System.Drawing.SystemColors.ControlText;
-            this.traceWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY) 
-            | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint) 
-            | NationalInstruments.UI.GraphInteractionModes.PanX) 
-            | NationalInstruments.UI.GraphInteractionModes.PanY) 
-            | NationalInstruments.UI.GraphInteractionModes.DragCursor) 
-            | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption) 
-            | NationalInstruments.UI.GraphInteractionModes.EditRange)));
+            this.traceWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY)
+                        | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint)
+                        | NationalInstruments.UI.GraphInteractionModes.PanX)
+                        | NationalInstruments.UI.GraphInteractionModes.PanY)
+                        | NationalInstruments.UI.GraphInteractionModes.DragCursor)
+                        | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption)
+                        | NationalInstruments.UI.GraphInteractionModes.EditRange)));
             this.traceWaveformGraph.Location = new System.Drawing.Point(21, 16);
             this.traceWaveformGraph.Name = "traceWaveformGraph";
             this.traceWaveformGraph.PlotAreaColor = System.Drawing.Color.LightGray;
@@ -741,7 +749,7 @@
             // xAxis1
             // 
             this.xAxis1.Caption = "Time [sec E-4]";
-            this.xAxis1.Range = new NationalInstruments.UI.Range(0D, 10000D);
+            this.xAxis1.Range = new NationalInstruments.UI.Range(0, 10000);
             // 
             // yAxis1
             // 
@@ -752,12 +760,12 @@
             this.yAxis2.Caption = "LockIn Signal";
             this.yAxis2.CaptionPosition = NationalInstruments.UI.YAxisPosition.Right;
             this.yAxis2.Position = NationalInstruments.UI.YAxisPosition.Right;
-            this.yAxis2.Range = new NationalInstruments.UI.Range(-10D, 10D);
+            this.yAxis2.Range = new NationalInstruments.UI.Range(-10, 10);
             // 
             // samplePropertiesGroupBox
             // 
-            this.samplePropertiesGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.samplePropertiesGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
             this.samplePropertiesGroupBox.AutoSize = true;
             this.samplePropertiesGroupBox.Controls.Add(this.openLogBookButton);
             this.samplePropertiesGroupBox.Controls.Add(this.saveSamplesParamsButton);
@@ -932,12 +940,12 @@
             // 
             // biasErrorNumericEdit
             // 
-            this.biasErrorNumericEdit.CoercionInterval = 0.01D;
+            this.biasErrorNumericEdit.CoercionInterval = 0.01;
             this.biasErrorNumericEdit.Enabled = false;
             this.biasErrorNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(4);
             this.biasErrorNumericEdit.Location = new System.Drawing.Point(147, 59);
             this.biasErrorNumericEdit.Name = "biasErrorNumericEdit";
-            this.biasErrorNumericEdit.Range = new NationalInstruments.UI.Range(-2D, 2D);
+            this.biasErrorNumericEdit.Range = new NationalInstruments.UI.Range(-2, 2);
             this.biasErrorNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.biasErrorNumericEdit.TabIndex = 20;
             // 
@@ -1083,7 +1091,7 @@
             this.triggerVoltageNumericEdit.Name = "triggerVoltageNumericEdit";
             this.triggerVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.triggerVoltageNumericEdit.TabIndex = 11;
-            this.triggerVoltageNumericEdit.Value = -0.01D;
+            this.triggerVoltageNumericEdit.Value = -0.01;
             // 
             // triggerVoltageLabel
             // 
@@ -1102,7 +1110,7 @@
             this.triggerConductanceNumericEdit.Name = "triggerConductanceNumericEdit";
             this.triggerConductanceNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.triggerConductanceNumericEdit.TabIndex = 9;
-            this.triggerConductanceNumericEdit.Value = 0.0129D;
+            this.triggerConductanceNumericEdit.Value = 0.0129;
             this.triggerConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.triggerConductanceNumericEdit_AfterChangeValue_1);
             // 
             // triggerConductanceLabel
@@ -1169,14 +1177,14 @@
             // 
             // biasNumericEdit
             // 
-            this.biasNumericEdit.CoercionInterval = 0.01D;
+            this.biasNumericEdit.CoercionInterval = 0.01;
             this.biasNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(3);
             this.biasNumericEdit.Location = new System.Drawing.Point(147, 29);
             this.biasNumericEdit.Name = "biasNumericEdit";
-            this.biasNumericEdit.Range = new NationalInstruments.UI.Range(-4D, 4D);
+            this.biasNumericEdit.Range = new NationalInstruments.UI.Range(-4, 4);
             this.biasNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.biasNumericEdit.TabIndex = 1;
-            this.biasNumericEdit.Value = 0.1D;
+            this.biasNumericEdit.Value = 0.1;
             this.biasNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.biasNumericEdit_AfterChangeValue);
             // 
             // biasLabel
@@ -1202,10 +1210,16 @@
             // 
             // laserSettingsPanel
             // 
+            this.laserSettingsPanel.Controls.Add(this.eomCOnfigurationComboBox);
+            this.laserSettingsPanel.Controls.Add(this.secondEOMFrequencyNumericUpDown);
+            this.laserSettingsPanel.Controls.Add(this.secondEOMFrequencyLabel);
+            this.laserSettingsPanel.Controls.Add(this.enableSecondEOMCheckBox);
+            this.laserSettingsPanel.Controls.Add(this.firstEOMFrequencyNumericUpDown);
+            this.laserSettingsPanel.Controls.Add(this.firstEOMFrequencyLabel);
             this.laserSettingsPanel.Controls.Add(this.enableChopperCheckBox);
             this.laserSettingsPanel.Controls.Add(this.externalFrequencyNumericUpDown);
             this.laserSettingsPanel.Controls.Add(this.externalFrequencyLabel);
-            this.laserSettingsPanel.Controls.Add(this.enableEOMcheckBox);
+            this.laserSettingsPanel.Controls.Add(this.enableFirstEOMcheckBox);
             this.laserSettingsPanel.Controls.Add(this.laserAmplitudeOnSampleNumericUpDown);
             this.laserSettingsPanel.Controls.Add(this.laserAmplitudeOnSampleLabel);
             this.laserSettingsPanel.Controls.Add(this.laserAmplitudeWNumericUpDown);
@@ -1214,7 +1228,7 @@
             this.laserSettingsPanel.Controls.Add(this.frequencyNumericUpDown);
             this.laserSettingsPanel.Controls.Add(this.enableLaserCheckBox);
             this.laserSettingsPanel.Controls.Add(this.frequencyLabel);
-            this.laserSettingsPanel.Controls.Add(this.amplitudeNumericUpDown);
+            this.laserSettingsPanel.Controls.Add(this.laserAmplitudeNumericUpDown);
             this.laserSettingsPanel.Controls.Add(this.laserAmplitudeLabel);
             this.laserSettingsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.laserSettingsPanel.ForeColor = System.Drawing.Color.Black;
@@ -1224,29 +1238,117 @@
             this.laserSettingsPanel.Size = new System.Drawing.Size(514, 196);
             this.laserSettingsPanel.TabIndex = 5;
             // 
+            // eomCOnfigurationComboBox
+            // 
+            this.eomCOnfigurationComboBox.DisplayMember = "1";
+            this.eomCOnfigurationComboBox.Enabled = false;
+            this.eomCOnfigurationComboBox.FormattingEnabled = true;
+            this.eomCOnfigurationComboBox.Items.AddRange(new object[] {
+            "Parallel",
+            "Series"});
+            this.eomCOnfigurationComboBox.Location = new System.Drawing.Point(409, 68);
+            this.eomCOnfigurationComboBox.Name = "eomCOnfigurationComboBox";
+            this.eomCOnfigurationComboBox.Size = new System.Drawing.Size(85, 21);
+            this.eomCOnfigurationComboBox.TabIndex = 19;
+            this.eomCOnfigurationComboBox.Text = "Series";
+            // 
+            // secondEOMFrequencyNumericUpDown
+            // 
+            this.secondEOMFrequencyNumericUpDown.Enabled = false;
+            this.secondEOMFrequencyNumericUpDown.Location = new System.Drawing.Point(409, 102);
+            this.secondEOMFrequencyNumericUpDown.Maximum = new decimal(new int[] {
+            100000000,
+            0,
+            0,
+            0});
+            this.secondEOMFrequencyNumericUpDown.Name = "secondEOMFrequencyNumericUpDown";
+            this.secondEOMFrequencyNumericUpDown.Size = new System.Drawing.Size(85, 20);
+            this.secondEOMFrequencyNumericUpDown.TabIndex = 18;
+            this.secondEOMFrequencyNumericUpDown.ThousandsSeparator = true;
+            this.secondEOMFrequencyNumericUpDown.Value = new decimal(new int[] {
+            10000000,
+            0,
+            0,
+            0});
+            this.secondEOMFrequencyNumericUpDown.ValueChanged += new System.EventHandler(this.secondEOMFrequencyNumericUpDown_ValueChanged);
+            // 
+            // secondEOMFrequencyLabel
+            // 
+            this.secondEOMFrequencyLabel.AutoSize = true;
+            this.secondEOMFrequencyLabel.Enabled = false;
+            this.secondEOMFrequencyLabel.Location = new System.Drawing.Point(298, 104);
+            this.secondEOMFrequencyLabel.Name = "secondEOMFrequencyLabel";
+            this.secondEOMFrequencyLabel.Size = new System.Drawing.Size(79, 13);
+            this.secondEOMFrequencyLabel.TabIndex = 17;
+            this.secondEOMFrequencyLabel.Text = "Frequency [Hz]";
+            // 
+            // enableSecondEOMCheckBox
+            // 
+            this.enableSecondEOMCheckBox.AutoSize = true;
+            this.enableSecondEOMCheckBox.Enabled = false;
+            this.enableSecondEOMCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.enableSecondEOMCheckBox.Location = new System.Drawing.Point(298, 70);
+            this.enableSecondEOMCheckBox.Name = "enableSecondEOMCheckBox";
+            this.enableSecondEOMCheckBox.Size = new System.Drawing.Size(86, 17);
+            this.enableSecondEOMCheckBox.TabIndex = 16;
+            this.enableSecondEOMCheckBox.Text = "Enable EOM";
+            this.enableSecondEOMCheckBox.UseVisualStyleBackColor = true;
+            this.enableSecondEOMCheckBox.CheckedChanged += new System.EventHandler(this.enableSecondEOMCheckBox_CheckedChanged);
+            // 
+            // firstEOMFrequencyNumericUpDown
+            // 
+            this.firstEOMFrequencyNumericUpDown.Enabled = false;
+            this.firstEOMFrequencyNumericUpDown.Location = new System.Drawing.Point(409, 31);
+            this.firstEOMFrequencyNumericUpDown.Maximum = new decimal(new int[] {
+            100000000,
+            0,
+            0,
+            0});
+            this.firstEOMFrequencyNumericUpDown.Name = "firstEOMFrequencyNumericUpDown";
+            this.firstEOMFrequencyNumericUpDown.Size = new System.Drawing.Size(85, 20);
+            this.firstEOMFrequencyNumericUpDown.TabIndex = 15;
+            this.firstEOMFrequencyNumericUpDown.ThousandsSeparator = true;
+            this.firstEOMFrequencyNumericUpDown.Value = new decimal(new int[] {
+            10000000,
+            0,
+            0,
+            0});
+            this.firstEOMFrequencyNumericUpDown.ValueChanged += new System.EventHandler(this.firstEOMFrequencyNumericUpDown_ValueChanged);
+            // 
+            // firstEOMFrequencyLabel
+            // 
+            this.firstEOMFrequencyLabel.AutoSize = true;
+            this.firstEOMFrequencyLabel.Enabled = false;
+            this.firstEOMFrequencyLabel.Location = new System.Drawing.Point(298, 33);
+            this.firstEOMFrequencyLabel.Name = "firstEOMFrequencyLabel";
+            this.firstEOMFrequencyLabel.Size = new System.Drawing.Size(79, 13);
+            this.firstEOMFrequencyLabel.TabIndex = 14;
+            this.firstEOMFrequencyLabel.Text = "Frequency [Hz]";
+            // 
             // enableChopperCheckBox
             // 
             this.enableChopperCheckBox.AutoSize = true;
             this.enableChopperCheckBox.Enabled = false;
             this.enableChopperCheckBox.ForeColor = System.Drawing.Color.Black;
-            this.enableChopperCheckBox.Location = new System.Drawing.Point(409, 6);
+            this.enableChopperCheckBox.Location = new System.Drawing.Point(298, 140);
             this.enableChopperCheckBox.Name = "enableChopperCheckBox";
             this.enableChopperCheckBox.Size = new System.Drawing.Size(102, 17);
             this.enableChopperCheckBox.TabIndex = 13;
             this.enableChopperCheckBox.Text = "Enable Chopper";
             this.enableChopperCheckBox.UseVisualStyleBackColor = true;
+            this.enableChopperCheckBox.CheckedChanged += new System.EventHandler(this.enableChopperCheckBox_CheckedChanged);
             // 
             // externalFrequencyNumericUpDown
             // 
             this.externalFrequencyNumericUpDown.Enabled = false;
-            this.externalFrequencyNumericUpDown.Location = new System.Drawing.Point(409, 35);
+            this.externalFrequencyNumericUpDown.Location = new System.Drawing.Point(409, 167);
             this.externalFrequencyNumericUpDown.Maximum = new decimal(new int[] {
-            100000,
+            10000,
             0,
             0,
             0});
             this.externalFrequencyNumericUpDown.Name = "externalFrequencyNumericUpDown";
-            this.externalFrequencyNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.externalFrequencyNumericUpDown.Size = new System.Drawing.Size(85, 20);
             this.externalFrequencyNumericUpDown.TabIndex = 12;
             this.externalFrequencyNumericUpDown.Value = new decimal(new int[] {
             40,
@@ -1258,24 +1360,24 @@
             // 
             this.externalFrequencyLabel.AutoSize = true;
             this.externalFrequencyLabel.Enabled = false;
-            this.externalFrequencyLabel.Location = new System.Drawing.Point(298, 37);
+            this.externalFrequencyLabel.Location = new System.Drawing.Point(298, 168);
             this.externalFrequencyLabel.Name = "externalFrequencyLabel";
             this.externalFrequencyLabel.Size = new System.Drawing.Size(79, 13);
             this.externalFrequencyLabel.TabIndex = 11;
             this.externalFrequencyLabel.Text = "Frequency [Hz]";
             // 
-            // enableEOMcheckBox
+            // enableFirstEOMcheckBox
             // 
-            this.enableEOMcheckBox.AutoSize = true;
-            this.enableEOMcheckBox.Enabled = false;
-            this.enableEOMcheckBox.ForeColor = System.Drawing.Color.Black;
-            this.enableEOMcheckBox.Location = new System.Drawing.Point(301, 6);
-            this.enableEOMcheckBox.Name = "enableEOMcheckBox";
-            this.enableEOMcheckBox.Size = new System.Drawing.Size(86, 17);
-            this.enableEOMcheckBox.TabIndex = 10;
-            this.enableEOMcheckBox.Text = "Enable EOM";
-            this.enableEOMcheckBox.UseVisualStyleBackColor = true;
-            this.enableEOMcheckBox.CheckedChanged += new System.EventHandler(this.enableEOMcheckBox_CheckedChanged);
+            this.enableFirstEOMcheckBox.AutoSize = true;
+            this.enableFirstEOMcheckBox.Enabled = false;
+            this.enableFirstEOMcheckBox.ForeColor = System.Drawing.Color.Black;
+            this.enableFirstEOMcheckBox.Location = new System.Drawing.Point(298, 6);
+            this.enableFirstEOMcheckBox.Name = "enableFirstEOMcheckBox";
+            this.enableFirstEOMcheckBox.Size = new System.Drawing.Size(86, 17);
+            this.enableFirstEOMcheckBox.TabIndex = 10;
+            this.enableFirstEOMcheckBox.Text = "Enable EOM";
+            this.enableFirstEOMcheckBox.UseVisualStyleBackColor = true;
+            this.enableFirstEOMcheckBox.CheckedChanged += new System.EventHandler(this.enableEOMcheckBox_CheckedChanged);
             // 
             // laserAmplitudeOnSampleNumericUpDown
             // 
@@ -1354,8 +1456,7 @@
             this.laserModeComboBox.Items.AddRange(new object[] {
             "IODrive",
             "DC",
-            "Square",
-            "Sine"});
+            "Square"});
             this.laserModeComboBox.Location = new System.Drawing.Point(161, 4);
             this.laserModeComboBox.Name = "laserModeComboBox";
             this.laserModeComboBox.Size = new System.Drawing.Size(75, 21);
@@ -1380,6 +1481,7 @@
             0,
             0,
             0});
+            this.frequencyNumericUpDown.ValueChanged += new System.EventHandler(this.frequencyNumericUpDown_ValueChanged);
             // 
             // enableLaserCheckBox
             // 
@@ -1403,30 +1505,30 @@
             this.frequencyLabel.TabIndex = 4;
             this.frequencyLabel.Text = "Frequency [Hz]";
             // 
-            // amplitudeNumericUpDown
+            // laserAmplitudeNumericUpDown
             // 
-            this.amplitudeNumericUpDown.DecimalPlaces = 3;
-            this.amplitudeNumericUpDown.Enabled = false;
-            this.amplitudeNumericUpDown.Increment = new decimal(new int[] {
+            this.laserAmplitudeNumericUpDown.DecimalPlaces = 3;
+            this.laserAmplitudeNumericUpDown.Enabled = false;
+            this.laserAmplitudeNumericUpDown.Increment = new decimal(new int[] {
             1,
             0,
             0,
             65536});
-            this.amplitudeNumericUpDown.Location = new System.Drawing.Point(161, 36);
-            this.amplitudeNumericUpDown.Maximum = new decimal(new int[] {
+            this.laserAmplitudeNumericUpDown.Location = new System.Drawing.Point(161, 38);
+            this.laserAmplitudeNumericUpDown.Maximum = new decimal(new int[] {
             5,
             0,
             0,
             0});
-            this.amplitudeNumericUpDown.Name = "amplitudeNumericUpDown";
-            this.amplitudeNumericUpDown.Size = new System.Drawing.Size(75, 20);
-            this.amplitudeNumericUpDown.TabIndex = 3;
-            this.amplitudeNumericUpDown.Value = new decimal(new int[] {
+            this.laserAmplitudeNumericUpDown.Name = "laserAmplitudeNumericUpDown";
+            this.laserAmplitudeNumericUpDown.Size = new System.Drawing.Size(75, 20);
+            this.laserAmplitudeNumericUpDown.TabIndex = 3;
+            this.laserAmplitudeNumericUpDown.Value = new decimal(new int[] {
             4,
             0,
             0,
             0});
-            this.amplitudeNumericUpDown.ValueChanged += new System.EventHandler(this.amplitudeNumericUpDown_ValueChanged);
+            this.laserAmplitudeNumericUpDown.ValueChanged += new System.EventHandler(this.amplitudeNumericUpDown_ValueChanged);
             // 
             // laserAmplitudeLabel
             // 
@@ -1598,14 +1700,14 @@
             // 
             // mixerReductionFactorNumericEdit
             // 
-            this.mixerReductionFactorNumericEdit.CoercionInterval = 0.01D;
+            this.mixerReductionFactorNumericEdit.CoercionInterval = 0.01;
             this.mixerReductionFactorNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateGenericMode("F0");
             this.mixerReductionFactorNumericEdit.Location = new System.Drawing.Point(152, 83);
             this.mixerReductionFactorNumericEdit.Name = "mixerReductionFactorNumericEdit";
-            this.mixerReductionFactorNumericEdit.Range = new NationalInstruments.UI.Range(0D, 100D);
+            this.mixerReductionFactorNumericEdit.Range = new NationalInstruments.UI.Range(0, 100);
             this.mixerReductionFactorNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.mixerReductionFactorNumericEdit.TabIndex = 10;
-            this.mixerReductionFactorNumericEdit.Value = 100D;
+            this.mixerReductionFactorNumericEdit.Value = 100;
             // 
             // acVoltageReductionFactorLabel
             // 
@@ -1630,14 +1732,14 @@
             // 
             // lockInAcVoltageNumericEdit
             // 
-            this.lockInAcVoltageNumericEdit.CoercionInterval = 0.01D;
+            this.lockInAcVoltageNumericEdit.CoercionInterval = 0.01;
             this.lockInAcVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2, true);
             this.lockInAcVoltageNumericEdit.Location = new System.Drawing.Point(152, 50);
             this.lockInAcVoltageNumericEdit.Name = "lockInAcVoltageNumericEdit";
-            this.lockInAcVoltageNumericEdit.Range = new NationalInstruments.UI.Range(1E-05D, 1D);
+            this.lockInAcVoltageNumericEdit.Range = new NationalInstruments.UI.Range(1E-05, 1);
             this.lockInAcVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.lockInAcVoltageNumericEdit.TabIndex = 7;
-            this.lockInAcVoltageNumericEdit.Value = 0.01D;
+            this.lockInAcVoltageNumericEdit.Value = 0.01;
             // 
             // lockInAcVoltageLabel
             // 
@@ -1707,7 +1809,7 @@
             // emHoldOnMinVoltageNumericEdit
             // 
             this.emHoldOnMinVoltageNumericEdit.BackColor = System.Drawing.SystemColors.Control;
-            this.emHoldOnMinVoltageNumericEdit.CoercionInterval = 0.001D;
+            this.emHoldOnMinVoltageNumericEdit.CoercionInterval = 0.001;
             this.emHoldOnMinVoltageNumericEdit.Enabled = false;
             this.emHoldOnMinVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
             this.emHoldOnMinVoltageNumericEdit.InteractionMode = NationalInstruments.UI.NumericEditInteractionModes.Indicator;
@@ -1740,21 +1842,21 @@
             // 
             // emHoldOnMinConductanceNumericEdit
             // 
-            this.emHoldOnMinConductanceNumericEdit.CoercionInterval = 0.1D;
+            this.emHoldOnMinConductanceNumericEdit.CoercionInterval = 0.1;
             this.emHoldOnMinConductanceNumericEdit.Enabled = false;
             this.emHoldOnMinConductanceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
             this.emHoldOnMinConductanceNumericEdit.Location = new System.Drawing.Point(145, 109);
             this.emHoldOnMinConductanceNumericEdit.Name = "emHoldOnMinConductanceNumericEdit";
-            this.emHoldOnMinConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0D, 2000D);
+            this.emHoldOnMinConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0, 2000);
             this.emHoldOnMinConductanceNumericEdit.Size = new System.Drawing.Size(77, 20);
             this.emHoldOnMinConductanceNumericEdit.TabIndex = 14;
-            this.emHoldOnMinConductanceNumericEdit.Value = 0.7D;
+            this.emHoldOnMinConductanceNumericEdit.Value = 0.7;
             this.emHoldOnMinConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.emHoldOnMinConductanceNumericEdit_AfterChangeValue);
             // 
             // emHoldOnMaxVoltageNumericEdit
             // 
             this.emHoldOnMaxVoltageNumericEdit.BackColor = System.Drawing.SystemColors.Control;
-            this.emHoldOnMaxVoltageNumericEdit.CoercionInterval = 0.001D;
+            this.emHoldOnMaxVoltageNumericEdit.CoercionInterval = 0.001;
             this.emHoldOnMaxVoltageNumericEdit.Enabled = false;
             this.emHoldOnMaxVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
             this.emHoldOnMaxVoltageNumericEdit.InteractionMode = NationalInstruments.UI.NumericEditInteractionModes.Indicator;
@@ -1787,15 +1889,15 @@
             // 
             // emHoldOnMaxConductanceNumericEdit
             // 
-            this.emHoldOnMaxConductanceNumericEdit.CoercionInterval = 0.1D;
+            this.emHoldOnMaxConductanceNumericEdit.CoercionInterval = 0.1;
             this.emHoldOnMaxConductanceNumericEdit.Enabled = false;
             this.emHoldOnMaxConductanceNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(2);
             this.emHoldOnMaxConductanceNumericEdit.Location = new System.Drawing.Point(145, 49);
             this.emHoldOnMaxConductanceNumericEdit.Name = "emHoldOnMaxConductanceNumericEdit";
-            this.emHoldOnMaxConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0D, 2000D);
+            this.emHoldOnMaxConductanceNumericEdit.Range = new NationalInstruments.UI.Range(0, 2000);
             this.emHoldOnMaxConductanceNumericEdit.Size = new System.Drawing.Size(77, 20);
             this.emHoldOnMaxConductanceNumericEdit.TabIndex = 9;
-            this.emHoldOnMaxConductanceNumericEdit.Value = 1.3D;
+            this.emHoldOnMaxConductanceNumericEdit.Value = 1.3;
             this.emHoldOnMaxConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.emHoldOnMaxConductanceNumericEdit_AfterChangeValue);
             // 
             // emHoldOnToConductanceRangeCheckBox
@@ -1964,7 +2066,7 @@
             this.lambdaZupOutputVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(2);
             this.lambdaZupOutputVoltageNumericEdit.Location = new System.Drawing.Point(116, 39);
             this.lambdaZupOutputVoltageNumericEdit.Name = "lambdaZupOutputVoltageNumericEdit";
-            this.lambdaZupOutputVoltageNumericEdit.Range = new NationalInstruments.UI.Range(0D, 12D);
+            this.lambdaZupOutputVoltageNumericEdit.Range = new NationalInstruments.UI.Range(0, 12);
             this.lambdaZupOutputVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.lambdaZupOutputVoltageNumericEdit.TabIndex = 24;
             // 
@@ -2355,13 +2457,13 @@
             this.ivWaveformGraph.CaptionBackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.ivWaveformGraph.CaptionFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ivWaveformGraph.CaptionForeColor = System.Drawing.SystemColors.ControlText;
-            this.ivWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY) 
-            | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint) 
-            | NationalInstruments.UI.GraphInteractionModes.PanX) 
-            | NationalInstruments.UI.GraphInteractionModes.PanY) 
-            | NationalInstruments.UI.GraphInteractionModes.DragCursor) 
-            | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption) 
-            | NationalInstruments.UI.GraphInteractionModes.EditRange)));
+            this.ivWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY)
+                        | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint)
+                        | NationalInstruments.UI.GraphInteractionModes.PanX)
+                        | NationalInstruments.UI.GraphInteractionModes.PanY)
+                        | NationalInstruments.UI.GraphInteractionModes.DragCursor)
+                        | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption)
+                        | NationalInstruments.UI.GraphInteractionModes.EditRange)));
             this.ivWaveformGraph.Location = new System.Drawing.Point(13, 16);
             this.ivWaveformGraph.Name = "ivWaveformGraph";
             this.ivWaveformGraph.PlotAreaColor = System.Drawing.Color.LightGray;
@@ -2384,7 +2486,7 @@
             // ivXAxis
             // 
             this.ivXAxis.Caption = "IV Cycles";
-            this.ivXAxis.Range = new NationalInstruments.UI.Range(0D, 10000D);
+            this.ivXAxis.Range = new NationalInstruments.UI.Range(0, 10000);
             // 
             // ivYAxis
             // 
@@ -2462,7 +2564,7 @@
             this.ivVoltageForTraceNumericEdit.Name = "ivVoltageForTraceNumericEdit";
             this.ivVoltageForTraceNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivVoltageForTraceNumericEdit.TabIndex = 69;
-            this.ivVoltageForTraceNumericEdit.Value = 0.1D;
+            this.ivVoltageForTraceNumericEdit.Value = 0.1;
             // 
             // ivVoltageForTraceLabel
             // 
@@ -2483,7 +2585,7 @@
             this.ivTimeOfOneIVCycleNumericEdit.Name = "ivTimeOfOneIVCycleNumericEdit";
             this.ivTimeOfOneIVCycleNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivTimeOfOneIVCycleNumericEdit.TabIndex = 67;
-            this.ivTimeOfOneIVCycleNumericEdit.Value = 50D;
+            this.ivTimeOfOneIVCycleNumericEdit.Value = 50;
             // 
             // ivTimeOfIVCycleLabel
             // 
@@ -2514,7 +2616,7 @@
             this.ivOutputUpdateRateNumericEdit.Name = "ivOutputUpdateRateNumericEdit";
             this.ivOutputUpdateRateNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivOutputUpdateRateNumericEdit.TabIndex = 64;
-            this.ivOutputUpdateRateNumericEdit.Value = 10000D;
+            this.ivOutputUpdateRateNumericEdit.Value = 10000;
             // 
             // ivSamplesPerCycleLabel
             // 
@@ -2553,7 +2655,7 @@
             this.ivVoltageAmplitudeNumericEdit.Name = "ivVoltageAmplitudeNumericEdit";
             this.ivVoltageAmplitudeNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivVoltageAmplitudeNumericEdit.TabIndex = 58;
-            this.ivVoltageAmplitudeNumericEdit.Value = 0.2D;
+            this.ivVoltageAmplitudeNumericEdit.Value = 0.2;
             this.ivVoltageAmplitudeNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivVoltageAmplitudeNumericEdit_AfterChangeValue);
             // 
             // ivOutputUpdateDelayNumericEdit
@@ -2562,7 +2664,7 @@
             this.ivOutputUpdateDelayNumericEdit.Name = "ivOutputUpdateDelayNumericEdit";
             this.ivOutputUpdateDelayNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivOutputUpdateDelayNumericEdit.TabIndex = 60;
-            this.ivOutputUpdateDelayNumericEdit.Value = 0.1D;
+            this.ivOutputUpdateDelayNumericEdit.Value = 0.1;
             this.ivOutputUpdateDelayNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivOutputUpdateDelayNumericEdit_AfterChangeValue);
             // 
             // ivSamplesPerCycleNumericEdit
@@ -2572,7 +2674,7 @@
             this.ivSamplesPerCycleNumericEdit.Name = "ivSamplesPerCycleNumericEdit";
             this.ivSamplesPerCycleNumericEdit.Size = new System.Drawing.Size(78, 20);
             this.ivSamplesPerCycleNumericEdit.TabIndex = 21;
-            this.ivSamplesPerCycleNumericEdit.Value = 200D;
+            this.ivSamplesPerCycleNumericEdit.Value = 200;
             this.ivSamplesPerCycleNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivSamplesPerCycleNumericEdit_AfterChangeValue);
             // 
             // ivGainPoweComboBox
@@ -2620,7 +2722,7 @@
             this.ivTriggerVoltageNumericEdit.Name = "ivTriggerVoltageNumericEdit";
             this.ivTriggerVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.ivTriggerVoltageNumericEdit.TabIndex = 11;
-            this.ivTriggerVoltageNumericEdit.Value = -0.01D;
+            this.ivTriggerVoltageNumericEdit.Value = -0.01;
             // 
             // ivTriggerVoltageLabel
             // 
@@ -2639,7 +2741,7 @@
             this.ivTriggerConductanceNumericEdit.Name = "ivTriggerConductanceNumericEdit";
             this.ivTriggerConductanceNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.ivTriggerConductanceNumericEdit.TabIndex = 9;
-            this.ivTriggerConductanceNumericEdit.Value = 0.0129D;
+            this.ivTriggerConductanceNumericEdit.Value = 0.0129;
             this.ivTriggerConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.ivTriggerConductanceNumericEdit_AfterChangeValue);
             // 
             // ivTriggerConductanceLabel
@@ -3068,13 +3170,13 @@
             this.calibrationWaveformGraph.CaptionBackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.calibrationWaveformGraph.CaptionFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.calibrationWaveformGraph.CaptionForeColor = System.Drawing.SystemColors.ControlText;
-            this.calibrationWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY) 
-            | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint) 
-            | NationalInstruments.UI.GraphInteractionModes.PanX) 
-            | NationalInstruments.UI.GraphInteractionModes.PanY) 
-            | NationalInstruments.UI.GraphInteractionModes.DragCursor) 
-            | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption) 
-            | NationalInstruments.UI.GraphInteractionModes.EditRange)));
+            this.calibrationWaveformGraph.InteractionMode = ((NationalInstruments.UI.GraphInteractionModes)((((((((NationalInstruments.UI.GraphInteractionModes.ZoomX | NationalInstruments.UI.GraphInteractionModes.ZoomY)
+                        | NationalInstruments.UI.GraphInteractionModes.ZoomAroundPoint)
+                        | NationalInstruments.UI.GraphInteractionModes.PanX)
+                        | NationalInstruments.UI.GraphInteractionModes.PanY)
+                        | NationalInstruments.UI.GraphInteractionModes.DragCursor)
+                        | NationalInstruments.UI.GraphInteractionModes.DragAnnotationCaption)
+                        | NationalInstruments.UI.GraphInteractionModes.EditRange)));
             this.calibrationWaveformGraph.Location = new System.Drawing.Point(10, 9);
             this.calibrationWaveformGraph.Name = "calibrationWaveformGraph";
             this.calibrationWaveformGraph.PlotAreaColor = System.Drawing.Color.LightGray;
@@ -3097,7 +3199,7 @@
             // calibrationXAxis
             // 
             this.calibrationXAxis.Caption = "Steps";
-            this.calibrationXAxis.Range = new NationalInstruments.UI.Range(0D, 100D);
+            this.calibrationXAxis.Range = new NationalInstruments.UI.Range(0, 100);
             // 
             // calibrationYAxis
             // 
@@ -3278,14 +3380,14 @@
             // 
             // calibrationBiasNumericEdit
             // 
-            this.calibrationBiasNumericEdit.CoercionInterval = 0.01D;
+            this.calibrationBiasNumericEdit.CoercionInterval = 0.01;
             this.calibrationBiasNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateSimpleDoubleMode(3);
             this.calibrationBiasNumericEdit.Location = new System.Drawing.Point(159, 31);
             this.calibrationBiasNumericEdit.Name = "calibrationBiasNumericEdit";
-            this.calibrationBiasNumericEdit.Range = new NationalInstruments.UI.Range(0D, 1D);
+            this.calibrationBiasNumericEdit.Range = new NationalInstruments.UI.Range(0, 1);
             this.calibrationBiasNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.calibrationBiasNumericEdit.TabIndex = 2;
-            this.calibrationBiasNumericEdit.Value = 0.1D;
+            this.calibrationBiasNumericEdit.Value = 0.1;
             this.calibrationBiasNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.calibrationbiasNumericEdit_AfterChangeValue);
             // 
             // calibrationGainPowerLabel
@@ -3316,7 +3418,7 @@
             this.calibrationTriggerVoltageNumericEdit.Name = "calibrationTriggerVoltageNumericEdit";
             this.calibrationTriggerVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.calibrationTriggerVoltageNumericEdit.TabIndex = 12;
-            this.calibrationTriggerVoltageNumericEdit.Value = -0.01D;
+            this.calibrationTriggerVoltageNumericEdit.Value = -0.01;
             // 
             // calibrationTriggerConductanceNumericEdit
             // 
@@ -3325,7 +3427,7 @@
             this.calibrationTriggerConductanceNumericEdit.Name = "calibrationTriggerConductanceNumericEdit";
             this.calibrationTriggerConductanceNumericEdit.Size = new System.Drawing.Size(75, 20);
             this.calibrationTriggerConductanceNumericEdit.TabIndex = 14;
-            this.calibrationTriggerConductanceNumericEdit.Value = 0.0129D;
+            this.calibrationTriggerConductanceNumericEdit.Value = 0.0129;
             this.calibrationTriggerConductanceNumericEdit.AfterChangeValue += new NationalInstruments.UI.AfterChangeNumericValueEventHandler(this.calibrationTriggerConductanceNumericEdit_AfterChangeValue);
             // 
             // calibrationTriggerConductanceLabel
@@ -3842,8 +3944,8 @@
             this.Controls.Add(this.controllerTabControl);
             this.Name = "SBJControllerMainForm";
             this.Text = "SBJControllerMainForm";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.SBJControllerMainForm_FormClosed);
             this.Shown += new System.EventHandler(this.SBJControllerMainForm_Shown);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.SBJControllerMainForm_FormClosed);
             this.controllerTabControl.ResumeLayout(false);
             this.dataAquisitionTabPage.ResumeLayout(false);
             this.dataAquisitionTabPage.PerformLayout();
@@ -3875,11 +3977,13 @@
             this.laserSettingsTabPage.ResumeLayout(false);
             this.laserSettingsPanel.ResumeLayout(false);
             this.laserSettingsPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.secondEOMFrequencyNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.firstEOMFrequencyNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.externalFrequencyNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeOnSampleNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeWNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyNumericUpDown)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.amplitudeNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.laserAmplitudeNumericUpDown)).EndInit();
             this.LockInSettingsTabPage.ResumeLayout(false);
             this.lockInPanel.ResumeLayout(false);
             this.lockInPanel.PerformLayout();
@@ -4017,7 +4121,7 @@
         private System.Windows.Forms.NumericUpDown frequencyNumericUpDown;
         private System.Windows.Forms.CheckBox enableLaserCheckBox;
         private System.Windows.Forms.Label frequencyLabel;
-        private System.Windows.Forms.NumericUpDown amplitudeNumericUpDown;
+        private System.Windows.Forms.NumericUpDown laserAmplitudeNumericUpDown;
         private System.Windows.Forms.Label laserAmplitudeLabel;
         private System.Windows.Forms.Panel generalSettingsPanel;
         private System.Windows.Forms.NumericUpDown stepperWaitTime2NumericUpDown;
@@ -4227,7 +4331,7 @@
         private System.Windows.Forms.Label laserAmplitudeOnSampleLabel;
         private System.Windows.Forms.NumericUpDown externalFrequencyNumericUpDown;
         private System.Windows.Forms.Label externalFrequencyLabel;
-        private System.Windows.Forms.CheckBox enableEOMcheckBox;
+        private System.Windows.Forms.CheckBox enableFirstEOMcheckBox;
         private System.Windows.Forms.CheckBox enableChopperCheckBox;
         private System.Windows.Forms.GroupBox calibrationPlotGroupBox;
         private System.Windows.Forms.ListView calibrationChannelsListView;
@@ -4244,6 +4348,12 @@
         private System.Windows.Forms.ComboBox calibrationMeasurementTypeComboBox;
         private ElectroMagnetUserControl electroMagnetUserControl1;
         private StepperMotorUserControl stepperMotorUserControl2;
+        private System.Windows.Forms.NumericUpDown secondEOMFrequencyNumericUpDown;
+        private System.Windows.Forms.Label secondEOMFrequencyLabel;
+        private System.Windows.Forms.CheckBox enableSecondEOMCheckBox;
+        private System.Windows.Forms.NumericUpDown firstEOMFrequencyNumericUpDown;
+        private System.Windows.Forms.Label firstEOMFrequencyLabel;
+        private System.Windows.Forms.ComboBox eomCOnfigurationComboBox;
                          
     }
 }

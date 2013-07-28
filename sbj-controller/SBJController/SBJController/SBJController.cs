@@ -22,7 +22,8 @@ namespace SBJController
         private Amplifier m_amplifier;
         private SourceMeter m_sourceMeter;
         private ILaserController m_LaserController;
-        private TaborEOMController m_taborEOMController;
+        private TaborEOMController m_taborFirstEOMController;
+        private TaborEOMController m_taborSecondEOMController;
         private LockIn m_LockIn;
         private LambdaZup m_lambdaZup;
         private DataAcquisitionController m_daqController;
@@ -77,10 +78,16 @@ namespace SBJController
             set { m_LaserController = value; }
         }
 
-        public TaborEOMController TaborEOM
+        public TaborEOMController TaborFirstEOM
         {
-            get { return m_taborEOMController; }
-            set { m_taborEOMController = value; }
+            get { return m_taborFirstEOMController; }
+            set { m_taborFirstEOMController = value; }
+        }
+
+        public TaborEOMController TaborSecondEOM
+        {
+            get { return m_taborSecondEOMController; }
+            set { m_taborSecondEOMController = value; }
         }
 
         public LambdaZup LambdaZup
@@ -389,16 +396,13 @@ namespace SBJController
             {
                 if (settings.LaserSettings.LaserMode.Equals("DC"))
                 {
-                    (laserController as TaborLaserController).SetDCMode();
-                    (laserController as TaborLaserController).SetAmplitude(settings.LaserSettings.LaserAmplitudeVolts);
+                    (laserController as TaborLaserController).SetDCMode(settings.LaserSettings.LaserAmplitudeVolts);
                 }
                 else
                 {
                     if (settings.LaserSettings.LaserMode.Equals("Square"))
                     {
-                        (laserController as TaborLaserController).SetSquareMode();
-                        (laserController as TaborLaserController).SetSquareModeAmplitude(settings.LaserSettings.LaserAmplitudeVolts);
-                        (laserController as TaborLaserController).SetSquareModeFrequency(settings.LaserSettings.LaserFrequency);
+                        (laserController as TaborLaserController).SetSquareMode(settings.LaserSettings.LaserFrequency, settings.LaserSettings.LaserAmplitudeVolts);                        
                     }
                     else
                     {
@@ -407,10 +411,16 @@ namespace SBJController
                 }
             }
 
-            if (settings.LaserSettings.IsEOMOn)
+            if (settings.LaserSettings.IsFirstEOMOn)
             {
-                m_taborEOMController.SetSinusoidMode(settings.LaserSettings.ModulationFrequency);
-                m_taborEOMController.TurnOn();
+                m_taborFirstEOMController.SetSinusoidMode(settings.LaserSettings.FirstEOMFrequency);
+                m_taborFirstEOMController.TurnOn();
+            }
+
+            if (settings.LaserSettings.IsSecondEOMOn)
+            {
+                m_taborSecondEOMController.SetSinusoidMode(settings.LaserSettings.SecondEOMFrequency);
+                m_taborSecondEOMController.TurnOn();
             }
         }
 
@@ -1002,9 +1012,13 @@ namespace SBJController
             {
                 m_electroMagnet.Shutdown();
             }
-            if (settings.LaserSettings.IsEOMOn)
+            if (settings.LaserSettings.IsFirstEOMOn)
             {
-                m_taborEOMController.TurnOff();
+                m_taborFirstEOMController.TurnOff();
+            }
+            if (settings.LaserSettings.IsSecondEOMOn)
+            {
+                m_taborSecondEOMController.TurnOff();
             }
             if (settings.LambdaZupSettings.IsLambdaZupEnable)
             {
@@ -1198,8 +1212,18 @@ namespace SBJController
                 //
                 m_task.Stop();
                 m_task.Dispose();
-                m_LaserController.TurnOff();
-                m_taborEOMController.TurnOff();
+                if (m_LaserController != null)
+                {
+                    m_LaserController.TurnOff();
+                }
+                if (m_taborFirstEOMController != null)
+                {
+                    m_taborFirstEOMController.TurnOff();
+                }
+                if (m_taborSecondEOMController != null)
+                {
+                    m_taborSecondEOMController.TurnOff();
+                }
                 return false;
             }
 
@@ -1254,9 +1278,13 @@ namespace SBJController
             {
                 m_electroMagnet.Shutdown();
             }
-            if (settings.LaserSettings.IsEOMOn)
+            if (settings.LaserSettings.IsFirstEOMOn)
             {
-                m_taborEOMController.TurnOff();
+                m_taborFirstEOMController.TurnOff();
+            }
+            if (settings.LaserSettings.IsSecondEOMOn)
+            {
+                m_taborSecondEOMController.TurnOff();
             }
 
             m_task.Dispose();
@@ -1592,7 +1620,10 @@ namespace SBJController
             m_sourceMeter.Shutdown();
             m_amplifier.Shutdown();
             m_electroMagnet.Shutdown();
-            m_LaserController.Disconnect();
+            if (m_LaserController != null)
+            {
+                m_LaserController.Disconnect();
+            }
             m_LockIn.Shutdown();
             if (m_task != null)
             {
