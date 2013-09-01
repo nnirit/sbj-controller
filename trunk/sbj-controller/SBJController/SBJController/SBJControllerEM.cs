@@ -87,7 +87,7 @@ namespace SBJController
             // Read the initial voltgae before we've done anything
             //
             double initialVoltage = AnalogIn(0);
-            bool isDelayedChanged = false;
+            bool isDelayedChanged = false;            
             m_quitJunctionOpenningOperation = false;
 
             //
@@ -333,7 +333,7 @@ namespace SBJController
                 // Move down 10 steps and check the voltage afterwords.
                 // if the EM exceeded max voltage return 2.
                 //
-                if (!m_electroMagnet.MoveMultipleSteps(10))
+                if (!m_electroMagnet.MoveMultipleSteps(50))
                 {
                     return 2;
                 }

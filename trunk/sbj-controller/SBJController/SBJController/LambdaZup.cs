@@ -14,7 +14,7 @@ namespace SBJController
     public class LambdaZup
     {
         #region Members
-        private SerialPort mySerialPort;
+        private SerialPort m_serialPort;
         private const string c_outputOn = ":OUT1;";
         private const string c_outputOff = ":OUT0;";
         private const string c_setVoltageValue = ":VOL{0};";
@@ -30,21 +30,21 @@ namespace SBJController
         {
             try
             {
-                mySerialPort = new SerialPort(Properties.Settings.Default.LambdaZupAddress);
-                mySerialPort.BaudRate = 9600;
-                mySerialPort.Parity = Parity.None; 
-                mySerialPort.DataBits = 8;
-                mySerialPort.StopBits = StopBits.One;
-                mySerialPort.Handshake = Handshake.XOnXOff;
-                mySerialPort.ReadTimeout = 2000;
-                mySerialPort.WriteTimeout = 1000;
+                m_serialPort = new SerialPort(Properties.Settings.Default.LambdaZupAddress);
+                m_serialPort.BaudRate = 9600;
+                m_serialPort.Parity = Parity.None; 
+                m_serialPort.DataBits = 8;
+                m_serialPort.StopBits = StopBits.One;
+                m_serialPort.Handshake = Handshake.XOnXOff;
+                m_serialPort.ReadTimeout = 2000;
+                m_serialPort.WriteTimeout = 1000;
 
-                mySerialPort.DtrEnable = true;
-                mySerialPort.RtsEnable = true;
+                m_serialPort.DtrEnable = true;
+                m_serialPort.RtsEnable = true;
 
 
-                mySerialPort.Open();
-                mySerialPort.WriteLine(":ADR01;:MDL?;");
+                m_serialPort.Open();
+                m_serialPort.WriteLine(":ADR01;:MDL?;");
             }
             catch (Exception ex)
             {
@@ -54,20 +54,20 @@ namespace SBJController
 
         public void TurnOnOutput()
         {
-            mySerialPort.Write(c_outputOn);
+            m_serialPort.Write(c_outputOn);
             Thread.Sleep(1000);
         }
 
         public void TurnOffOutput()
         {
-            mySerialPort.Write(c_outputOff);
+            m_serialPort.Write(c_outputOff);
             Thread.Sleep(1000);
         }
 
         public void SetVoltage(double voltage)
         {
             string command = string.Format(c_setVoltageValue, voltage.ToString("000.00"));
-            mySerialPort.Write(command);
+            m_serialPort.Write(command);
             Thread.Sleep(1000);
         }
         #endregion

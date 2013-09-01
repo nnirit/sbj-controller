@@ -421,7 +421,7 @@ namespace SBJController
             {
                 m_taborSecondEOMController.SetSinusoidMode(settings.LaserSettings.SecondEOMFrequency);
                 m_taborSecondEOMController.TurnOn();
-            }
+        }
         }
 
         /// <summary>
@@ -514,7 +514,7 @@ namespace SBJController
                 }
 
                 if (activeChannels[i].GetType().Equals(typeof(IVInputDataChannel)) ||
-                    activeChannels[i].GetType().Equals(typeof(IVInputMonitorChannel)))
+                    activeChannels[i].GetType().Equals(typeof(InputVoltageMonitorChannel)))
                 {
                     complexIVChannels.Add(activeChannels[i]);
                 }
@@ -1214,7 +1214,7 @@ namespace SBJController
                 m_task.Dispose();
                 if (m_LaserController != null)
                 {
-                    m_LaserController.TurnOff();
+                m_LaserController.TurnOff();
                 }
                 if (m_taborFirstEOMController != null)
                 {

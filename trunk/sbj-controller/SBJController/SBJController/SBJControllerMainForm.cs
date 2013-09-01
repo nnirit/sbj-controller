@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using SBJController.Properties;
 using System.Runtime.InteropServices;
+using System.Linq;
 
 namespace SBJController
 {
@@ -1546,18 +1547,18 @@ namespace SBJController
                 {
                     if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
                     {
-                        if (type.GetCustomAttributes(false)[0] is DAQAttribute)
+                        if (type.GetCustomAttributes(false).Any(item => item is DAQAttribute))
                         {
-                        if (type.IsSubclassOf(typeof(SimpleDataChannel)))
-                        {
-                            channelTypes.Add(type.Name);
-                        }
-                        else
-                        {
-                            complexChannelTypes.Add(type.Name);
-                        }
+                            if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+                            {
+                                channelTypes.Add(type.Name);
+                            }
+                            else
+                            {
+                                complexChannelTypes.Add(type.Name);
+                            }
+                        }                      
                     }
-                }
                 }
             }
 
