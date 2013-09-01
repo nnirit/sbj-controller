@@ -478,13 +478,13 @@ namespace SBJController
     /// <summary>
     /// This class represents the IV input monitor channel (reads directly the output voltage)
     /// </summary>
-    [IVAttribute()]
-    public class IVInputMonitorChannel : SimpleDataChannel, IDataChannel
+    [IVAttribute(), DAQAttribute()]
+    public class InputVoltageMonitorChannel : SimpleDataChannel, IDataChannel
     {
-        public IVInputMonitorChannel(string PhysicalName, DataConvertorSettings settings)
+        public InputVoltageMonitorChannel(string PhysicalName, DataConvertorSettings settings)
             : base(PhysicalName, settings)
         {
-            Name = "IVInputMonitorChannel";
+            Name = "InputVoltageMonitorChannel";
         }
 
         //

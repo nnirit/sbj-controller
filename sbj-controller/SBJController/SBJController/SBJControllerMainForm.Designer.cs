@@ -742,6 +742,7 @@
             // waveformPlot1
             // 
             this.waveformPlot1.LineColor = System.Drawing.Color.Red;
+            this.waveformPlot1.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
             this.waveformPlot1.ToolTipsEnabled = true;
             this.waveformPlot1.XAxis = this.xAxis1;
             this.waveformPlot1.YAxis = this.yAxis1;
@@ -1015,7 +1016,7 @@
             // 
             this.pretriggerSamplesNumericUpDown.Location = new System.Drawing.Point(423, 59);
             this.pretriggerSamplesNumericUpDown.Maximum = new decimal(new int[] {
-            100000,
+            10000000,
             0,
             0,
             0});
@@ -2479,6 +2480,7 @@
             // ivWaveformPlot
             // 
             this.ivWaveformPlot.LineColor = System.Drawing.Color.Red;
+            this.ivWaveformPlot.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
             this.ivWaveformPlot.ToolTipsEnabled = true;
             this.ivWaveformPlot.XAxis = this.ivXAxis;
             this.ivWaveformPlot.YAxis = this.ivYAxis;
@@ -3192,6 +3194,7 @@
             // calibrationWaveformPlot
             // 
             this.calibrationWaveformPlot.LineColor = System.Drawing.Color.Red;
+            this.calibrationWaveformPlot.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
             this.calibrationWaveformPlot.ToolTipsEnabled = true;
             this.calibrationWaveformPlot.XAxis = this.calibrationXAxis;
             this.calibrationWaveformPlot.YAxis = this.calibrationYAxis;
