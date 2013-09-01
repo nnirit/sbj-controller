@@ -1533,42 +1533,44 @@ namespace SBJController
         /// </summary>
         private void PopulateChannelsListOnDAQTab()
         {
-            List<string> channelTypes = new List<string>();
-            List<string> complexChannelTypes = new List<string>();
-            var typeIDataChannel = typeof(IDataChannel);
+            //List<string> channelTypes = new List<string>();
+            //List<string> complexChannelTypes = new List<string>();
+            //var typeIDataChannel = typeof(IDataChannel);
 
-            //
-            // A possible data channel is only one which ipmlements IDataChannel
-            // Take only these ones and sort to Simple and Complex data channels lists.
-            //
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypes())
-                {
-                    if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
-                    {
-                        if (type.GetCustomAttributes(false).Any(item => item is DAQAttribute))
-                        {
-                            if (type.IsSubclassOf(typeof(SimpleDataChannel)))
-                            {
-                                channelTypes.Add(type.Name);
-                            }
-                            else
-                            {
-                                complexChannelTypes.Add(type.Name);
-                            }
-                        }                      
-                    }
-                }
-            }
+            ////
+            //// A possible data channel is only one which ipmlements IDataChannel
+            //// Take only these ones and sort to Simple and Complex data channels lists.
+            ////
+            //foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            //{
+            //    foreach (var type in assembly.GetTypes())
+            //    {
+            //        if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
+            //        {
+            //            if (type.GetCustomAttributes(false).Any(item => item is DAQAttribute))
+            //            {
+            //                if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+            //                {
+            //                    channelTypes.Add(type.Name);
+            //                }
+            //                else
+            //                {
+            //                    complexChannelTypes.Add(type.Name);
+            //                }
+            //            }                      
+            //        }
+            //    }
+            //}
+
+            ChannelTypeLists channelTypeLists = PopulateChannelTypeLists(typeof(DAQAttribute));
 
             //
             // In the channles tab only assign the simple data channels
             //
-            this.channel0ComboBox.DataSource = channelTypes;
-            this.channel1ComboBox.DataSource = new List<string>(channelTypes);
-            this.channel2ComboBox.DataSource = new List<string>(channelTypes);
-            this.channel3ComboBox.DataSource = new List<string>(channelTypes);
+            this.channel0ComboBox.DataSource = channelTypeLists.Simple;
+            this.channel1ComboBox.DataSource = new List<string>(channelTypeLists.Simple);
+            this.channel2ComboBox.DataSource = new List<string>(channelTypeLists.Simple);
+            this.channel3ComboBox.DataSource = new List<string>(channelTypeLists.Simple);
 
             
             this.channel0CheckBox.Text = Settings.Default.DAQPhysicalChannelName0;
@@ -1579,58 +1581,60 @@ namespace SBJController
             //
             // Also populate the channels in the display list
             //
-            List<string> allAvailableChannels = channelTypes;
-            allAvailableChannels.AddRange(complexChannelTypes);
+            List<string> allAvailableChannels = channelTypeLists.Simple;
+            allAvailableChannels.AddRange(channelTypeLists.Complex);
             List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
             channelsListView.Items.AddRange(channelsToDisplay.ToArray());
             channelsListView.Items[channelsListView.Items.IndexOfKey(typeof(DefaultDataChannel).Name)].Checked = true;            
-    }
+        }
 
         /// <summary>
         /// Populate channels list on the Calibration tab on the UI
         /// </summary>
         private void PopulateChannelsListOnCalibrationTab()
         {
-            List<string> channelTypes = new List<string>();
-            List<string> complexChannelTypes = new List<string>();
-            var typeIDataChannel = typeof(IDataChannel);
+            //List<string> channelTypes = new List<string>();
+            //List<string> complexChannelTypes = new List<string>();
+            //var typeIDataChannel = typeof(IDataChannel);
 
-            //
-            // A possible data channel is only one which ipmlements IDataChannel
-            // Take only these ones and sort to Simple and Complex data channels lists.
-            //
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypes())
-                {
-                    if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
-                    {
-                        if (type.GetCustomAttributes(false)[0] is CalibrationAttribute)
-                        {
-                            if (type.IsSubclassOf(typeof(SimpleDataChannel)))
-                            {
-                                channelTypes.Add(type.Name);
-                            }
-                            else
-                            {
-                                complexChannelTypes.Add(type.Name);
-                            }
-                        }
-                    }
-                }
-            }
+            ////
+            //// A possible data channel is only one which ipmlements IDataChannel
+            //// Take only these ones and sort to Simple and Complex data channels lists.
+            ////
+            //foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            //{
+            //    foreach (var type in assembly.GetTypes())
+            //    {
+            //        if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
+            //        {
+            //            if (type.GetCustomAttributes(false)[0] is CalibrationAttribute)
+            //            {
+            //                if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+            //                {
+            //                    channelTypes.Add(type.Name);
+            //                }
+            //                else
+            //                {
+            //                    complexChannelTypes.Add(type.Name);
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+
+            ChannelTypeLists channelTypeLists = PopulateChannelTypeLists(typeof(CalibrationAttribute));
 
             //
             // In the channles tab only assign the simple data channels
             //
-            this.calibrationChannel1ComboBox.DataSource = channelTypes;
+            this.calibrationChannel1ComboBox.DataSource = channelTypeLists.Simple;
             this.calibrationChannel1CheckBox.Text = Settings.Default.DAQPhysicalChannelName0;
             
             //
             // Also populate the channels in the display list
             //
-            List<string> allAvailableChannels = channelTypes;
-            allAvailableChannels.AddRange(complexChannelTypes);
+            List<string> allAvailableChannels = channelTypeLists.Simple;
+            allAvailableChannels.AddRange(channelTypeLists.Complex);
             List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
             calibrationChannelsListView.Items.AddRange(channelsToDisplay.ToArray());
             calibrationChannelsListView.Items[calibrationChannelsListView.Items.IndexOfKey(typeof(CalibrationDataChannel).Name)].Checked = true;
@@ -1641,42 +1645,44 @@ namespace SBJController
         /// </summary>
         private void PopulateChannelsListOnIVTab()
         {
-            List<string> channelTypes = new List<string>();
-            List<string> complexChannelTypes = new List<string>();
-            var typeIDataChannel = typeof(IDataChannel);
+            //List<string> channelTypes = new List<string>();
+            //List<string> complexChannelTypes = new List<string>();
+            //var typeIDataChannel = typeof(IDataChannel);
 
-            //
-            // A possible data channel is only one which ipmlements IDataChannel
-            // Take only these ones and sort to Simple and Complex data channels lists.
-            //
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypes())
-                {
-                    if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
-                    {
-                        if (type.GetCustomAttributes(false)[0] is IVAttribute)
-                        {
-                            if (type.IsSubclassOf(typeof(SimpleDataChannel)))
-                            {
-                                channelTypes.Add(type.Name);
-                            }
-                            else
-                            {
-                                complexChannelTypes.Add(type.Name);
-                            }
-                        }
-                    }
-                }
-            }
+            ////
+            //// A possible data channel is only one which ipmlements IDataChannel
+            //// Take only these ones and sort to Simple and Complex data channels lists.
+            ////
+            //foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            //{
+            //    foreach (var type in assembly.GetTypes())
+            //    {
+            //        if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
+            //        {
+            //            if (type.GetCustomAttributes(false)[0] is IVAttribute)
+            //            {
+            //                if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+            //                {
+            //                    channelTypes.Add(type.Name);
+            //                }
+            //                else
+            //                {
+            //                    complexChannelTypes.Add(type.Name);
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+
+            ChannelTypeLists channelTypeLists = PopulateChannelTypeLists(typeof(IVAttribute));
 
             //
             // In the channles tab only assign the simple data channels
             //
-            this.ivChannel0ComboBox.DataSource = channelTypes;
-            this.ivChannel1ComboBox.DataSource = new List<string>(channelTypes);
-            this.ivChannel2ComboBox.DataSource = new List<string>(channelTypes);
-            this.ivChannel3ComboBox.DataSource = new List<string>(channelTypes);
+            this.ivChannel0ComboBox.DataSource = channelTypeLists.Simple;
+            this.ivChannel1ComboBox.DataSource = new List<string>(channelTypeLists.Simple);
+            this.ivChannel2ComboBox.DataSource = new List<string>(channelTypeLists.Simple);
+            this.ivChannel3ComboBox.DataSource = new List<string>(channelTypeLists.Simple);
             
             //Set the right initial value for the first comboBox
             this.ivChannel0ComboBox.SelectedItem = typeof(IVInputDataChannel).Name;
@@ -1689,11 +1695,51 @@ namespace SBJController
             //
             // Also populate the channels in the display list
             //
-            List<string> allAvailableChannels = channelTypes;
-            allAvailableChannels.AddRange(complexChannelTypes);
+            List<string> allAvailableChannels = channelTypeLists.Simple;
+            allAvailableChannels.AddRange(channelTypeLists.Complex);
             List<ListViewItem> channelsToDisplay = GetChannelsToDisplay(allAvailableChannels);
             ivChannelsListView.Items.AddRange(channelsToDisplay.ToArray());
             ivChannelsListView.Items[ivChannelsListView.Items.IndexOfKey(typeof(IVProcessedDataChannel).Name)].Checked = true;
+        }
+
+        /// <summary>
+        /// Get lists of all the channel types that are marked with the input attribute.
+        /// </summary>
+        /// <param name="attributeType"></param>
+        /// <returns>a class that contains 2 lists of channel types, one of the simple channels and one of the complex.</returns>
+        private ChannelTypeLists PopulateChannelTypeLists(Type attributeType)
+        {
+            List<string> channelTypes = new List<string>();
+            List<string> complexChannelTypes = new List<string>();
+            var typeIDataChannel = typeof(IDataChannel);
+
+            //
+            // A possible data channel is only one which ipmlements IDataChannel
+            // Take only these ones and sort to Simple and Complex data channels lists.
+            //
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypes())
+                {
+                    if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
+                    {
+                        //if (type.GetCustomAttributes(false).Any(item => item is DAQAttribute))
+                        if (type.GetCustomAttributes(attributeType, false) != null)
+                        {
+                            if (type.IsSubclassOf(typeof(SimpleDataChannel)))
+                            {
+                                channelTypes.Add(type.Name);
+                            }
+                            else
+                            {
+                                complexChannelTypes.Add(type.Name);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return (new ChannelTypeLists(channelTypes, complexChannelTypes));
         }
 
         /// <summary>

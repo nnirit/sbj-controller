@@ -796,4 +796,19 @@ namespace SBJController
             return Math.Abs(rawVoltageValue) / Math.Pow(10, DataConvertionSettings.Gain);
         }
     }
+
+    /// <summary>
+    /// This class represents 2 lists of channel types, one that holds only simple channel types and one for complex channel types. 
+    /// </summary>
+    public class ChannelTypeLists
+    {
+        public List<string> Simple { get; set; }
+        public List<string> Complex { get; set; }
+
+        public ChannelTypeLists(List<string> simpleChannelTypes, List<string> complexChannelTypes)
+        {
+            Simple = simpleChannelTypes;
+            Complex = complexChannelTypes;
+        }
+    }
 }
