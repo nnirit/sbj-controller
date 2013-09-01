@@ -1533,35 +1533,9 @@ namespace SBJController
         /// </summary>
         private void PopulateChannelsListOnDAQTab()
         {
-            //List<string> channelTypes = new List<string>();
-            //List<string> complexChannelTypes = new List<string>();
-            //var typeIDataChannel = typeof(IDataChannel);
-
-            ////
-            //// A possible data channel is only one which ipmlements IDataChannel
-            //// Take only these ones and sort to Simple and Complex data channels lists.
-            ////
-            //foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            //{
-            //    foreach (var type in assembly.GetTypes())
-            //    {
-            //        if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
-            //        {
-            //            if (type.GetCustomAttributes(false).Any(item => item is DAQAttribute))
-            //            {
-            //                if (type.IsSubclassOf(typeof(SimpleDataChannel)))
-            //                {
-            //                    channelTypes.Add(type.Name);
-            //                }
-            //                else
-            //                {
-            //                    complexChannelTypes.Add(type.Name);
-            //                }
-            //            }                      
-            //        }
-            //    }
-            //}
-
+            //
+            // Get lists of the relevant channel types
+            //
             ChannelTypeLists channelTypeLists = PopulateChannelTypeLists(typeof(DAQAttribute));
 
             //
@@ -1593,35 +1567,9 @@ namespace SBJController
         /// </summary>
         private void PopulateChannelsListOnCalibrationTab()
         {
-            //List<string> channelTypes = new List<string>();
-            //List<string> complexChannelTypes = new List<string>();
-            //var typeIDataChannel = typeof(IDataChannel);
-
-            ////
-            //// A possible data channel is only one which ipmlements IDataChannel
-            //// Take only these ones and sort to Simple and Complex data channels lists.
-            ////
-            //foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            //{
-            //    foreach (var type in assembly.GetTypes())
-            //    {
-            //        if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
-            //        {
-            //            if (type.GetCustomAttributes(false)[0] is CalibrationAttribute)
-            //            {
-            //                if (type.IsSubclassOf(typeof(SimpleDataChannel)))
-            //                {
-            //                    channelTypes.Add(type.Name);
-            //                }
-            //                else
-            //                {
-            //                    complexChannelTypes.Add(type.Name);
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
-
+            //
+            // Get lists of the relevant channel types
+            //
             ChannelTypeLists channelTypeLists = PopulateChannelTypeLists(typeof(CalibrationAttribute));
 
             //
@@ -1645,35 +1593,9 @@ namespace SBJController
         /// </summary>
         private void PopulateChannelsListOnIVTab()
         {
-            //List<string> channelTypes = new List<string>();
-            //List<string> complexChannelTypes = new List<string>();
-            //var typeIDataChannel = typeof(IDataChannel);
-
-            ////
-            //// A possible data channel is only one which ipmlements IDataChannel
-            //// Take only these ones and sort to Simple and Complex data channels lists.
-            ////
-            //foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            //{
-            //    foreach (var type in assembly.GetTypes())
-            //    {
-            //        if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
-            //        {
-            //            if (type.GetCustomAttributes(false)[0] is IVAttribute)
-            //            {
-            //                if (type.IsSubclassOf(typeof(SimpleDataChannel)))
-            //                {
-            //                    channelTypes.Add(type.Name);
-            //                }
-            //                else
-            //                {
-            //                    complexChannelTypes.Add(type.Name);
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
-
+            //
+            // Get lists of the relevant channel types
+            //
             ChannelTypeLists channelTypeLists = PopulateChannelTypeLists(typeof(IVAttribute));
 
             //
@@ -1723,8 +1645,7 @@ namespace SBJController
                 {
                     if (typeIDataChannel.IsAssignableFrom(type) && !type.IsInterface)
                     {
-                        //if (type.GetCustomAttributes(false).Any(item => item is DAQAttribute))
-                        if (type.GetCustomAttributes(attributeType, false) != null)
+                        if (type.GetCustomAttributes(attributeType, false).Length > 0)
                         {
                             if (type.IsSubclassOf(typeof(SimpleDataChannel)))
                             {
