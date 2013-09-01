@@ -548,6 +548,15 @@ namespace SBJController
                 }
 
                 //
+                // If the backgroundworker requested cancellation - exit
+                //
+                if (worker != null && worker.CancellationPending)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                //
                 // get data after each step and add it to the rawDataList.
                 //
                 rawDataList.Add(GetDataAfterEachStep(settings, worker, e));
@@ -647,6 +656,15 @@ namespace SBJController
                 //
                 Thread.Sleep(m_electroMagnet.Delay);
                 voltageAfterStepping = Math.Abs(AnalogIn(0));
+
+                //
+                // If the backgroundworker requested cancellation - exit
+                //
+                if (worker != null && worker.CancellationPending)
+                {
+                    e.Cancel = true;
+                    break;
+                }
 
                 //
                 // Get Data since the last step and add it to rawDataList.
