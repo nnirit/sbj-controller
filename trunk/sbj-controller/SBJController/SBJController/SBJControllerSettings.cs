@@ -53,6 +53,7 @@ namespace SBJController
         public int CurrentFileNumber { get; set; }
         public int TotalNumberOfCycles { get; set; }
         public double ShortCircuitVoltage { get; set; }
+        public bool UseDefaultGain { get; set; }
         public Sample Bottom { get; set; }
         public Sample Top { get; set; }
 
@@ -61,7 +62,7 @@ namespace SBJController
                                      int totalSamples, int pretriggerSamples,
                                      int stepperWaitTime1, int stepperWaitTime2, bool isFileSavingRequired, 
                                      bool useKeithley, string path, int currentFileNumber, int totalNUmberOfCycles, 
-                                     double shourtCircuitVoltage,Sample bottom, Sample top)
+                                     double shourtCircuitVoltage, bool useDefaultGain, Sample bottom, Sample top)
         {
             Bias = bias;
             BiasError = biasError;
@@ -79,6 +80,7 @@ namespace SBJController
             CurrentFileNumber = currentFileNumber;
             TotalNumberOfCycles = totalNUmberOfCycles;
             ShortCircuitVoltage = shourtCircuitVoltage;
+            UseDefaultGain = useDefaultGain;
             Bottom = bottom;
             Top = top;
         }

@@ -386,7 +386,7 @@ namespace SBJController
                 return;
             }
 
-            ILaserController laserController = null;
+            //ILaserController laserController = null;
 
             if (settings.LaserSettings.LaserMode.Equals("IODrive"))
             {
@@ -396,13 +396,13 @@ namespace SBJController
             {
                 if (settings.LaserSettings.LaserMode.Equals("DC"))
                 {
-                    (laserController as TaborLaserController).SetDCMode(settings.LaserSettings.LaserAmplitudeVolts);
+                    (m_LaserController as TaborLaserController).SetDCMode(settings.LaserSettings.LaserAmplitudeVolts);
                 }
                 else
                 {
                     if (settings.LaserSettings.LaserMode.Equals("Square"))
                     {
-                        (laserController as TaborLaserController).SetSquareMode(settings.LaserSettings.LaserFrequency, settings.LaserSettings.LaserAmplitudeVolts);                        
+                        (m_LaserController as TaborLaserController).SetSquareMode(settings.LaserSettings.LaserFrequency, settings.LaserSettings.LaserAmplitudeVolts);                        
                     }
                     else
                     {
@@ -856,7 +856,10 @@ namespace SBJController
                 // Change the gain power to 5 before reaching contact
                 // to ensure full contact current
                 //
-                m_amplifier.ChangeGain(5);
+                if (settings.GeneralSettings.UseDefaultGain)
+                {
+                    m_amplifier.ChangeGain(5);
+                }
 
                 //
                 // Reach to contact before we start openning the junction
@@ -872,12 +875,16 @@ namespace SBJController
                 }
                 
                 //
-                // Configure the gain to the desired one before strating the measurement.
+                // Configure the gain to the desired one if we changed it to E5
+                // before strating the measurement.
                 // And also this is the time to switch the laser on.
                 //
-                int gainPower;
-                Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
-                m_amplifier.ChangeGain(gainPower);
+                if (settings.GeneralSettings.UseDefaultGain)
+                {
+                    int gainPower;
+                    Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
+                    m_amplifier.ChangeGain(gainPower);
+                }
 
 
                 if (settings.LaserSettings.IsLaserOn)
@@ -1098,7 +1105,10 @@ namespace SBJController
             // Change the gain power to 5 before reaching contact
             // to ensure full contact current
             //
-            m_amplifier.ChangeGain(5);
+            if (settings.GeneralSettings.UseDefaultGain)
+            {
+                m_amplifier.ChangeGain(5);
+            }
 
             //
             // Reach to contact before we start openning the junction
@@ -1118,9 +1128,12 @@ namespace SBJController
             // Configure the gain to the desired one before strating the measurement.
             // And also this is the time to switch the laser on.
             //
-            int gainPower;
-            Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
-            m_amplifier.ChangeGain(gainPower);
+            if (settings.GeneralSettings.UseDefaultGain)
+            {
+                int gainPower;
+                Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
+                m_amplifier.ChangeGain(gainPower);
+            }
 
 
             if (settings.LaserSettings.IsLaserOn)
@@ -1291,6 +1304,220 @@ namespace SBJController
             m_stepperMotor.Shutdown();
 
             return (isCancelled || e.Cancel);
+        }
+
+        /// <summary>
+        /// Manually aquire data
+        /// This method continuously poll the buffer for data until it is stopped by the user.
+        /// </summary>
+        /// <param name="settings">The settings for running the aquisition</param>
+        /// <returns>True whether the operation was cacled by the user. False otherwise.</returns>
+        public bool AquireDataContinuously(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            //
+            // Apply voltage with desired tool: Task or Keithley
+            //
+            ApplyVoltageIfNeeded(settings.GeneralSettings.UseKeithley,
+                                 settings.GeneralSettings.Bias,
+                                 settings.GeneralSettings.BiasError);
+
+            bool isCancelled = false;
+            int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
+
+            //
+            // The array is intialized with size for 1 minute sampling.
+            //
+            double[,] dataAquired = new double[1000, 1000];
+
+            List<IDataChannel> physicalChannels = new List<IDataChannel>();
+
+            //
+            // Configure the laser if needed for this run
+            //
+            ConfigureLaserIfNeeded(settings);
+
+            //
+            // Save this run settings if desired
+            //
+            SaveSettingsIfNeeded(settings, settings.GeneralSettings.IsFileSavingRequired, settings.GeneralSettings.Path);
+
+            //
+            //apply initial voltage on the EM
+            //
+            ApplyVoltageOnElectroMagnetIfNeeded(settings.ElectromagnetSettings.IsEMEnable);
+
+            //
+            // Create the task
+            //
+            m_task = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+
+            //
+            // If EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
+            // then return.
+            //
+            if (settings.ElectromagnetSettings.IsEMEnable && settings.ElectromagnetSettings.IsEMSkipFirstCycleEnable)
+            {
+                m_stepperMotor.Shutdown();
+                return false;
+            } 
+
+            if (settings.LaserSettings.IsLaserOn)
+            {
+                m_LaserController.TurnOn();
+            }
+           
+
+            //
+            // Start the task and wait for the data
+            //
+            try
+            {
+                m_task.Start();
+            }
+            catch (DaqException ex)
+            {
+                throw new SBJException("Error occured when tryin to start DAQ task", ex);
+            }
+
+            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_task.Stream);
+            List<List<double>> fullData = new List<List<double>>(settings.ChannelsSettings.ActiveChannels.Count);
+
+            for (int i = 0; i < fullData.Capacity; i++)
+            {
+                fullData.Add(new List<double>());
+            }
+
+            try
+            {
+                //
+                // Before getting all the data clear the lists.
+                //
+                ClearRawData(settings.ChannelsSettings.ActiveChannels);
+
+                //
+                // As long as the user didn't ask to stop the acquisition 
+                // (which is signaled by the stop of the stepper motion)
+                // we coninue sampling.
+                //
+                while (!worker.CancellationPending)
+                {
+                    //
+                    // Read all available data points in the buffer that
+                    // were not read so far.
+                    //
+                    dataAquired = reader.ReadMultiSample(-1);
+                    fullData = AccumulateData(fullData, dataAquired);
+                    
+                    dataAquired = null;                  
+                }
+            }
+            catch (DaqException)
+            {
+                //
+                // In case of an error just return
+                //
+                m_task.Stop();
+                m_task.Dispose();
+                if (m_LaserController != null)
+                {
+                    m_LaserController.TurnOff();
+                }
+                if (m_taborFirstEOMController != null)
+                {
+                    m_taborFirstEOMController.TurnOff();
+                }
+                if (m_taborSecondEOMController != null)
+                {
+                    m_taborSecondEOMController.TurnOff();
+                }
+                return false;
+            }
+
+            //
+            // At this point the user had requested to stop the data aquisition.
+            // By signaling "stop". We can stop the task.
+            //            
+            m_task.Stop();
+
+            //
+            // Assign the aquired data for each channel after an average process
+            //                    
+            AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, ConvertDataToMatrix(fullData));
+
+            //
+            // physical channel will include both simple and complex channels. 
+            // 
+            physicalChannels = GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels);
+
+            //
+            // calculate the physical data for each channel
+            //
+            GetPhysicalData(physicalChannels);
+
+            // 
+            // Increase file number by one
+            // Save data if needed
+            //
+            finalFileNumber++;
+            if (settings.GeneralSettings.IsFileSavingRequired)
+            {
+                finalFileNumber = SaveData(settings.GeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+            }
+
+            //
+            // Signal UI we have the data
+            //
+            if (DataAquired != null)
+            {
+                DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
+            }
+
+
+            //
+            // Finish the measurement properly
+            //
+            if (settings.LaserSettings.IsLaserOn)
+            {
+                m_LaserController.TurnOff();
+            }
+            if (settings.ElectromagnetSettings.IsEMEnable)
+            {
+                m_electroMagnet.Shutdown();
+            }
+            if (settings.LaserSettings.IsFirstEOMOn)
+            {
+                m_taborFirstEOMController.TurnOff();
+            }
+            if (settings.LaserSettings.IsSecondEOMOn)
+            {
+                m_taborSecondEOMController.TurnOff();
+            }
+
+            m_task.Dispose();
+            m_stepperMotor.Shutdown();
+
+            return (isCancelled || e.Cancel);
+        }
+
+        private List<List<double>> AccumulateData(List<List<double>> fullData, double[,] dataAquired)
+        {
+            int numberOfDataSampled = dataAquired.GetLength(1);
+            int numberOfChannels = dataAquired.GetLength(0);
+            
+            //
+            // Flattens the matrix to a list so that each row is appended after the row before.
+            // The result is one list: 2D [a,a,a;b,b,b;c,c,c] ==> 1D (a,a,a,b,b,b,c,c,c)
+            //
+            IEnumerable<double> flatMatrix = dataAquired.Cast<double>();
+            for (int i = 0; i < numberOfChannels; i++)
+            {
+                //
+                // Add the relevant data points to the desired list (which represents a channel)
+                // Since we have flatten the list, this requires skipping some data points.
+                //
+                fullData[i].AddRange(flatMatrix.Skip(numberOfDataSampled * i).Take(numberOfDataSampled));               
+            }
+            return fullData;
         }
 
         /// <summary>
