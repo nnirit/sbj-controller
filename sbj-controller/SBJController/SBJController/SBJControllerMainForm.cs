@@ -760,6 +760,7 @@ namespace SBJController
                 // Set the amplitude
                 //
                 m_sbjController.LaserController.SetAmplitude((double)this.laserAmplitudeNumericUpDown.Value);
+                m_sbjController.LaserController.TurnOn();
             }
             else
             {
@@ -1335,6 +1336,11 @@ namespace SBJController
             //
             // Update plot
             //
+            if (data == null)
+            {
+                return;
+            }
+                
             int numberOfChannels = data.GetLength(0);
             waveformGraph.PlotYMultiple(data);
 
@@ -1401,6 +1407,11 @@ namespace SBJController
         /// <returns></returns>
         private double[,] GetDataAsArray(List<double[]> physicalDataAsList)
         {
+            if (physicalDataAsList.Count == 0)
+            {
+                return null;
+            }
+
             double[,] dataAsArray = new double[physicalDataAsList.Count, physicalDataAsList[0].Length];
             for (int i = 0; i < physicalDataAsList.Count; i++)
             {
@@ -1453,6 +1464,7 @@ namespace SBJController
                                                                                   (int)this.fileNumberNumericUpDown.Value,
                                                                                   (int)this.numberOfCyclesnumericUpDown.Value,
                                                                                   (double)this.shortCircuitVoltageNumericUpDown.Value,
+                                                                                  this.useDefaultGainCheckBox.Checked,
                                                                                   (Sample)this.bottomPropertyGrid.SelectedObject,
                                                                                   (Sample)this.bottomPropertyGrid.SelectedObject),
                                                   new LaserSBJControllerSettings(this.enableLaserCheckBox.Checked,
@@ -2377,5 +2389,78 @@ namespace SBJController
             }
         }        
         #endregion    
+
+        private void continuousSamplingCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (continuousSamplingCheckBox.Checked)
+            {
+                //
+                // We were requested to start data acquisition so we must verify
+                // first that the worker is free for doing the job.
+                //
+                if (!continuousSamplingBackgroundWorker.IsBusy)
+                {
+                    //
+                    // Change button text and UI appearance
+                    //
+                    continuousSamplingCheckBox.Text = "Stop";
+                    manualStartCheckBoxButton.Enabled = false;
+                    startStopCheckBoxButton.Enabled = false;
+                    shortCircuitCheckBoxButton.Enabled = false;
+                    fixBiasCheckBoxButton.Enabled = false;
+                    moveUpCheckBoxButton.Enabled = false;
+                    generalSettingsPanel.Enabled = false;
+                    laserSettingsPanel.Enabled = false;
+                    lockInPanel.Enabled = false;
+                    electroMagnetSettingsPanel.Enabled = false;
+                    channelsSettingsPanel.Enabled = false;
+                    continuousSamplingBackgroundWorker.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Can not start data aquisition operation." + Environment.NewLine + "Please try again in few seconds.");
+                }
+            }
+            else
+            {
+                //
+                // We were requested to stop data acquisition process
+                //
+                if (continuousSamplingBackgroundWorker.WorkerSupportsCancellation == true)
+                {
+                    continuousSamplingBackgroundWorker.CancelAsync();
+                }                
+            }
+        }
+
+        private void continuousSamplingBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            m_sbjController.AquireDataContinuously(GetSBJControllerSettings(), worker, e);
+        }
+
+        private void continuousSamplingBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //
+            // We've done taking data so we must bring the UI appearance
+            //
+            continuousSamplingCheckBox.Text = "Continuously";
+            continuousSamplingCheckBox.Checked = false;
+            manualStartCheckBoxButton.Enabled = true;
+            startStopCheckBoxButton.Enabled = true;
+            fixBiasCheckBoxButton.Enabled = true;
+            shortCircuitCheckBoxButton.Enabled = true;
+            moveUpCheckBoxButton.Enabled = true;
+            generalSettingsPanel.Enabled = true;
+            laserSettingsPanel.Enabled = true;
+            lockInPanel.Enabled = true;
+            channelsSettingsPanel.Enabled = true;
+            electroMagnetSettingsPanel.Enabled = true;
+
+            //
+            // if we applied the bias by the DAQ device, we need to stop the task. 
+            //
+            m_sbjController.StopApplyingVoltageIfNeeded();
+        }
     }
 }

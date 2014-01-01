@@ -34,6 +34,7 @@
             this.plotGroupBox = new System.Windows.Forms.GroupBox();
             this.channelsListView = new System.Windows.Forms.ListView();
             this.operateGroupBox = new System.Windows.Forms.GroupBox();
+            this.continuousSamplingCheckBox = new System.Windows.Forms.CheckBox();
             this.manualStartCheckBoxButton = new System.Windows.Forms.CheckBox();
             this.openFolderButton = new System.Windows.Forms.Button();
             this.fixBiasCheckBoxButton = new System.Windows.Forms.CheckBox();
@@ -298,6 +299,8 @@
             this.ivCyclesBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.calibrationBackGroundWorker = new System.ComponentModel.BackgroundWorker();
             this.manualStartBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.continuousSamplingBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.useDefaultGainCheckBox = new System.Windows.Forms.CheckBox();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
             this.plotGroupBox.SuspendLayout();
@@ -474,6 +477,8 @@
             // operateGroupBox
             // 
             this.operateGroupBox.AutoSize = true;
+            this.operateGroupBox.Controls.Add(this.useDefaultGainCheckBox);
+            this.operateGroupBox.Controls.Add(this.continuousSamplingCheckBox);
             this.operateGroupBox.Controls.Add(this.manualStartCheckBoxButton);
             this.operateGroupBox.Controls.Add(this.openFolderButton);
             this.operateGroupBox.Controls.Add(this.fixBiasCheckBoxButton);
@@ -492,20 +497,35 @@
             this.operateGroupBox.Controls.Add(this.fileNumberNumericUpDown);
             this.operateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.operateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.operateGroupBox.Location = new System.Drawing.Point(3, 612);
+            this.operateGroupBox.Location = new System.Drawing.Point(3, 620);
             this.operateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.operateGroupBox.Name = "operateGroupBox";
-            this.operateGroupBox.Size = new System.Drawing.Size(773, 184);
+            this.operateGroupBox.Size = new System.Drawing.Size(773, 176);
             this.operateGroupBox.TabIndex = 23;
             this.operateGroupBox.TabStop = false;
             this.operateGroupBox.Text = "Operate";
+            // 
+            // continuousSamplingCheckBox
+            // 
+            this.continuousSamplingCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
+            this.continuousSamplingCheckBox.AutoSize = true;
+            this.continuousSamplingCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.continuousSamplingCheckBox.Location = new System.Drawing.Point(616, 79);
+            this.continuousSamplingCheckBox.MinimumSize = new System.Drawing.Size(77, 23);
+            this.continuousSamplingCheckBox.Name = "continuousSamplingCheckBox";
+            this.continuousSamplingCheckBox.Size = new System.Drawing.Size(77, 23);
+            this.continuousSamplingCheckBox.TabIndex = 31;
+            this.continuousSamplingCheckBox.Text = "Continuous";
+            this.continuousSamplingCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.continuousSamplingCheckBox.UseVisualStyleBackColor = true;
+            this.continuousSamplingCheckBox.CheckedChanged += new System.EventHandler(this.continuousSamplingCheckBox_CheckedChanged);
             // 
             // manualStartCheckBoxButton
             // 
             this.manualStartCheckBoxButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.manualStartCheckBoxButton.AutoSize = true;
             this.manualStartCheckBoxButton.ForeColor = System.Drawing.Color.Black;
-            this.manualStartCheckBoxButton.Location = new System.Drawing.Point(273, 142);
+            this.manualStartCheckBoxButton.Location = new System.Drawing.Point(450, 113);
             this.manualStartCheckBoxButton.MinimumSize = new System.Drawing.Size(77, 23);
             this.manualStartCheckBoxButton.Name = "manualStartCheckBoxButton";
             this.manualStartCheckBoxButton.Size = new System.Drawing.Size(77, 23);
@@ -531,7 +551,7 @@
             this.fixBiasCheckBoxButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.fixBiasCheckBoxButton.AutoSize = true;
             this.fixBiasCheckBoxButton.ForeColor = System.Drawing.Color.Black;
-            this.fixBiasCheckBoxButton.Location = new System.Drawing.Point(450, 142);
+            this.fixBiasCheckBoxButton.Location = new System.Drawing.Point(616, 113);
             this.fixBiasCheckBoxButton.MinimumSize = new System.Drawing.Size(77, 23);
             this.fixBiasCheckBoxButton.Name = "fixBiasCheckBoxButton";
             this.fixBiasCheckBoxButton.Size = new System.Drawing.Size(77, 23);
@@ -546,7 +566,7 @@
             this.moveUpCheckBoxButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.moveUpCheckBoxButton.AutoSize = true;
             this.moveUpCheckBoxButton.ForeColor = System.Drawing.Color.Black;
-            this.moveUpCheckBoxButton.Location = new System.Drawing.Point(365, 142);
+            this.moveUpCheckBoxButton.Location = new System.Drawing.Point(533, 113);
             this.moveUpCheckBoxButton.MinimumSize = new System.Drawing.Size(77, 23);
             this.moveUpCheckBoxButton.Name = "moveUpCheckBoxButton";
             this.moveUpCheckBoxButton.Size = new System.Drawing.Size(77, 23);
@@ -561,7 +581,7 @@
             this.startStopCheckBoxButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.startStopCheckBoxButton.AutoSize = true;
             this.startStopCheckBoxButton.ForeColor = System.Drawing.Color.Black;
-            this.startStopCheckBoxButton.Location = new System.Drawing.Point(273, 108);
+            this.startStopCheckBoxButton.Location = new System.Drawing.Point(450, 79);
             this.startStopCheckBoxButton.MinimumSize = new System.Drawing.Size(77, 23);
             this.startStopCheckBoxButton.Name = "startStopCheckBoxButton";
             this.startStopCheckBoxButton.Size = new System.Drawing.Size(77, 23);
@@ -576,7 +596,7 @@
             this.shortCircuitCheckBoxButton.Appearance = System.Windows.Forms.Appearance.Button;
             this.shortCircuitCheckBoxButton.AutoSize = true;
             this.shortCircuitCheckBoxButton.ForeColor = System.Drawing.Color.Black;
-            this.shortCircuitCheckBoxButton.Location = new System.Drawing.Point(365, 108);
+            this.shortCircuitCheckBoxButton.Location = new System.Drawing.Point(533, 79);
             this.shortCircuitCheckBoxButton.MinimumSize = new System.Drawing.Size(77, 23);
             this.shortCircuitCheckBoxButton.Name = "shortCircuitCheckBoxButton";
             this.shortCircuitCheckBoxButton.Size = new System.Drawing.Size(77, 23);
@@ -588,7 +608,7 @@
             // 
             // numberOfCyclesnumericUpDown
             // 
-            this.numberOfCyclesnumericUpDown.Location = new System.Drawing.Point(150, 111);
+            this.numberOfCyclesnumericUpDown.Location = new System.Drawing.Point(364, 77);
             this.numberOfCyclesnumericUpDown.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -607,7 +627,7 @@
             // 
             this.numberOfCyclesLabel1.AutoSize = true;
             this.numberOfCyclesLabel1.ForeColor = System.Drawing.Color.Black;
-            this.numberOfCyclesLabel1.Location = new System.Drawing.Point(7, 113);
+            this.numberOfCyclesLabel1.Location = new System.Drawing.Point(250, 79);
             this.numberOfCyclesLabel1.Name = "numberOfCyclesLabel1";
             this.numberOfCyclesLabel1.Size = new System.Drawing.Size(90, 13);
             this.numberOfCyclesLabel1.TabIndex = 13;
@@ -621,7 +641,7 @@
             0,
             0,
             65536});
-            this.shortCircuitVoltageNumericUpDown.Location = new System.Drawing.Point(150, 145);
+            this.shortCircuitVoltageNumericUpDown.Location = new System.Drawing.Point(150, 116);
             this.shortCircuitVoltageNumericUpDown.Maximum = new decimal(new int[] {
             10,
             0,
@@ -645,7 +665,7 @@
             // 
             this.shortCircuitVoltageLabel.AutoSize = true;
             this.shortCircuitVoltageLabel.ForeColor = System.Drawing.Color.Black;
-            this.shortCircuitVoltageLabel.Location = new System.Drawing.Point(7, 147);
+            this.shortCircuitVoltageLabel.Location = new System.Drawing.Point(3, 118);
             this.shortCircuitVoltageLabel.Name = "shortCircuitVoltageLabel";
             this.shortCircuitVoltageLabel.Size = new System.Drawing.Size(119, 13);
             this.shortCircuitVoltageLabel.TabIndex = 11;
@@ -741,8 +761,7 @@
             // 
             // waveformPlot1
             // 
-            this.waveformPlot1.LineColor = System.Drawing.Color.Red;
-            this.waveformPlot1.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
+            this.waveformPlot1.LineColor = System.Drawing.Color.Red;            
             this.waveformPlot1.ToolTipsEnabled = true;
             this.waveformPlot1.XAxis = this.xAxis1;
             this.waveformPlot1.YAxis = this.yAxis1;
@@ -2479,8 +2498,7 @@
             // 
             // ivWaveformPlot
             // 
-            this.ivWaveformPlot.LineColor = System.Drawing.Color.Red;
-            this.ivWaveformPlot.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
+            this.ivWaveformPlot.LineColor = System.Drawing.Color.Red;          
             this.ivWaveformPlot.ToolTipsEnabled = true;
             this.ivWaveformPlot.XAxis = this.ivXAxis;
             this.ivWaveformPlot.YAxis = this.ivYAxis;
@@ -3193,8 +3211,7 @@
             // 
             // calibrationWaveformPlot
             // 
-            this.calibrationWaveformPlot.LineColor = System.Drawing.Color.Red;
-            this.calibrationWaveformPlot.LineColorPrecedence = NationalInstruments.UI.ColorPrecedence.UserDefinedColor;
+            this.calibrationWaveformPlot.LineColor = System.Drawing.Color.Red;            
             this.calibrationWaveformPlot.ToolTipsEnabled = true;
             this.calibrationWaveformPlot.XAxis = this.calibrationXAxis;
             this.calibrationWaveformPlot.YAxis = this.calibrationYAxis;
@@ -3938,6 +3955,23 @@
             this.manualStartBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.manualStartBackgroundWorker_DoWork);
             this.manualStartBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.manualStartBackgroundWorker_RunWorkerCompleted);
             // 
+            // continuousSamplingBackgroundWorker
+            // 
+            this.continuousSamplingBackgroundWorker.WorkerSupportsCancellation = true;
+            this.continuousSamplingBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.continuousSamplingBackgroundWorker_DoWork);
+            this.continuousSamplingBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.continuousSamplingBackgroundWorker_RunWorkerCompleted);
+            // 
+            // useDefaultGainCheckBox
+            // 
+            this.useDefaultGainCheckBox.AutoSize = true;
+            this.useDefaultGainCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.useDefaultGainCheckBox.Location = new System.Drawing.Point(253, 117);
+            this.useDefaultGainCheckBox.Name = "useDefaultGainCheckBox";
+            this.useDefaultGainCheckBox.Size = new System.Drawing.Size(161, 17);
+            this.useDefaultGainCheckBox.TabIndex = 32;
+            this.useDefaultGainCheckBox.Text = "Use E5 Gain for Short Circuit";
+            this.useDefaultGainCheckBox.UseVisualStyleBackColor = true;
+            // 
             // SBJControllerMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -4357,6 +4391,9 @@
         private System.Windows.Forms.NumericUpDown firstEOMFrequencyNumericUpDown;
         private System.Windows.Forms.Label firstEOMFrequencyLabel;
         private System.Windows.Forms.ComboBox eomCOnfigurationComboBox;
+        private System.Windows.Forms.CheckBox continuousSamplingCheckBox;
+        private System.ComponentModel.BackgroundWorker continuousSamplingBackgroundWorker;
+        private System.Windows.Forms.CheckBox useDefaultGainCheckBox;
                          
     }
 }

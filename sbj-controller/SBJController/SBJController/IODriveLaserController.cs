@@ -59,6 +59,7 @@ namespace SBJController
                 throw new SBJException("Supplied power can not exceed value of 5V.");
             }
             m_power = newPower;
+            AnalogOut(m_channel, m_power);
         }
 
         /// <summary>
