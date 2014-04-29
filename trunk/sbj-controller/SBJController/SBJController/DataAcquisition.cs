@@ -115,11 +115,13 @@ namespace SBJController
                                                             -10, 10, AIVoltageUnits.Volts);
             //
             // Configure sampling rate
+            // Buffer's minimum size is 17
             //
+            int bufferSize = properties.SamplesPerChannel > 17 ? properties.SamplesPerChannel : 20;
             analogInputTask.Timing.ConfigureSampleClock(string.Empty, properties.SampleRate,
                                                         SampleClockActiveEdge.Falling,
                                                         SampleQuantityMode.FiniteSamples,
-                                                        properties.SamplesPerChannel);
+                                                        bufferSize);
 
             //
             // Configure the trigger according to channel 1
@@ -128,8 +130,6 @@ namespace SBJController
                                                                                  properties.TriggerSlope,
                                                                                  properties.TriggerLevel,
                                                                                  properties.PreTriggerSamples);
-
-                                                                          
 
             analogInputTask.Stream.ReadRelativeTo = ReadRelativeTo.FirstPretriggerSample;
             analogInputTask.Stream.ReadOffset = 0;
@@ -273,7 +273,10 @@ namespace SBJController
             return terminalConfiguration;
         }
 
-
+        /// <summary>
+        /// Get the name of the DAQ device
+        /// </summary>
+        /// <returns></returns>
         private string GetAvailableDAQDevices()
         {
             StringBuilder daqDevices = new StringBuilder();

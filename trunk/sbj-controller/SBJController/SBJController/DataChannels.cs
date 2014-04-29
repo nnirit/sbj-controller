@@ -576,12 +576,16 @@ namespace SBJController
             //
             // Since this is a simple data channel, we are only concerned with the first
             // data set in the RawData collection.
-            //
-            double[] rawVoltageData = RawData[0];
-            double[] conductanceValues = new double[rawVoltageData.Length];
-            for (int i = 0; i < rawVoltageData.Length; i++)
+            // If RawData has more than one data set, then append them all.
+            List<double> flatList = new List<double>();
+            for (int i = 0; i < RawData.Count; i++)
             {
-                conductanceValues[i] = ConvertVoltageToPhysicalValue(rawVoltageData[i]);
+                flatList.AddRange(RawData[i]);
+            }
+            double[] conductanceValues = new double[flatList.Count];
+            for (int i = 0; i < flatList.Count; i++)
+            {
+                conductanceValues[i] = ConvertVoltageToPhysicalValue(flatList[i]);
             }
             PhysicalData.Clear();
             PhysicalData.Add(conductanceValues);

@@ -62,7 +62,7 @@ namespace SBJController
             //
             // Create the task
             //
-            m_task = GetCalibrationTask(settings, worker, e);
+            m_triggeredTask = GetCalibrationTask(settings, worker, e);
 
             //
             // physical channel will include both simple and complex channels. 
@@ -88,7 +88,7 @@ namespace SBJController
                 //
                 try
                 {
-                    m_task.Start();
+                    m_triggeredTask.Start();
                 }
                 catch (DaqException ex)
                 {
@@ -181,7 +181,7 @@ namespace SBJController
                 //
                 // data acquisition is done for this trace, stop the task
                 //
-                m_task.Stop();
+                m_triggeredTask.Stop();
 
                 //
                 // if operation was cancelled by user during the closing/opening, quit without saving this trace.
@@ -218,7 +218,7 @@ namespace SBJController
             //
             // Finish the measurement properly
             //
-            m_task.Dispose();
+            m_triggeredTask.Dispose();
             m_stepperMotor.Shutdown();
             if (settings.ElectromagnetSettings.IsEMEnable)
             {
@@ -282,7 +282,7 @@ namespace SBJController
         private double GetDataAfterEachStep(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double[,] dataAquired=null;
-            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_task.Stream);
+            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
 
             dataAquired = reader.ReadMultiSample(-1);
 

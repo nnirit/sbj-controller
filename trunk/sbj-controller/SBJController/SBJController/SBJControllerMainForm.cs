@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
-using NationalInstruments.DAQmx;
 using System.Drawing;
 using NationalInstruments.UI;
 using NationalInstruments.UI.WindowsForms;
@@ -12,6 +11,7 @@ using System.Reflection;
 using SBJController.Properties;
 using System.Runtime.InteropServices;
 using System.Linq;
+using NationalInstruments.DAQmx;
 
 namespace SBJController
 {
@@ -33,10 +33,24 @@ namespace SBJController
             InitializeComponent();
             m_sbjController = new SBJController();
             m_sbjController.DataAquired += new SBJController.DataAquiredEventHandler(OnDataAquisition);
+            m_sbjController.DoneReadingData += new SBJController.DataAquiredEventHandler(OnDoneReadingData);
             this.bottomPropertyGrid.SelectedObject = new Sample();
             this.topPropertyGrid.SelectedObject = new Sample();
+            this.directionComboBox.DataSource = Enum.GetNames(typeof(RunDirection));
             PopulateChannelsLists();
             TryConnectToKeithly();
+        }
+
+        void OnDoneReadingData(object sender, DataAquiredEventArgs e)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<object, DataAquiredEventArgs>(OnDoneReadingData), sender, e);
+            }
+            else
+            {
+                this.stopRealTimeButton.Enabled = false;
+            }
         }
        
         #endregion
@@ -228,6 +242,8 @@ namespace SBJController
                     lockInPanel.Enabled = false;
                     electroMagnetSettingsPanel.Enabled = false;
                     channelsSettingsPanel.Enabled = false;
+                    continuousSamplingCheckBox.Enabled = false;
+                    reachPositionCheckBoxButton.Enabled = false;
                     aquireDataBackgroundWorker.RunWorkerAsync();
                 }
                 else
@@ -244,18 +260,25 @@ namespace SBJController
                 {
                     aquireDataBackgroundWorker.CancelAsync();
                 }
-                if (m_sbjController.Task != null)
+                if (m_sbjController.TriggeredTask != null)
                 {
                     try
                     {
-                        m_sbjController.Task.Control(TaskAction.Abort);
+                        m_sbjController.TriggeredTask.Control(TaskAction.Abort);
                     }
                     catch(Exception)
                     {
                         //probably the task was already disposed. go on, no need for exception.
                     }
                 }
-                m_sbjController.QuitJunctionOpenningOperation = true;
+                if ((RunDirection)Enum.Parse(typeof(RunDirection), directionComboBox.Text) == RunDirection.Break)
+                {
+                    m_sbjController.QuitJunctionOpenningOperation = true;
+                }
+                else
+                {
+                    m_sbjController.QuitJunctionClosingOperation = true;
+                }
                 m_sbjController.StepperMotor.Shutdown();
             }
         }
@@ -282,7 +305,9 @@ namespace SBJController
             lockInPanel.Enabled = true;
             channelsSettingsPanel.Enabled = true;
             electroMagnetSettingsPanel.Enabled = true;
-
+            continuousSamplingCheckBox.Enabled = true;
+            reachPositionCheckBoxButton.Enabled = true;
+            
             //
             // if we applied the bias by the DAQ device, we need to stop the task. 
             //
@@ -299,6 +324,181 @@ namespace SBJController
             BackgroundWorker worker = sender as BackgroundWorker;
             m_sbjController.AquireData(GetSBJControllerSettings(), worker, e);
         }
+
+        private void continuousSamplingCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (continuousSamplingCheckBox.Checked)
+            {
+                //
+                // We were requested to start data acquisition so we must verify
+                // first that the worker is free for doing the job.
+                //
+                if (!continuousSamplingBackgroundWorker.IsBusy)
+                {
+                    //
+                    // Change button text and UI appearance
+                    //
+                    continuousSamplingCheckBox.Text = "Stop";
+                    manualStartCheckBoxButton.Enabled = false;
+                    startStopCheckBoxButton.Enabled = false;
+                    shortCircuitCheckBoxButton.Enabled = false;
+                    fixBiasCheckBoxButton.Enabled = false;
+                    moveUpCheckBoxButton.Enabled = false;
+                    generalSettingsPanel.Enabled = false;
+                    laserSettingsPanel.Enabled = false;
+                    lockInPanel.Enabled = false;
+                    electroMagnetSettingsPanel.Enabled = false;
+                    channelsSettingsPanel.Enabled = false;
+                    continuousSamplingBackgroundWorker.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Can not start data aquisition operation." + Environment.NewLine + "Please try again in few seconds.");
+                }
+            }
+            else
+            {
+                //
+                // We were requested to stop data acquisition process
+                //
+                if (continuousSamplingBackgroundWorker.WorkerSupportsCancellation == true)
+                {
+                    continuousSamplingBackgroundWorker.CancelAsync();
+                }
+            }
+        }
+
+        private void continuousSamplingBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            m_sbjController.AquireDataContinuously(GetSBJControllerSettings(), worker, e);
+        }
+
+        private void continuousSamplingBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //
+            // We've done taking data so we must bring the UI appearance
+            //
+            continuousSamplingCheckBox.Text = "Continuously";
+            continuousSamplingCheckBox.Checked = false;
+            manualStartCheckBoxButton.Enabled = true;
+            startStopCheckBoxButton.Enabled = true;
+            fixBiasCheckBoxButton.Enabled = true;
+            shortCircuitCheckBoxButton.Enabled = true;
+            moveUpCheckBoxButton.Enabled = true;
+            generalSettingsPanel.Enabled = true;
+            laserSettingsPanel.Enabled = true;
+            lockInPanel.Enabled = true;
+            channelsSettingsPanel.Enabled = true;
+            electroMagnetSettingsPanel.Enabled = true;
+
+            //
+            // if we applied the bias by the DAQ device, we need to stop the task. 
+            //
+            m_sbjController.StopApplyingVoltageIfNeeded();
+        }
+
+        private void reachPositionCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (reachPositionCheckBoxButton.Checked)
+            {
+                //
+                // We were requested to start the operation
+                // first that the worker is free for doing the job.
+                //
+                if (!reachPositionBackgroundWorker.IsBusy)
+                {
+                    //
+                    // Change button text and UI appearance
+                    //
+                    reachPositionCheckBoxButton.Text = "Stop";
+                    startStopCheckBoxButton.Enabled = false;
+                    shortCircuitCheckBoxButton.Enabled = false;
+                    manualStartCheckBoxButton.Enabled = false;
+                    moveUpCheckBoxButton.Enabled = false;
+                    shortCircuitCheckBoxButton.Enabled = false;
+                    fixBiasCheckBoxButton.Enabled = false;
+                    generalSettingsPanel.Enabled = false;
+                    laserSettingsPanel.Enabled = false;
+                    lockInPanel.Enabled = false;
+                    electroMagnetSettingsPanel.Enabled = false;
+                    channelsSettingsPanel.Enabled = false;
+                    continuousSamplingCheckBox.Enabled = false;
+                    reachPositionBackgroundWorker.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Can not move to position." + Environment.NewLine + "Please try again in few seconds.");
+                }
+            }
+            else
+            {
+                //
+                // We were requested to stop the operation
+                //
+                if (reachPositionBackgroundWorker.WorkerSupportsCancellation == true)
+                {
+                    reachPositionBackgroundWorker.CancelAsync();
+                }
+                if (m_sbjController.TriggeredTask != null)
+                {
+                    try
+                    {
+                        m_sbjController.TriggeredTask.Control(TaskAction.Abort);
+                    }
+                    catch (Exception)
+                    {
+                        //probably the task was already disposed. go on, no need for exception.
+                    }
+                }
+
+                if (m_sbjController.RealTimeTask != null)
+                {
+                    try
+                    {
+                        m_sbjController.RealTimeTask.Control(TaskAction.Abort);
+                    }
+                    catch (Exception)
+                    {
+                        //probably the task was already disposed. go on, no need for exception.
+                    }
+                }
+
+                m_sbjController.QuitJunctionOpenningOperation = true;
+                m_sbjController.QuitJunctionClosingOperation = true;
+                m_sbjController.QuitRealTimeOperation = true;
+                m_sbjController.StepperMotor.Shutdown();
+                m_sbjController.ElectroMagnet.Shutdown();
+            }
+
+        }
+
+        private void reachPositionBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            m_sbjController.ReachPosition(GetSBJControllerSettings(), worker, e);
+        }
+
+        private void reachPositionBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            reachPositionCheckBoxButton.Text = "Reach Position";
+            startStopCheckBoxButton.Enabled = true;
+            shortCircuitCheckBoxButton.Enabled = true;
+            manualStartCheckBoxButton.Enabled = true;
+            moveUpCheckBoxButton.Enabled = true;
+            shortCircuitCheckBoxButton.Enabled = true;
+            fixBiasCheckBoxButton.Enabled = true;
+            generalSettingsPanel.Enabled = true;
+            laserSettingsPanel.Enabled = true;
+            lockInPanel.Enabled = true;
+            electroMagnetSettingsPanel.Enabled = true;
+            channelsSettingsPanel.Enabled = true;
+            continuousSamplingCheckBox.Enabled = true;
+            stopRealTimeButton.Enabled = false;
+
+            m_sbjController.StopApplyingVoltageIfNeeded();
+        }
+        
         #endregion
 
         #region Stepper Up Handlers
@@ -570,6 +770,8 @@ namespace SBJController
             this.emSlowDelayTimeNumericUpDown.Enabled = this.enableElectroMagnetCheckBox.Checked;
             this.emShortCircuitDelayTimeLabel.Enabled = this.enableElectroMagnetCheckBox.Checked;
             this.emShortCircuitDelayTimeNumericUpDown.Enabled = this.enableElectroMagnetCheckBox.Checked;
+            this.emOpenCircuitDelayTimeLabel.Enabled = this.enableElectroMagnetCheckBox.Checked;
+            this.emOpenCircuitDelayTimeNumericUpDown.Enabled = this.enableElectroMagnetCheckBox.Checked;
             this.emHoldOnToConductanceRangeCheckBox.Enabled = this.enableElectroMagnetCheckBox.Checked;
             this.emSkipFirstCycleByStepperMotorCheckBox.Enabled = this.enableElectroMagnetCheckBox.Checked;
             this.emHoldOnMaxConductanceLabel.Enabled = (this.enableElectroMagnetCheckBox.Checked && this.emHoldOnToConductanceRangeCheckBox.Checked);
@@ -635,8 +837,6 @@ namespace SBJController
 
             this.emHoldOnMaxVoltageNumericEdit.Value = GetVoltageFromConductnace(this.emHoldOnMaxConductanceNumericEdit.Value); 
         }
-
-
 
         /// <summary>
         /// Enable or Disable the laser 
@@ -1146,6 +1346,7 @@ namespace SBJController
                     lockInPanel.Enabled = false;
                     electroMagnetSettingsPanel.Enabled = false;
                     channelsSettingsPanel.Enabled = false;
+                    continuousSamplingCheckBox.Enabled = false;
                     manualStartBackgroundWorker.RunWorkerAsync();
                 }
                 else
@@ -1162,7 +1363,14 @@ namespace SBJController
                 {
                     manualStartBackgroundWorker.CancelAsync();
                 }
-                m_sbjController.QuitJunctionOpenningOperation = true;
+                if ((RunDirection)Enum.Parse(typeof(RunDirection), directionComboBox.Text) == RunDirection.Break)
+                {
+                    m_sbjController.QuitJunctionOpenningOperation = true;
+                }
+                else
+                {
+                    m_sbjController.QuitJunctionClosingOperation = true;
+                }
                 m_sbjController.StepperMotor.Shutdown();
             }
         }
@@ -1189,6 +1397,8 @@ namespace SBJController
             lockInPanel.Enabled = true;
             channelsSettingsPanel.Enabled = true;
             electroMagnetSettingsPanel.Enabled = true;
+            continuousSamplingCheckBox.Enabled = true;
+
 
             //
             // if we applied the bias by the DAQ device, we need to stop the task. 
@@ -1264,6 +1474,10 @@ namespace SBJController
             this.externalFrequencyNumericUpDown.Enabled = this.enableChopperCheckBox.Checked;
         }
 
+        private void stopRealTimeButton_Click(object sender, EventArgs e)
+        {
+            m_sbjController.QuitRealTimeOperation = true;
+        }
 
         #endregion
         
@@ -1284,6 +1498,7 @@ namespace SBJController
             }
             else
             {
+                this.stopRealTimeButton.Enabled = true;
                 //
                 // Check the attribute of the first channel received (all of the channels received are suppose to be of the same attribute). 
                 // This will help us decide which UI Tab should be updated.
@@ -1321,7 +1536,7 @@ namespace SBJController
             //
             // Convert the raw data to phyical one
             //
-            double[,] data = GetPhysicalData(channelsToDisplay);
+            double[,] data = GetPhysicalData(channelsToDisplay);            
             
             //
             // Update file number
@@ -1413,6 +1628,7 @@ namespace SBJController
             }
 
             double[,] dataAsArray = new double[physicalDataAsList.Count, physicalDataAsList[0].Length];
+            List<double> allDataFromChannel = new List<double>();
             for (int i = 0; i < physicalDataAsList.Count; i++)
             {
                 for (int j = 0; j < physicalDataAsList[i].Length; j++)
@@ -1453,18 +1669,20 @@ namespace SBJController
                                                                                   this.gainComboBox.Text,
                                                                                   this.triggerVoltageNumericEdit.Value,
                                                                                   this.triggerConductanceNumericEdit.Value,
-                                                                                  (int)this.sampleRateNumericUpDown.Value,
-                                                                                  (int)this.totalSamplesNumericUpDown.Value,
-                                                                                  (int)this.pretriggerSamplesNumericUpDown.Value,
-                                                                                  (int)this.stepperWaitTime1NumericUpDown.Value,
-                                                                                  (int)this.stepperWaitTime2NumericUpDown.Value,
+                                                                                  Convert.ToInt32(this.sampleRateNumericUpDown.Value),
+                                                                                  Convert.ToInt32(this.totalSamplesNumericUpDown.Value),
+                                                                                  Convert.ToInt32(this.pretriggerSamplesNumericUpDown.Value),
+                                                                                  Convert.ToInt32(this.stepperWaitTime1NumericUpDown.Value),
+                                                                                  Convert.ToInt32(this.stepperWaitTime2NumericUpDown.Value),
                                                                                   this.fileSavingCheckBox.Checked,
                                                                                   this.useKeithleyCheckBox.Checked,
                                                                                   this.pathTextBox.Text,
-                                                                                  (int)this.fileNumberNumericUpDown.Value,
-                                                                                  (int)this.numberOfCyclesnumericUpDown.Value,
+                                                                                  Convert.ToInt32(this.fileNumberNumericUpDown.Value),
+                                                                                  Convert.ToInt32(this.numberOfCyclesnumericUpDown.Value),
                                                                                   (double)this.shortCircuitVoltageNumericUpDown.Value,
+                                                                                  (double)this.openCircuitVoltageNumericEdit.Value,
                                                                                   this.useDefaultGainCheckBox.Checked,
+                                                                                  (RunDirection)Enum.Parse(typeof(RunDirection), this.directionComboBox.Text),
                                                                                   (Sample)this.bottomPropertyGrid.SelectedObject,
                                                                                   (Sample)this.bottomPropertyGrid.SelectedObject),
                                                   new LaserSBJControllerSettings(this.enableLaserCheckBox.Checked,
@@ -1472,25 +1690,26 @@ namespace SBJController
                                                                                  (double)this.laserAmplitudeNumericUpDown.Value,
                                                                                  (double)this.laserAmplitudeWNumericUpDown.Value,
                                                                                  (double)this.laserAmplitudeOnSampleNumericUpDown.Value,
-                                                                                 (int)this.frequencyNumericUpDown.Value,
+                                                                                 Convert.ToInt32(this.frequencyNumericUpDown.Value),
                                                                                  this.enableFirstEOMcheckBox.Checked,
                                                                                  this.enableSecondEOMCheckBox.Checked,
                                                                                  this.enableChopperCheckBox.Checked,
                                                                                  this.eomCOnfigurationComboBox.Text,
-                                                                                 (int)this.externalFrequencyNumericUpDown.Value,
-                                                                                 (int)this.firstEOMFrequencyNumericUpDown.Value,
-                                                                                 (int)this.secondEOMFrequencyNumericUpDown.Value),
+                                                                                 Convert.ToInt32(this.externalFrequencyNumericUpDown.Value),
+                                                                                 Convert.ToInt32(this.firstEOMFrequencyNumericUpDown.Value),
+                                                                                 Convert.ToInt32(this.secondEOMFrequencyNumericUpDown.Value)),
                                                   new LockInSBJControllerSettings(this.enableLockInCheckBox.Checked,
                                                                                   this.internalSourceLockInCheckBoxcheckBox.Checked,
                                                                                   Double.Parse(this.sensitivityComboBox.Text),
                                                                                   Double.Parse(this.timeConstantComboBox.Text),
                                                                                   Double.Parse(this.rollOffComboBox.Text),
                                                                                   (double)this.lockInAcVoltageNumericEdit.Value,
-                                                                                  (int)this.mixerReductionFactorNumericEdit.Value),
+                                                                                  Convert.ToInt32(this.mixerReductionFactorNumericEdit.Value)),
                                                   new ElectroMagnetSBJControllerSettings(this.enableElectroMagnetCheckBox.Checked,
-                                                                                         (int)this.emShortCircuitDelayTimeNumericUpDown.Value,
-                                                                                         (int)this.emFastDelayTimeNumericUpDown.Value,
-                                                                                         (int)this.emSlowDelayTimeNumericUpDown.Value,
+                                                                                         Convert.ToInt32(this.emShortCircuitDelayTimeNumericUpDown.Value),
+                                                                                         Convert.ToInt32(this.emOpenCircuitDelayTimeNumericUpDown.Value),
+                                                                                         Convert.ToInt32(this.emFastDelayTimeNumericUpDown.Value),
+                                                                                         Convert.ToInt32(this.emSlowDelayTimeNumericUpDown.Value),
                                                                                          this.emHoldOnToConductanceRangeCheckBox.Checked,
                                                                                          this.emHoldOnMaxConductanceNumericEdit.Value,
                                                                                          this.emHoldOnMaxVoltageNumericEdit.Value,
@@ -1965,11 +2184,11 @@ namespace SBJController
                 {
                     calibrationBackGroundWorker.CancelAsync();
                 }
-                if (m_sbjController.Task != null)
+                if (m_sbjController.TriggeredTask != null)
                 {
                     try
                     {
-                        m_sbjController.Task.Control(TaskAction.Abort);
+                        m_sbjController.TriggeredTask.Control(TaskAction.Abort);
                     }
                     catch(Exception)
                     {
@@ -2041,6 +2260,7 @@ namespace SBJController
                                                                                                     GetCalibrationMeasurementType()),
                                                                new ElectroMagnetSBJControllerSettings(this.calibrationEnableElectroMagnetCheckBox.Checked,
                                                                                                     (int)this.calibrationEMShortCircuitDelayTimeNumericUpDown.Value,
+                                                                                                    (int)this.calibrationEMOpenCircuitDelayTimeNumericUpDown.Value,
                                                                                                     (int)this.calibrationEMFastDelayTimeNumericUpDown.Value,
                                                                                                     (int)this.calibrationEMSlowDelayTimeNumericUpDown.Value,
                                                                                                     this.emHoldOnToConductanceRangeCheckBox.Checked,
@@ -2107,6 +2327,8 @@ namespace SBJController
             this.calibrationEMSlowDelayTimeNumericUpDown.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
             this.calibrationEMShortCircuitDelayTimeLabel.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
             this.calibrationEMShortCircuitDelayTimeNumericUpDown.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
+            this.calibrationEMOpenCircuitDelayTimeLabel.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
+            this.calibrationEMOpenCircuitDelayTimeNumericUpDown.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
             this.calibrationEMSkipShortCircuitByStepperMotorCheckBox.Enabled = this.calibrationEnableElectroMagnetCheckBox.Checked;
         }
         
@@ -2390,77 +2612,6 @@ namespace SBJController
         }        
         #endregion    
 
-        private void continuousSamplingCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (continuousSamplingCheckBox.Checked)
-            {
-                //
-                // We were requested to start data acquisition so we must verify
-                // first that the worker is free for doing the job.
-                //
-                if (!continuousSamplingBackgroundWorker.IsBusy)
-                {
-                    //
-                    // Change button text and UI appearance
-                    //
-                    continuousSamplingCheckBox.Text = "Stop";
-                    manualStartCheckBoxButton.Enabled = false;
-                    startStopCheckBoxButton.Enabled = false;
-                    shortCircuitCheckBoxButton.Enabled = false;
-                    fixBiasCheckBoxButton.Enabled = false;
-                    moveUpCheckBoxButton.Enabled = false;
-                    generalSettingsPanel.Enabled = false;
-                    laserSettingsPanel.Enabled = false;
-                    lockInPanel.Enabled = false;
-                    electroMagnetSettingsPanel.Enabled = false;
-                    channelsSettingsPanel.Enabled = false;
-                    continuousSamplingBackgroundWorker.RunWorkerAsync();
-                }
-                else
-                {
-                    MessageBox.Show("Can not start data aquisition operation." + Environment.NewLine + "Please try again in few seconds.");
-                }
-            }
-            else
-            {
-                //
-                // We were requested to stop data acquisition process
-                //
-                if (continuousSamplingBackgroundWorker.WorkerSupportsCancellation == true)
-                {
-                    continuousSamplingBackgroundWorker.CancelAsync();
-                }                
-            }
-        }
-
-        private void continuousSamplingBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            BackgroundWorker worker = sender as BackgroundWorker;
-            m_sbjController.AquireDataContinuously(GetSBJControllerSettings(), worker, e);
-        }
-
-        private void continuousSamplingBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            //
-            // We've done taking data so we must bring the UI appearance
-            //
-            continuousSamplingCheckBox.Text = "Continuously";
-            continuousSamplingCheckBox.Checked = false;
-            manualStartCheckBoxButton.Enabled = true;
-            startStopCheckBoxButton.Enabled = true;
-            fixBiasCheckBoxButton.Enabled = true;
-            shortCircuitCheckBoxButton.Enabled = true;
-            moveUpCheckBoxButton.Enabled = true;
-            generalSettingsPanel.Enabled = true;
-            laserSettingsPanel.Enabled = true;
-            lockInPanel.Enabled = true;
-            channelsSettingsPanel.Enabled = true;
-            electroMagnetSettingsPanel.Enabled = true;
-
-            //
-            // if we applied the bias by the DAQ device, we need to stop the task. 
-            //
-            m_sbjController.StopApplyingVoltageIfNeeded();
-        }
+        
     }
 }
