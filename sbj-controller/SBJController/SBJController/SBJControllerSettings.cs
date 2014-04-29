@@ -53,7 +53,9 @@ namespace SBJController
         public int CurrentFileNumber { get; set; }
         public int TotalNumberOfCycles { get; set; }
         public double ShortCircuitVoltage { get; set; }
+        public double OpenCircuitVoltage { get; set; }
         public bool UseDefaultGain { get; set; }
+        public RunDirection RunDirection { get; set; }
         public Sample Bottom { get; set; }
         public Sample Top { get; set; }
 
@@ -62,7 +64,8 @@ namespace SBJController
                                      int totalSamples, int pretriggerSamples,
                                      int stepperWaitTime1, int stepperWaitTime2, bool isFileSavingRequired, 
                                      bool useKeithley, string path, int currentFileNumber, int totalNUmberOfCycles, 
-                                     double shourtCircuitVoltage, bool useDefaultGain, Sample bottom, Sample top)
+                                     double shourtCircuitVoltage, double openCircuitVoltage, bool useDefaultGain, 
+                                     RunDirection runDirection, Sample bottom, Sample top)
         {
             Bias = bias;
             BiasError = biasError;
@@ -80,7 +83,9 @@ namespace SBJController
             CurrentFileNumber = currentFileNumber;
             TotalNumberOfCycles = totalNUmberOfCycles;
             ShortCircuitVoltage = shourtCircuitVoltage;
+            OpenCircuitVoltage = openCircuitVoltage;
             UseDefaultGain = useDefaultGain;
+            RunDirection = runDirection;
             Bottom = bottom;
             Top = top;
         }
@@ -188,6 +193,7 @@ namespace SBJController
     {
         public bool IsEMEnable { get; set; }
         public int EMShortCircuitDelayTime { get; set; }
+        public int EMOpenCircuitDelayTime { get; set; }
         public int EMFastDelayTime { get; set; }
         public int EMSlowDelayTime { get; set; }
         public bool IsEMHoldOnEnable { get; set; }
@@ -197,14 +203,15 @@ namespace SBJController
         public double EMHoldOnMinVoltage { get; set; }
         public bool IsEMSkipFirstCycleEnable { get; set; }
 
-        public ElectroMagnetSBJControllerSettings (bool isEMEnable, int emShortCircuitDelayTime, 
-                                                   int emFastDelayTime, int emSlowDelayTime, 
+        public ElectroMagnetSBJControllerSettings (bool isEMEnable, int emShortCircuitDelayTime,
+                                                   int emOpenCircuitDelayTime, int emFastDelayTime, int emSlowDelayTime, 
                                                    bool isEMHoldOnEnable, double emHoldOnMaxConductance, 
                                                    double emHoldOnMaxVoltage, double emHoldOnMinConductance, 
                                                    double emHoldOnMinVoltage, bool isEMSkipFirstCycleEnable)
         {
             IsEMEnable = isEMEnable;
             EMShortCircuitDelayTime = emShortCircuitDelayTime;
+            EMOpenCircuitDelayTime = emOpenCircuitDelayTime;
             EMFastDelayTime = emFastDelayTime;
             EMSlowDelayTime = emSlowDelayTime;
             IsEMHoldOnEnable = isEMHoldOnEnable;

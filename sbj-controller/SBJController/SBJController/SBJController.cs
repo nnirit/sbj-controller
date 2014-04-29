@@ -27,8 +27,13 @@ namespace SBJController
         private LockIn m_LockIn;
         private LambdaZup m_lambdaZup;
         private DataAcquisitionController m_daqController;
-        private Task m_task;
+        private Task m_triggeredTask;
+        private Task m_realTimeTask;
+        private AnalogEdgeReferenceTriggerSlope m_triggerSlope;
+        private double m_triggerVoltage;
+        private bool m_quitRealTimeOperation;
         private bool m_quitJunctionOpenningOperation;
+        private bool m_quitJunctionClosingOperation;
         private const string c_settingsFileName = "Params.txt";
         private const string c_dataFileName = "StatDAQ_";
         private const string c_lockInSignalFileName = "LockInSignal_";
@@ -36,24 +41,45 @@ namespace SBJController
         private const string c_rawDataFolderName = "RawData\\";
         private const string c_physicalDataFolderName = "PhysicalData\\";
         private const string c_additionalDataFolderName = "AdditionalData\\";
-        private delegate void OpenJunctionMethodDelegate(SBJControllerSettings settings);
+        private delegate void OpenJunctionMethodDelegate(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e);
+        private delegate void CloseJunctionMethodDelegate(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e);
         public delegate void DataAquiredEventHandler(object sender, DataAquiredEventArgs e);
         public event DataAquiredEventHandler DataAquired;
+        public event DataAquiredEventHandler DoneReadingData;
         #endregion
 
         #region Properties
         
-        public Task Task
+        public Task TriggeredTask
         {
-            get { return m_task; }
-            set { m_task = value; }
+            get { return m_triggeredTask; }
+            set { m_triggeredTask = value; }
         }
+
+        public Task RealTimeTask
+        {
+            get { return m_realTimeTask; }
+            set { m_realTimeTask = value; }
+        }        
         
         public bool QuitJunctionOpenningOperation
         {
             get { return m_quitJunctionOpenningOperation; }
             set { m_quitJunctionOpenningOperation = value; }
         }
+
+        public bool QuitJunctionClosingOperation
+        {
+            get { return m_quitJunctionClosingOperation; }
+            set { m_quitJunctionClosingOperation = value; }
+        }
+
+        public bool QuitRealTimeOperation
+        {
+            get { return m_quitRealTimeOperation; }
+            set { m_quitRealTimeOperation = value; }
+        }
+
         public StepperMotor StepperMotor
         {
             get { return m_stepperMotor; }
@@ -108,7 +134,8 @@ namespace SBJController
             m_amplifier = new Amplifier();
             m_sourceMeter = new SourceMeter();
             m_daqController = new DataAcquisitionController();
-            m_quitJunctionOpenningOperation = false;            
+            m_quitJunctionOpenningOperation = false;
+            m_quitJunctionClosingOperation = false;
             m_LockIn = new LockIn();
             m_lambdaZup = new LambdaZup();
             InitializeComponents();
@@ -129,11 +156,11 @@ namespace SBJController
         /// Open the junction asynchronously
         /// </summary>
         /// <param name="settings"></param>       
-        private void BeginOpenJunction(SBJControllerSettings settings)
+        private void BeginOpenJunction(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             OpenJunctionMethodDelegate openJunctionDelegate = new OpenJunctionMethodDelegate(OpenJunction);
             AsyncCallback callback = new AsyncCallback(EndOpenJunction);
-            IAsyncResult asyncResult = openJunctionDelegate.BeginInvoke(settings, callback, openJunctionDelegate);
+            IAsyncResult asyncResult = openJunctionDelegate.BeginInvoke(settings, worker, e, callback, openJunctionDelegate);
         }
     
         /// <summary>
@@ -150,7 +177,7 @@ namespace SBJController
         /// Open the junction
         /// </summary>
         /// <param name="settings">The settings to be used to open the junction</param>
-        private void OpenJunction(SBJControllerSettings settings)
+        private void OpenJunction(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             //
             // Set the direction of the movement and stepping mode
@@ -172,6 +199,15 @@ namespace SBJController
             //
             while (!m_quitJunctionOpenningOperation)
             {
+                //
+                // Cancel the operatin if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
                 m_stepperMotor.MoveSingleStep();
                 double currentVoltage = AnalogIn(0);
 
@@ -184,6 +220,87 @@ namespace SBJController
                     m_stepperMotor.Delay = settings.GeneralSettings.StepperWaitTime2;
                     isDelayedChanged = true;
                 }
+                Thread.Sleep(m_stepperMotor.Delay);
+            }
+        }
+
+        /// <summary>
+        /// Close the junction asynchronously
+        /// </summary>
+        /// <param name="settings"></param>       
+        private void BeginCloseJunction(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            CloseJunctionMethodDelegate closeJunctionDelegate = new CloseJunctionMethodDelegate(CloseJunction);
+            AsyncCallback callback = new AsyncCallback(EndCloseJunction);
+            IAsyncResult asyncResult = closeJunctionDelegate.BeginInvoke(settings, worker, e, callback, closeJunctionDelegate);
+        }
+
+        /// <summary>
+        /// End junction openning
+        /// </summary>
+        /// <param name="asyncResult"></param>
+        private void EndCloseJunction(IAsyncResult asyncResult)
+        {
+            CloseJunctionMethodDelegate closeJunctionDelegate = (CloseJunctionMethodDelegate)asyncResult.AsyncState;
+            closeJunctionDelegate.EndInvoke(asyncResult);
+        }
+
+        /// <summary>
+        /// Open the junction
+        /// </summary>
+        /// <param name="settings">The settings to be used to open the junction</param>
+        private void CloseJunction(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            //
+            // Set the direction of the movement and stepping mode
+            // And configure the first setpper delay.
+            //
+            m_stepperMotor.Direction = StepperDirection.DOWN;
+            m_stepperMotor.SteppingMode = StepperSteppingMode.HALF;
+            m_stepperMotor.Delay = settings.GeneralSettings.StepperWaitTime1;
+
+            //
+            // Read the initial voltgae before we've done anything
+            // Keep polling the value until it is abit different than 0.
+            // This is a problem of instability with Flaxer's card.
+            //
+            double initialVoltage = AnalogIn(0);
+            while (initialVoltage == 0.0)
+            {
+                initialVoltage = AnalogIn(0);
+            }
+            bool isDelayedChanged = false;            
+            m_quitJunctionClosingOperation = false;
+
+            //
+            // Until we've not been signaled from outer thread to stop we'll continue moving up.
+            //
+            while (!m_quitJunctionClosingOperation)
+            {
+                //
+                // Cancel the operatin if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                m_stepperMotor.MoveSingleStep();
+
+                double currentVoltage = AnalogIn(0);
+
+                //
+                // If voltgae had been changed in 0.0001% then switch to slow mode
+                // Note that voltage can be negative so we must take the absoulute value
+                // The two numbers must be of the same sign in order for us to compare them
+                //
+                if (!isDelayedChanged && (currentVoltage * initialVoltage > 0 ) && (Math.Abs(currentVoltage) > Math.Abs(initialVoltage) * 50))
+                {
+                    m_stepperMotor.Delay = settings.GeneralSettings.StepperWaitTime2;
+                    isDelayedChanged = true;
+                }
+
                 Thread.Sleep(m_stepperMotor.Delay);
             }
         }
@@ -233,9 +350,24 @@ namespace SBJController
             foreach (var channel in activeChannels)
             {
                 //
+                // If it is a simple data channel we can append all the data sets.
+                //
+                double[] data = channel.RawData[0];
+                if (channel is SimpleDataChannel)
+                {
+                    List<double> flatList = new List<double>();
+                    for (int i = 0; i < channel.RawData.Count; i++)
+                    {
+                        flatList.AddRange(channel.RawData[i]);
+                    }
+                    data = flatList.ToArray();
+                }
+
+                
+                //
                 // save raw data to file
                 //
-                finalNumber = WriteSingleArrayToFile(path, c_rawDataFolderName, channel.Name, fileNumber, channel.RawData[0]);
+                finalNumber = WriteSingleArrayToFile(path, c_rawDataFolderName, channel.Name, fileNumber, data);
             }
 
             //
@@ -431,19 +563,67 @@ namespace SBJController
         /// <param name="worker"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        private Task GetMultipleChannelsTriggeredTask(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        private Task GetMultipleChannelsTriggeredTask(SBJControllerSettings settings, RunDirection runDirection, AnalogEdgeReferenceTriggerSlope triggerSlope, double triggerVoltage, BackgroundWorker worker, DoWorkEventArgs e)
         {
-            TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+            AnalogEdgeReferenceTriggerSlope localTriggerSlope;
+            double localTriggerVoltage;
 
             //
-            // Determines the direction of the current - 
-            // Either positive (then voltage is negative) or negative (then voltage is positive number)
+            // Determine the trigger slope direction and voltage according to sign of the measured signal.
+            // This is done only once, for the first time this method is called.
+            // Then these value are saved as class members.
             //
-            bool isPositiveVoltage = AnalogIn(0) > 0;
+            if (triggerSlope > 0)
+            {
+                localTriggerSlope = triggerSlope;
+                localTriggerVoltage = triggerVoltage;
+            }
+            else
+            {
+                //
+                // Reach to contact in order to retrieve the signal.
+                // 
+                if (settings.ElectromagnetSettings.IsEMEnable)
+                {
+                    EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                }
+                else
+                {
+                    TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                }
 
+                //
+                // Determines the direction of the current - 
+                // Either positive (then voltage is negative) or negative (then voltage is positive number)
+                //
+                bool isPositiveVoltage = AnalogIn(0) > 0;
 
-            AnalogEdgeReferenceTriggerSlope triggerSlope = isPositiveVoltage ? AnalogEdgeReferenceTriggerSlope.Falling : AnalogEdgeReferenceTriggerSlope.Rising;
-            double triggerVoltage = isPositiveVoltage ? settings.GeneralSettings.TriggerVoltage * (-1) : settings.GeneralSettings.TriggerVoltage;
+                //
+                // Trigger's slope depends both on voltage sign and also on the direction of measurement - break or make junction.
+                //
+                if (isPositiveVoltage)
+                {
+                    localTriggerSlope = (runDirection == RunDirection.Break) ? AnalogEdgeReferenceTriggerSlope.Falling : AnalogEdgeReferenceTriggerSlope.Rising;
+                }
+                else
+                {
+                    localTriggerSlope = (runDirection == RunDirection.Break) ? AnalogEdgeReferenceTriggerSlope.Rising : AnalogEdgeReferenceTriggerSlope.Falling;
+                }
+
+                localTriggerVoltage = isPositiveVoltage ? settings.GeneralSettings.TriggerVoltage * (-1) : settings.GeneralSettings.TriggerVoltage;
+
+                //
+                // Open the junction once again as if we didn't do anything.
+                //
+                if (settings.ElectromagnetSettings.IsEMEnable)
+                {
+                    EMTryObtainOpenCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.OpenCircuitVoltage, worker, e);
+                }
+                else
+                {
+                    TryObtainOpenCircuit(settings.GeneralSettings.OpenCircuitVoltage, worker, e);
+                }
+            }            
 
             //
             // Create the task with its propertites
@@ -451,9 +631,9 @@ namespace SBJController
             TriggeredTaskProperties taskProperties = new TriggeredTaskProperties(settings.ChannelsSettings.ActiveChannels,                                                                                 
                                                                                  settings.GeneralSettings.SampleRate,
                                                                                  settings.GeneralSettings.TotalSamples,
-                                                                                 triggerVoltage,
+                                                                                 localTriggerVoltage,
                                                                                  settings.GeneralSettings.PretriggerSamples,
-                                                                                 triggerSlope);
+                                                                                 localTriggerSlope);           
 
             return m_daqController.CreateMultipleChannelsTriggeredTask(taskProperties);
         }
@@ -703,6 +883,906 @@ namespace SBJController
             }
             return averageData;
         }
+
+        /// <summary>
+        /// Aquire data from an open position while closing the junction
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool PerformMakeJunctionCycles(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            double[,] dataAquired;
+            bool isCancelled = false;
+            int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
+            List<IDataChannel> physicalChannels = new List<IDataChannel>();
+
+            //
+            // Change the gain power to 5 before reaching contact
+            // to ensure full contact current
+            //
+            if (settings.GeneralSettings.UseDefaultGain)
+            {
+                m_amplifier.ChangeGain(5);
+            }
+
+            //
+            // Configure the gain to the desired one if we changed it to E5 for reaching contact            
+            //
+            if (settings.GeneralSettings.UseDefaultGain)
+            {
+                int gainPower;
+                Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
+                m_amplifier.ChangeGain(gainPower);
+            }
+
+            //
+            // Before stat measuring, bring to contact.
+            // Use stepper motor only since we could be far away from reaching contact
+            // It is an important step since we can't be sure in what position we are currently standing.
+            //
+            TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+
+            //
+            // Now we can begin our measurements cycles
+            //
+            for (int i = 0; i < settings.GeneralSettings.TotalNumberOfCycles; i++)
+            {
+                //
+                // Cancel the operatin if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                //
+                // Turn off the laser before we open the junction
+                //
+                if (settings.LaserSettings.IsLaserOn)
+                {
+                    m_LaserController.TurnOff();
+                    Thread.Sleep(5000);
+                }
+
+                //
+                // Before we start the measurement cycles we reach to contact and then open
+                // It is important to reach to contact before trying to open since
+                // there could be a situation where the junction was not closed entirely in the previous 
+                // cycle and so it still seems open where actually it is not.
+                // No need to do it in the first cycle since this is done outside the for loop.
+                //
+                if (settings.ElectromagnetSettings.IsEMEnable && i > 0)
+                {
+                    EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                }
+                else
+                {
+                    TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                }
+
+                //
+                // Reach to open circuit for initial position
+                // If we intend to use the EM, for the first cycle only, use the stepper motor since
+                // we initially reached to contact with the stepper motor and the EM doesn't have enough force
+                // to withdraw the cantiliver from this intially squeezed position.
+                //
+                isCancelled = (settings.ElectromagnetSettings.IsEMEnable && i > 0) ?
+                              EMTryObtainOpenCircuit(settings.ElectromagnetSettings.EMOpenCircuitDelayTime, settings.GeneralSettings.OpenCircuitVoltage, worker, e) :
+                              TryObtainOpenCircuit(settings.GeneralSettings.OpenCircuitVoltage, worker, e);
+
+                if (isCancelled)
+                {
+                    break;
+                }
+
+                //
+                // Turn back on the laser
+                //
+                if (settings.LaserSettings.IsLaserOn)
+                {
+                    m_LaserController.TurnOn();
+                }
+
+                //
+                // Start making the junction.
+                //
+                if (settings.ElectromagnetSettings.IsEMEnable)
+                {
+                    EMBeginCloseJunction(settings, worker, e);
+                }
+                else
+                {
+                    BeginCloseJunction(settings, worker, e);
+                }
+
+                //
+                // Start the task and wait for the data
+                //
+                try
+                {
+                    m_triggeredTask.Start();
+                }
+                catch (DaqException ex)
+                {
+                    throw new SBJException("Error occured when tryin to start DAQ task", ex);
+                }
+
+                AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
+
+                try
+                {
+                    dataAquired = reader.ReadMultiSample(-1);
+
+                    if (dataAquired.GetLength(1) < settings.GeneralSettings.TotalSamples)
+                    {
+                        //
+                        // If from some reason we weren't able to 
+                        // receive all data points, ignore and continue;
+                        //
+                        m_triggeredTask.Stop();
+                        continue;
+                    }
+
+                    if (settings.ChannelsSettings.ActiveChannels.Count != dataAquired.GetLength(0))
+                    {
+                        throw new SBJException("Number of data channels doesn't fit the recieved data.");
+                    }
+                }
+                catch (DaqException)
+                {
+                    //
+                    // Probably timeout.
+                    // Ignore this cycle and rerun.
+                    //
+                    m_triggeredTask.Stop();
+                    continue;
+                }
+
+                //
+                // At this point the reader has returned with all the data
+                // so we can stop the openning of the junction.
+                //
+                m_quitJunctionClosingOperation = true;
+                m_triggeredTask.Stop();
+
+                //
+                // Assign the aquired data for each channel.
+                // First clear all data from previous interation.
+                //                
+                ClearRawData(settings.ChannelsSettings.ActiveChannels);
+                AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAquired);
+
+                //
+                // physical channel will include both simple and complex channels. 
+                // 
+                physicalChannels = GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels);
+
+                //
+                // calculate the physical data for each channel
+                //
+                GetPhysicalData(physicalChannels);
+
+                // 
+                // Increase file number by one
+                // Save data if needed
+                //
+                finalFileNumber++;
+                if (settings.GeneralSettings.IsFileSavingRequired)
+                {
+                    finalFileNumber = SaveData(settings.GeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+                }
+
+                //
+                // Signal UI we have the data
+                //
+                if (DataAquired != null)
+                {
+                    DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
+                }
+            }
+            return e.Cancel || isCancelled;
+        }
+
+        /// <summary>
+        /// Try openning the junction. Opened position is determined by the 'Open Circuit Voltage'.
+        /// </summary>
+        /// <param name="openCircuitVoltage"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool TryObtainOpenCircuit(double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            //
+            // Set the direction of the movement and stepping mode
+            // And configure the delay to minimum for fast operation
+            //
+            m_stepperMotor.Direction = StepperDirection.UP;
+            m_stepperMotor.SteppingMode = StepperSteppingMode.HALF;
+            m_stepperMotor.Delay = m_stepperMotor.MinDelay;
+
+            //
+            // Read the initial voltgae before we are doing anything
+            //
+            double currentVoltage = Math.Abs(AnalogIn(0));
+            double voltageAfterStepping = currentVoltage;
+            bool isTempOpenCircuit = false;
+            bool isPermanentOpenCircuit = false;
+
+            //
+            // Until we've not been signaled from outer thread to stop we'll continue moving up.
+            //
+            while (!isPermanentOpenCircuit)
+            {
+                //
+                // If the backgroundworker requested cancellation - exit
+                //
+                if (worker != null && worker.CancellationPending)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                //
+                // Move down 100 steps and check the voltage afterwords
+                //
+                m_stepperMotor.MoveMultipleSteps(100);
+                voltageAfterStepping = Math.Abs(AnalogIn(0));
+
+                //
+                // If we reach open circuit both current voltage and voltgae after stepping
+                // should be smaller than the open circuit threshold.
+                //
+                isTempOpenCircuit = (currentVoltage < Math.Abs(openCircuitVoltage)) &&
+                                    (voltageAfterStepping < Math.Abs(openCircuitVoltage));
+
+                //
+                // If we think we've reached open circuit than wait
+                // for 10msec and than check again to verify this is permanent.
+                //
+                if (isTempOpenCircuit)
+                {
+                    Thread.Sleep(10);
+                    currentVoltage = Math.Abs(AnalogIn(0));
+                    isPermanentOpenCircuit = currentVoltage < Math.Abs(openCircuitVoltage);
+                }
+                else
+                {
+                    currentVoltage = voltageAfterStepping;
+                }
+            }
+            return e.Cancel;
+        }
+
+        /// <summary>
+        /// Aquire data from a close position while openning the junction
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool PerformBreakJunctionCycles(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            double[,] dataAquired;
+            bool isCancelled = false;
+            int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
+            List<IDataChannel> physicalChannels = new List<IDataChannel>();
+
+            for (int i = 0; i < settings.GeneralSettings.TotalNumberOfCycles; i++)
+            {
+                //
+                // Cancel the operatin if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                //
+                // if EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
+                // move on to the next cycle.
+                //
+                if (settings.ElectromagnetSettings.IsEMEnable && settings.ElectromagnetSettings.IsEMSkipFirstCycleEnable && i == 0)
+                {
+                    m_stepperMotor.Shutdown();
+                    continue;
+                }
+
+                //
+                // Turn off the laser before we reach contact
+                //
+                if (settings.LaserSettings.IsLaserOn)
+                {
+                    m_LaserController.TurnOff();
+                    Thread.Sleep(5000);
+                }
+
+                //
+                // Change the gain power to 5 before reaching contact
+                // to ensure full contact current
+                //
+                if (settings.GeneralSettings.UseDefaultGain)
+                {
+                    m_amplifier.ChangeGain(5);
+                }
+
+                //
+                // Reach to contact before we start openning the junction
+                // If EM is enabled and we're after the first cycle, use the EM.
+                // If user asked to stop then exit
+                //
+                isCancelled = (settings.ElectromagnetSettings.IsEMEnable && i > 0) ?
+                               EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitVoltage, worker, e) :
+                               TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                if (isCancelled)
+                {
+                    break;
+                }
+
+                //
+                // Configure the gain to the desired one if we changed it to E5
+                // before strating the measurement.
+                // And also this is the time to switch the laser on.
+                //
+                if (settings.GeneralSettings.UseDefaultGain)
+                {
+                    int gainPower;
+                    Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
+                    m_amplifier.ChangeGain(gainPower);
+                }
+
+
+                if (settings.LaserSettings.IsLaserOn)
+                {
+                    m_LaserController.TurnOn();
+                }
+
+                //
+                // Start openning the junction.
+                // If EM is enabled and we're after the first cycle, use the EM.
+                //
+                if (settings.ElectromagnetSettings.IsEMEnable)
+                {
+                    if (i == 0)
+                    {
+                        //
+                        // open the junction by stepper motor. this function does it indipendently; 
+                        // it doesn't wait for the trigger task to finish. and we stay on the current thread. 
+                        //
+                        ObtainOpenJunctionByStepperMotor(settings.GeneralSettings.TriggerVoltage, worker, e);
+
+                        //
+                        // from now on we will use the EM, so we don't want the stepper motor to stay on. 
+                        //
+                        m_stepperMotor.Shutdown();
+                        continue;
+                    }
+                    else
+                    {
+                        EMBeginOpenJunction(settings, worker, e);
+                    }
+                }
+                else
+                {
+                    BeginOpenJunction(settings, worker, e);
+                }
+
+                //
+                // Start the task and wait for the data
+                //
+                try
+                {
+                    m_triggeredTask.Start();
+                }
+                catch (DaqException ex)
+                {
+                    throw new SBJException("Error occured when tryin to start DAQ task", ex);
+                }
+
+                AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
+
+                try
+                {
+                    dataAquired = reader.ReadMultiSample(-1);
+
+                    if (dataAquired.GetLength(1) < settings.GeneralSettings.TotalSamples)
+                    {
+                        //
+                        // If from some reason we weren't able to 
+                        // receive all data points, ignore and continue;
+                        //
+                        m_triggeredTask.Stop();
+                        continue;
+                    }
+
+                    if (settings.ChannelsSettings.ActiveChannels.Count != dataAquired.GetLength(0))
+                    {
+                        throw new SBJException("Number of data channels doesn't fit the recieved data.");
+                    }
+                }
+                catch (DaqException)
+                {
+                    //
+                    // Probably timeout.
+                    // Ignore this cycle and rerun.
+                    //
+                    m_triggeredTask.Stop();
+                    continue;
+                }
+
+                //
+                // At this point the reader has returned with all the data
+                // so we can stop the openning of the junction.
+                //
+                m_quitJunctionOpenningOperation = true;
+                m_triggeredTask.Stop();
+
+                //
+                // Assign the aquired data for each channel.
+                // First clear all data from previous interation.
+                //                
+                ClearRawData(settings.ChannelsSettings.ActiveChannels);
+                AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAquired);
+
+                //
+                // physical channel will include both simple and complex channels. 
+                // 
+                physicalChannels = GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels);
+
+                //
+                // calculate the physical data for each channel
+                //
+                GetPhysicalData(physicalChannels);
+
+                // 
+                // Increase file number by one
+                // Save data if needed
+                //
+                finalFileNumber++;
+                if (settings.GeneralSettings.IsFileSavingRequired)
+                {
+                    finalFileNumber = SaveData(settings.GeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+                }
+
+                //
+                // Signal UI we have the data
+                //
+                if (DataAquired != null)
+                {
+                    DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
+                }
+            }
+
+            return e.Cancel || isCancelled;
+        }
+
+        /// <summary>
+        /// Close the junction until triggered conductance is reached. Then stop moving.
+        /// This method performs no stablization operation on the cantiliver once it is stopped.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool ReachToPositionByMovingDown(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            double[,] dataAquired = new double[1000, 1000];
+            int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
+            List<IDataChannel> physicalChannels = new List<IDataChannel>();
+
+            for (int i = 0; i < settings.GeneralSettings.TotalNumberOfCycles; i++)
+            {
+                //
+                // Cancel the operation if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                // 
+                // Real time operation is the operation where data is aquired on the fly 
+                // and constantly updated on the UI.
+                //
+                m_quitRealTimeOperation = false;
+
+                //
+                // physical channel will include both simple and complex channels. 
+                // 
+                physicalChannels = GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels);
+
+                //                
+                // Clear all data from previous interation.
+                //                
+                ClearRawData(settings.ChannelsSettings.ActiveChannels);
+
+                //
+                // Configure the triggered task. The is the task that is used just in order to notify us
+                // that we've reached the desired position and it's time to start recording the data.
+                //
+                m_triggeredTask = GetMultipleChannelsTriggeredTask(settings, RunDirection.Make, m_triggerSlope, m_triggerVoltage, worker, e);
+                m_triggeredTask.EveryNSamplesReadEventInterval = settings.GeneralSettings.TotalSamples;
+                m_triggeredTask.Done += new TaskDoneEventHandler(OnTaskDoneClosing);
+                m_triggeredTask.Control(TaskAction.Verify);
+                m_triggerSlope = m_triggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Slope;
+                m_triggerVoltage = m_triggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Level;
+
+                //
+                // Create the real time task for recording the data.
+                //
+                m_realTimeTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+                AnalogMultiChannelReader realTimeReader = new AnalogMultiChannelReader(m_realTimeTask.Stream);
+
+                //
+                // Start openning the junction and bring the cantiliver to a position where we can start closing the junction as requested.
+                // If EM is enabled use the EM.
+                //
+                if (settings.ElectromagnetSettings.IsEMEnable)
+                {
+                    EMTryObtainOpenCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.OpenCircuitVoltage, worker, e);
+                }
+                else
+                {
+                    TryObtainOpenCircuit(settings.GeneralSettings.OpenCircuitVoltage, worker, e);
+                }
+
+                //
+                // Start closing the junction. Async operation.
+                // If EM is enabled use the EM.
+                //
+                if (settings.ElectromagnetSettings.IsEMEnable)
+                {
+                    EMBeginCloseJunction(settings, worker, e);
+                }
+                else
+                {
+                    BeginCloseJunction(settings, worker, e);
+                }
+
+                //
+                // Cancel the operatin if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                //
+                // Start the triggered task.
+                //
+                m_triggeredTask.Start();
+
+                //
+                // Wait for the corssover of the trigger conductance point.
+                // If the user asked to stop the operation on the external thread then
+                // WaitUntilDone will throw an expection. We can ignore that and return.
+                //
+                try
+                {
+                    m_triggeredTask.WaitUntilDone();
+                }
+                catch (DaqException)
+                {
+                    break;
+                }
+
+                //
+                // If we reached this point then it means that the triggered task had finished and
+                // signaled us that we reached the desired conductance point.                 
+                //
+                              
+
+                //
+                // As long as we are not stopped from the UI by the user continue recording the data. 
+                //
+                while (!m_quitRealTimeOperation)
+                {
+                    //
+                    // Read operation implicity start the task without the need to call Start() method.
+                    //
+                    try
+                    {
+                        dataAquired = realTimeReader.ReadMultiSample(-1);
+                    }
+                    catch (DaqException)
+                    {
+                        continue;
+                    }
+
+
+                    if (dataAquired.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    //
+                    // Assign the aquired data for each channel.
+                    //                            
+                    AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAquired);
+
+                    //
+                    // calculate the physical data for each channel
+                    //
+                    GetPhysicalData(physicalChannels);
+
+                    //
+                    // Signal UI we have the data
+                    //
+                    if (DataAquired != null)
+                    {
+                        DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
+                    }
+                }
+
+                if (DoneReadingData != null)
+                {
+                    DoneReadingData(this, null);
+                }
+
+                m_realTimeTask.Stop();
+                m_realTimeTask.Dispose();
+
+                // 
+                // Increase file number by one
+                // Save data if needed
+                //
+                finalFileNumber++;
+                if (settings.GeneralSettings.IsFileSavingRequired)
+                {
+                    finalFileNumber = SaveData(settings.GeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+                }
+            }
+
+            m_triggeredTask.Dispose();
+            m_realTimeTask.Dispose();
+            m_triggerSlope = 0;
+            m_triggerVoltage = 0;
+            return e.Cancel;
+        }
+
+        /// <summary>
+        /// Reach to position specified by conductance value and then stop and aqcuire data until asked to stop.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool ReachToPositionByMovingUp(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            double[,] dataAcquired = new double[1000, 1000];
+            int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
+            List<IDataChannel> physicalChannels = new List<IDataChannel>();
+
+
+            for (int i = 0; i < settings.GeneralSettings.TotalNumberOfCycles; i++)
+            {
+                //
+                // Cancel the operatin if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                //
+                // This flag is used to signal us when the user asked to stop the real time data acquisition
+                //
+                m_quitRealTimeOperation = false;
+                m_triggeredTask = GetMultipleChannelsTriggeredTask(settings, RunDirection.Break, m_triggerSlope, m_triggerVoltage, worker, e);
+                m_triggeredTask.EveryNSamplesReadEventInterval = settings.GeneralSettings.TotalSamples;
+                m_triggeredTask.Done += new TaskDoneEventHandler(OnTaskDoneOpenning);
+                m_triggeredTask.Control(TaskAction.Verify);
+                m_triggerSlope = m_triggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Slope;
+                m_triggerVoltage = m_triggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Level;
+
+                //
+                // physical channel will include both simple and complex channels. 
+                // 
+                physicalChannels = GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels);
+
+                //
+                // Assign the aquired data for each channel.
+                // First clear all data from previous interation.
+                //                
+                ClearRawData(settings.ChannelsSettings.ActiveChannels);
+
+                //
+                // Create the tasks: One for triggering us to stop and the other for start monitoring the data
+                //
+                m_realTimeTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+                AnalogMultiChannelReader realTimeReader = new AnalogMultiChannelReader(m_realTimeTask.Stream);
+
+                //
+                // Start closing the junction.
+                // If EM is enabled use the EM.
+                //
+                if (settings.ElectromagnetSettings.IsEMEnable)
+                {
+                    EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                }
+                else
+                {
+                    TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                }
+
+                //
+                // Start openning the junction. ASync operation.
+                // If EM is enabled use the EM.
+                //
+                if (settings.ElectromagnetSettings.IsEMEnable)
+                {
+                    EMBeginOpenJunction(settings, worker, e);
+                }
+                else
+                {
+                    BeginOpenJunction(settings, worker, e);
+                }
+
+                //
+                // Cancel the operatin if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                //
+                // Start the triggered task. 
+                //
+                m_triggeredTask.Start();
+
+                //
+                // If the user asked to stop the operation on the external thread then
+                // WaitUntilDone will throw an expection. We can ignore that and return.
+                //
+                try
+                {
+                    m_triggeredTask.WaitUntilDone();
+                }
+                catch (DaqException)
+                {
+                    //
+                    // We got here if the user asked to stop the operation
+                    //
+                    break;
+                }
+
+                //
+                // We reach this point only after we reached the desired conductance value.
+                // As long as the user didn't ask to stop the operation continue recording the data.
+                //
+                while (!m_quitRealTimeOperation)
+                {
+                    //
+                    // Read operation implicity start the task without the need to call Start() method.
+                    //
+                    try
+                    {
+                        dataAcquired = realTimeReader.ReadMultiSample(-1);
+                    }
+                    catch (DaqException)
+                    {
+                        continue;
+                    }
+
+
+                    if (dataAcquired.Length == 0)
+                    {
+                        continue;
+                    }
+                    //
+                    // Assign the aquired data for each channel.
+                    //                            
+                    AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAcquired);
+
+                    //
+                    // calculate the physical data for each channel
+                    //
+                    GetPhysicalData(physicalChannels);
+
+                    //
+                    // Signal UI we have the data
+                    //
+                    if (DataAquired != null)
+                    {
+                        DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
+                    }
+                }
+
+                if (DoneReadingData != null)
+                {
+                    DoneReadingData(this, null);
+                }
+                m_realTimeTask.Stop();
+                m_realTimeTask.Dispose();
+
+                // 
+                // Increase file number by one
+                // Save data if needed
+                //
+                finalFileNumber++;
+                if (settings.GeneralSettings.IsFileSavingRequired)
+                {
+                    finalFileNumber = SaveData(settings.GeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+                }
+            }
+
+            m_triggeredTask.Dispose();
+            m_realTimeTask.Dispose();
+            m_triggerSlope = 0;
+            m_triggerVoltage = 0;
+            return e.Cancel;
+        }
+
+        /// <summary>
+        /// Fired when we crossed the trigger
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnTaskDoneOpenning(object sender, TaskDoneEventArgs e)
+        {
+            //            
+            // Stop moving and start recording the data
+            //
+            m_quitJunctionOpenningOperation = true;
+
+            //
+            // We need to dispose the triggered task here in order to start the real time task on te main thread.
+            //
+            m_triggeredTask.Dispose();
+        }
+
+        /// <summary>
+        /// Fired when we crossed the trigger
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnTaskDoneClosing(object sender, TaskDoneEventArgs e)
+        {
+            //            
+            // Stop moving and start recording the data
+            //
+            m_quitJunctionClosingOperation = true;
+
+            //
+            // We need to dispose the triggered task here in order to start the real time task on te main thread.
+            //
+            m_triggeredTask.Dispose();
+        }
+
+        /// <summary>
+        /// Add the acquired data to the other data points that were already read from that channel.
+        /// </summary>
+        /// <param name="fullData"></param>
+        /// <param name="dataAquired"></param>
+        /// <returns></returns>
+        private List<List<double>> AccumulateData(List<List<double>> fullData, double[,] dataAquired)
+        {
+            int numberOfDataSampled = dataAquired.GetLength(1);
+            int numberOfChannels = dataAquired.GetLength(0);
+
+            //
+            // Flattens the matrix to a list so that each row is appended after the row before.
+            // The result is one list: 2D [a,a,a;b,b,b;c,c,c] ==> 1D (a,a,a,b,b,b,c,c,c)
+            //
+            IEnumerable<double> flatMatrix = dataAquired.Cast<double>();
+            for (int i = 0; i < numberOfChannels; i++)
+            {
+                //
+                // Add the relevant data points to the desired list (which represents a channel)
+                // Since we have flatten the list, this requires skipping some data points.
+                //
+                fullData[i].AddRange(flatMatrix.Skip(numberOfDataSampled * i).Take(numberOfDataSampled));
+            }
+            return fullData;
+        }
         #endregion
 
         #region Public Methods
@@ -782,10 +1862,6 @@ namespace SBJController
         public bool AquireData(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             bool isCancelled = false;
-            int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
-            double[,] dataAquired;
-            List<IDataChannel> physicalChannels = new List<IDataChannel>();
-
             //
             // Apply voltage with desired tool: Task or Keithley
             //
@@ -817,196 +1893,20 @@ namespace SBJController
             //
             // Create the task
             //
-            m_task = GetMultipleChannelsTriggeredTask(settings, worker, e);
-
-            //
-            // Main loop for data aquisition
-            //
-            for (int i = 0; i < settings.GeneralSettings.TotalNumberOfCycles; i++)
+            switch (settings.GeneralSettings.RunDirection)
             {
-                //
-                // Cancel the operatin if user asked for
-                //
-                if (worker.CancellationPending == true)
-                {
-                    e.Cancel = true;
+                case RunDirection.Both:
+                    //TODO: Add implementation for both direction measurement
                     break;
-                }
-
-                //
-                // if EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
-                // move on to the next cycle.
-                //
-                if (settings.ElectromagnetSettings.IsEMEnable && settings.ElectromagnetSettings.IsEMSkipFirstCycleEnable && i == 0)
-                {
-                    m_stepperMotor.Shutdown();
-                    continue;
-                }
-
-                //
-                // Turn off the laser before we reach contact
-                //
-                if (settings.LaserSettings.IsLaserOn)
-                {
-                    m_LaserController.TurnOff();
-                    Thread.Sleep(5000);
-                }
-
-                //
-                // Change the gain power to 5 before reaching contact
-                // to ensure full contact current
-                //
-                if (settings.GeneralSettings.UseDefaultGain)
-                {
-                    m_amplifier.ChangeGain(5);
-                }
-
-                //
-                // Reach to contact before we start openning the junction
-                // If EM is enabled and we're after the first cycle, use the EM.
-                // If user asked to stop than exit
-                //
-                isCancelled = (settings.ElectromagnetSettings.IsEMEnable && i > 0) ? 
-                               EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitVoltage, worker, e) : 
-                               TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
-                if (isCancelled)
-                {
+                case RunDirection.Break:
+                    m_triggeredTask = GetMultipleChannelsTriggeredTask(settings, RunDirection.Break, m_triggerSlope, m_triggerVoltage,  worker, e);                    
+                    isCancelled = PerformBreakJunctionCycles(settings, worker, e);
                     break;
-                }
-                
-                //
-                // Configure the gain to the desired one if we changed it to E5
-                // before strating the measurement.
-                // And also this is the time to switch the laser on.
-                //
-                if (settings.GeneralSettings.UseDefaultGain)
-                {
-                    int gainPower;
-                    Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
-                    m_amplifier.ChangeGain(gainPower);
-                }
-
-
-                if (settings.LaserSettings.IsLaserOn)
-                {
-                    m_LaserController.TurnOn();
-                }
-
-                //
-                // Start openning the junction.
-                // If EM is enabled and we're after the first cycle, use the EM.
-                //
-                if (settings.ElectromagnetSettings.IsEMEnable)
-                {
-                    if (i == 0)
-                    {
-                        //
-                        // open the junction by stepper motor. this function does it indipendently; 
-                        // it doesn't wait for the trigger task to finish. and we stay on the current thread. 
-                        //
-                        ObtainOpenJunctionByStepperMotor(settings.GeneralSettings.TriggerVoltage, worker, e);
-                        
-                        //
-                        // from now on we will use the EM, so we don't want the stepper motor to stay on. 
-                        //
-                        m_stepperMotor.Shutdown();
-                        continue;
-                    }
-                    else
-                    {
-                        EMBeginOpenJunction(settings);
-                    }
-                }
-                else
-                {
-                    BeginOpenJunction(settings);
-                }
-
-                //
-                // Start the task and wait for the data
-                //
-                try
-                {
-                    m_task.Start();
-                }
-                catch (DaqException ex)
-                {
-                    throw new SBJException("Error occured when tryin to start DAQ task", ex);
-                }
-
-                AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_task.Stream);
-                
-                try
-                {
-                    dataAquired = reader.ReadMultiSample(-1);
-
-                    if (dataAquired.GetLength(1) < settings.GeneralSettings.TotalSamples)
-                    {
-                        //
-                        // If from some reason we weren't able to 
-                        // receive all data points, ignore and continue;
-                        //
-                        m_task.Stop();
-                        continue;
-                    }
-
-                    if (settings.ChannelsSettings.ActiveChannels.Count != dataAquired.GetLength(0))
-                    {
-                        throw new SBJException("Number of data channels doesn't fit the recieved data.");
-                    }
-                }
-                catch (DaqException)
-                {
-                    //
-                    // Probably timeout.
-                    // Ignore this cycle and rerun.
-                    //
-                    m_task.Stop();
-                    continue;
-                }
-
-                //
-                // At this point the reader has returned with all the data
-                // so we can stop the openning of the junction.
-                //
-                m_quitJunctionOpenningOperation = true;
-                m_task.Stop();
-
-                //
-                // Assign the aquired data for each channel.
-                // First clear all data from previous interation.
-                //                
-                ClearRawData(settings.ChannelsSettings.ActiveChannels);
-                AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAquired);
-
-                //
-                // physical channel will include both simple and complex channels. 
-                // 
-                physicalChannels = GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels);
-
-                //
-                // calculate the physical data for each channel
-                //
-                GetPhysicalData(physicalChannels);
-
-                // 
-                // Increase file number by one
-                // Save data if needed
-                //
-                finalFileNumber++;
-                if (settings.GeneralSettings.IsFileSavingRequired)
-                {
-                    finalFileNumber = SaveData(settings.GeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
-                }
-
-                //
-                // Signal UI we have the data
-                //
-                if (DataAquired != null)
-                {
-                    DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
-                }                
-            }
+                case RunDirection.Make:
+                    m_triggeredTask = GetMultipleChannelsTriggeredTask(settings, RunDirection.Make, m_triggerSlope, m_triggerVoltage, worker, e);
+                    isCancelled = PerformMakeJunctionCycles(settings, worker, e);                    
+                    break;
+            }     
 
             //
             // Finish the measurement properly
@@ -1031,11 +1931,11 @@ namespace SBJController
             {
                 m_lambdaZup.TurnOffOutput();
             }
-            m_task.Dispose();
+            m_triggeredTask.Dispose();
             m_stepperMotor.Shutdown();
 
-            return (isCancelled || e.Cancel);
-        }
+            return isCancelled;
+        }      
 
         /// <summary>
         /// Manually aquire data
@@ -1080,7 +1980,7 @@ namespace SBJController
             //
             // Create the task
             //
-            m_task = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+            m_triggeredTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
             
             //
             // If EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
@@ -1148,11 +2048,11 @@ namespace SBJController
             if (settings.ElectromagnetSettings.IsEMEnable)
             {
                 m_stepperMotor.Shutdown();
-                EMBeginOpenJunction(settings);                
+                EMBeginOpenJunction(settings, worker, e);                
             }
             else
             {
-                BeginOpenJunction(settings);
+                BeginOpenJunction(settings, worker, e);
             }
 
             //
@@ -1160,14 +2060,14 @@ namespace SBJController
             //
             try
             {
-                m_task.Start();
+                m_triggeredTask.Start();
             }
             catch (DaqException ex)
             {
                 throw new SBJException("Error occured when tryin to start DAQ task", ex);
             }
 
-            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_task.Stream);
+            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
             List<List<double>> averagedData = new List<List<double>>(settings.ChannelsSettings.ActiveChannels.Count);
 
             for (int i = 0; i < averagedData.Capacity; i++)
@@ -1223,8 +2123,8 @@ namespace SBJController
                 //
                 // In case of an error just return
                 //
-                m_task.Stop();
-                m_task.Dispose();
+                m_triggeredTask.Stop();
+                m_triggeredTask.Dispose();
                 if (m_LaserController != null)
                 {
                 m_LaserController.TurnOff();
@@ -1244,7 +2144,7 @@ namespace SBJController
             // At this point the user had requested to stop the data aquisition.
             // By signaling "stop". We can stop the task.
             //            
-            m_task.Stop();
+            m_triggeredTask.Stop();
 
             //
             // Assign the aquired data for each channel after an average process
@@ -1300,7 +2200,7 @@ namespace SBJController
                 m_taborSecondEOMController.TurnOff();
             }
 
-            m_task.Dispose();
+            m_triggeredTask.Dispose();
             m_stepperMotor.Shutdown();
 
             return (isCancelled || e.Cancel);
@@ -1349,7 +2249,7 @@ namespace SBJController
             //
             // Create the task
             //
-            m_task = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+            m_triggeredTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
 
             //
             // If EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
@@ -1372,14 +2272,14 @@ namespace SBJController
             //
             try
             {
-                m_task.Start();
+                m_triggeredTask.Start();
             }
             catch (DaqException ex)
             {
                 throw new SBJException("Error occured when tryin to start DAQ task", ex);
             }
 
-            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_task.Stream);
+            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
             List<List<double>> fullData = new List<List<double>>(settings.ChannelsSettings.ActiveChannels.Count);
 
             for (int i = 0; i < fullData.Capacity; i++)
@@ -1406,8 +2306,7 @@ namespace SBJController
                     // were not read so far.
                     //
                     dataAquired = reader.ReadMultiSample(-1);
-                    fullData = AccumulateData(fullData, dataAquired);
-                    
+                    fullData = AccumulateData(fullData, dataAquired);                    
                     dataAquired = null;                  
                 }
             }
@@ -1416,8 +2315,8 @@ namespace SBJController
                 //
                 // In case of an error just return
                 //
-                m_task.Stop();
-                m_task.Dispose();
+                m_triggeredTask.Stop();
+                m_triggeredTask.Dispose();
                 if (m_LaserController != null)
                 {
                     m_LaserController.TurnOff();
@@ -1437,7 +2336,7 @@ namespace SBJController
             // At this point the user had requested to stop the data aquisition.
             // By signaling "stop". We can stop the task.
             //            
-            m_task.Stop();
+            m_triggeredTask.Stop();
 
             //
             // Assign the aquired data for each channel after an average process
@@ -1493,32 +2392,91 @@ namespace SBJController
                 m_taborSecondEOMController.TurnOff();
             }
 
-            m_task.Dispose();
+            m_triggeredTask.Dispose();
             m_stepperMotor.Shutdown();
 
             return (isCancelled || e.Cancel);
         }
 
-        private List<List<double>> AccumulateData(List<List<double>> fullData, double[,] dataAquired)
+        /// <summary>
+        /// Move cantiliver to position until trigger is reached; Then stop.
+        /// </summary>
+        /// <param name="sBJControllerSettings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        public bool ReachPosition(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
-            int numberOfDataSampled = dataAquired.GetLength(1);
-            int numberOfChannels = dataAquired.GetLength(0);
-            
+            bool isCancelled = false;
             //
-            // Flattens the matrix to a list so that each row is appended after the row before.
-            // The result is one list: 2D [a,a,a;b,b,b;c,c,c] ==> 1D (a,a,a,b,b,b,c,c,c)
+            // Apply voltage with desired tool: Task or Keithley
             //
-            IEnumerable<double> flatMatrix = dataAquired.Cast<double>();
-            for (int i = 0; i < numberOfChannels; i++)
+            ApplyVoltageIfNeeded(settings.GeneralSettings.UseKeithley,
+                                 settings.GeneralSettings.Bias,
+                                 settings.GeneralSettings.BiasError);
+
+            //
+            // Use Lambda Zup to apply constant voltage on external electromagnet if needed
+            //
+            UseLambdaZupIfNeeded(settings.LambdaZupSettings.IsLambdaZupEnable,
+                                 settings.LambdaZupSettings.OutputVoltage);
+
+            //
+            // Configure the laser if needed for this run
+            //
+            ConfigureLaserIfNeeded(settings);
+
+            //
+            // Save this run settings if desired
+            //
+            SaveSettingsIfNeeded(settings, settings.GeneralSettings.IsFileSavingRequired, settings.GeneralSettings.Path);
+
+            //
+            //apply initial voltage on the EM
+            //
+            ApplyVoltageOnElectroMagnetIfNeeded(settings.ElectromagnetSettings.IsEMEnable);
+
+           
+            switch (settings.GeneralSettings.RunDirection)
             {
-                //
-                // Add the relevant data points to the desired list (which represents a channel)
-                // Since we have flatten the list, this requires skipping some data points.
-                //
-                fullData[i].AddRange(flatMatrix.Skip(numberOfDataSampled * i).Take(numberOfDataSampled));               
+                case RunDirection.Both:
+                    //TODO: Add implementation for both direction measurement
+                    break;
+                case RunDirection.Break:                    
+                    isCancelled = ReachToPositionByMovingUp(settings, worker, e);
+                    break;
+                case RunDirection.Make:                       
+                    isCancelled = ReachToPositionByMovingDown(settings, worker, e);
+                    break;
             }
-            return fullData;
-        }
+
+            //
+            // Finish the measurement properly
+            //
+            if (settings.LaserSettings.IsLaserOn)
+            {
+                m_LaserController.TurnOff();
+            }
+            if (settings.ElectromagnetSettings.IsEMEnable)
+            {
+                m_electroMagnet.Shutdown();
+            }
+            if (settings.LaserSettings.IsFirstEOMOn)
+            {
+                m_taborFirstEOMController.TurnOff();
+            }
+            if (settings.LaserSettings.IsSecondEOMOn)
+            {
+                m_taborSecondEOMController.TurnOff();
+            }
+            if (settings.LambdaZupSettings.IsLambdaZupEnable)
+            {
+                m_lambdaZup.TurnOffOutput();
+            }
+            m_triggeredTask.Dispose();
+            m_stepperMotor.Shutdown();
+
+            return isCancelled;            
+        }               
 
         /// <summary>
         /// Move the stepper up
@@ -1852,9 +2810,9 @@ namespace SBJController
                 m_LaserController.Disconnect();
             }
             m_LockIn.Shutdown();
-            if (m_task != null)
+            if (m_triggeredTask != null)
             {
-                m_task.Dispose();
+                m_triggeredTask.Dispose();
             }
         }
         #endregion

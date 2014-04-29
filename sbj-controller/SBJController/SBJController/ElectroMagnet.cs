@@ -14,7 +14,6 @@ namespace SBJController
         private static byte s_analogOutChannel = 0;
         private static int s_minEMDelay = 5;
         private static double s_voltInterval = 0.0048828125; //5/1024;
-        //private static double s_voltInterval = 0.009765625; //10/1024;
         private static double s_maxEMVoltage = 9.995;         //Maximal output voltage for the EM (10*2047/2048)
         private static double s_minEMVoltage = 0;        
         
@@ -86,7 +85,7 @@ namespace SBJController
         /// Calculate and applies next step voltage.
         /// </summary>
         /// <returns>returns true if next step voltage was applied, 
-        /// returns false if max voltage was exceeded and last voltage remained. </returns>
+        /// returns false if max or min voltage was exceeded and last voltage remained. </returns>
         public bool MoveSingleStep()
         {
             double oldVoltage = m_currentEMVoltage;
@@ -118,7 +117,7 @@ namespace SBJController
         /// Move Multiple Steps
         /// </summary>
         /// <param name="numberOfSteps"></param>
-        /// <returns>return true if done successfully, false if exceeded max EM voltage</returns>
+        /// <returns>return true if done successfully, false if exceeded max or min EM voltage</returns>
         public bool MoveMultipleSteps(int numberOfSteps)
         {
             for (int i = 1; i < numberOfSteps; i++)

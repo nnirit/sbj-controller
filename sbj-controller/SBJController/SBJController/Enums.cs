@@ -55,4 +55,11 @@ namespace SBJController
         WW2571 = 1,
         WW5061 =2
     }
+
+    public enum RunDirection
+    {
+        Break = 1,
+        Make = 2,
+        Both = 3
+    }
 }

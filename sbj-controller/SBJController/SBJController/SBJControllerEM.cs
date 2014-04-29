@@ -12,7 +12,9 @@ namespace SBJController
         #region Members
         private ElectroMagnet m_electroMagnet;        
         private const double c_initialEMVoltage = 6.5;
-        private delegate bool EMOpenJunctionMethodDelegate(SBJControllerSettings settings);
+        private delegate bool EMOpenJunctionMethodDelegate(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e);
+        private delegate bool EMCloseJunctionMethodDelegate(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e);
+
         #endregion
 
         #region Properties
@@ -28,11 +30,22 @@ namespace SBJController
         /// Open the junction asynchronously by the ElectroMagnet
         /// </summary>
         /// <param name="settings"></param>       
-        private void EMBeginOpenJunction(SBJControllerSettings settings)
+        private void EMBeginOpenJunction(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             EMOpenJunctionMethodDelegate emOpenJunctionDelegate = new EMOpenJunctionMethodDelegate(EMTryOpenJunction);
             AsyncCallback callback = new AsyncCallback(EMEndOpenJunction);
-            IAsyncResult asyncResult = emOpenJunctionDelegate.BeginInvoke(settings, callback, emOpenJunctionDelegate);
+            IAsyncResult asyncResult = emOpenJunctionDelegate.BeginInvoke(settings, worker, e, callback, emOpenJunctionDelegate);
+        }
+
+        /// <summary>
+        /// Close the junction asynchronously by the ElectroMagnet
+        /// </summary>
+        /// <param name="settings"></param>       
+        private void EMBeginCloseJunction(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            EMCloseJunctionMethodDelegate emCloseJunctionDelegate = new EMCloseJunctionMethodDelegate(EMTryCloseJunction);
+            AsyncCallback callback = new AsyncCallback(EMEndCloseJunction);
+            IAsyncResult asyncResult = emCloseJunctionDelegate.BeginInvoke(settings, worker, e, callback, emCloseJunctionDelegate);
         }
 
         /// <summary>
@@ -54,17 +67,52 @@ namespace SBJController
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        private bool EMTryOpenJunction(SBJControllerSettings settings)
+        private bool EMTryOpenJunction(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             //
             // if the EM reached voltage 0 without opening the junction, 
             // return to higher voltage on EM, do some steps by the stepper motor and retry opening by EM.
             //
-            if (!EMOpenJunction(settings))
+            if (!EMOpenJunction(settings, worker, e))
             {
+                m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);                
+                MoveStepsByStepperMotor(StepperDirection.UP, 20);
+                return EMTryOpenJunction(settings, worker, e);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Try close junction by the EM, by calling EMCloseJunction.
+        /// if max voltage exceeded without the junction being closed, do a few steps by the stepper motor, then retry EM (recursion).
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        private bool EMTryCloseJunction(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            double initialValue = Math.Abs(AnalogIn(0));
+            while (initialValue == 0.0)
+            {
+                initialValue = Math.Abs(AnalogIn(0));
+            }
+
+            //
+            // if the EM reached max voltage  without closing the junction, 
+            // return to lower voltage on EM, do some steps by the stepper motor and retry opening by EM.
+            //
+            if (!EMCloseJunction(settings, worker, e))
+            {
+                double currentValue = Math.Abs(AnalogIn(0));
                 m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
-                MoveStepsByStepperMotor(StepperDirection.UP, 100);
-                return EMTryOpenJunction(settings);
+                if (currentValue > initialValue*2)
+                {
+                    MoveStepsByStepperMotor(StepperDirection.DOWN, 50);
+                }
+                else
+                {
+                    MoveStepsByStepperMotor(StepperDirection.DOWN, 200);
+                }
+                return EMTryCloseJunction(settings, worker, e);
             }
             return true;
         }
@@ -74,7 +122,7 @@ namespace SBJController
         /// If min voltage exceeded without the junction being opened, return false. 
         /// </summary>
         /// <param name="settings">The settings to be used to open the junction</param>
-        private bool EMOpenJunction(SBJControllerSettings settings)
+        private bool EMOpenJunction(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             //
             // Set the direction of the movement
@@ -86,6 +134,7 @@ namespace SBJController
             //
             // Read the initial voltgae before we've done anything
             //
+
             double initialVoltage = AnalogIn(0);
             bool isDelayedChanged = false;            
             m_quitJunctionOpenningOperation = false;
@@ -95,6 +144,15 @@ namespace SBJController
             //
             while (!m_quitJunctionOpenningOperation)
             {
+                //
+                // Cancel the operatin if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
                 if (!m_electroMagnet.MoveSingleStep())
                 {
                     //
@@ -121,6 +179,95 @@ namespace SBJController
                 {
                     Thread.Sleep(10);
                     if (Math.Abs(currentVoltage) < Math.Abs(settings.ElectromagnetSettings.EMHoldOnMaxVoltage * 1.1))
+                    {
+                        //
+                        // trigger was truely exceeded. try to hold on to a certain junction voltage.
+                        //
+                        if (!StabilizeJunction(currentVoltage, settings.ElectromagnetSettings.EMHoldOnMaxVoltage, settings.ElectromagnetSettings.EMHoldOnMinVoltage))
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
+                }
+                Thread.Sleep(m_electroMagnet.Delay);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Close the junction by the ElectroMagnet.
+        /// If max voltage exceeded without the junction being closed, return false. 
+        /// </summary>
+        /// <param name="settings">The settings to be used to open the junction</param>
+        private bool EMCloseJunction(SBJControllerSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            //
+            // Set the direction of the movement
+            // And configure the first setpper delay (shorter) - faster movement
+            //
+            m_electroMagnet.Direction = StepperDirection.DOWN;
+            m_electroMagnet.Delay = settings.ElectromagnetSettings.EMFastDelayTime;
+
+
+            //
+            // Set false to stop operation flag
+            // Keep polling the value until it is abit different than 0.
+            // This is a problem of instability with Flaxer's card.
+            //
+            double initialVoltage = AnalogIn(0);
+            while (initialVoltage == 0.0)
+            {
+                initialVoltage = AnalogIn(0);
+            }
+            m_quitJunctionClosingOperation = false;
+            bool isDelayedChanged = false;    
+
+            //
+            // Until we've not been signaled from outer thread to stop we'll continue moving up.
+            //
+            while (!m_quitJunctionClosingOperation)
+            {
+                //
+                // Cancel the operatin if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                if (!m_electroMagnet.MoveSingleStep())
+                {
+                    //
+                    // if min Votlage on EM was exceeded return false.
+                    //
+                    return false;
+                }
+
+                double currentVoltage = AnalogIn(0);
+                
+                //
+                // If voltgae had been changed in 0.0001% then switch to slow mode
+                // Note that voltage can be negative so we must take the absoulute value
+                // The two numbers must be of the same sign in order for us to compare them
+                //
+                if (!isDelayedChanged && (currentVoltage * initialVoltage > 0) && (Math.Abs(currentVoltage) > Math.Abs(initialVoltage) * 10))
+                {
+                    m_electroMagnet.Delay = settings.ElectromagnetSettings.EMSlowDelayTime;
+                    isDelayedChanged = true;
+                }
+
+                //
+                // If hold-on trigger was exceeded, wait 10 ms and check if still true.
+                //
+                if (settings.ElectromagnetSettings.IsEMHoldOnEnable && Math.Abs(currentVoltage) > Math.Abs(settings.ElectromagnetSettings.EMHoldOnMaxVoltage * 1.1))
+                {
+                    Thread.Sleep(10);
+                    if (Math.Abs(currentVoltage) > Math.Abs(settings.ElectromagnetSettings.EMHoldOnMaxVoltage * 1.1))
                     {
                         //
                         // trigger was truely exceeded. try to hold on to a certain junction voltage.
@@ -255,6 +402,15 @@ namespace SBJController
             EMOpenJunctionMethodDelegate emOpenJunctionDelegate = (EMOpenJunctionMethodDelegate)asyncResult.AsyncState;
             emOpenJunctionDelegate.EndInvoke(asyncResult);
         }
+        /// <summary>
+        /// End junction closing by EM
+        /// </summary>
+        /// <param name="asyncResult"></param>
+        private void EMEndCloseJunction(IAsyncResult asyncResult)
+        {
+            EMCloseJunctionMethodDelegate emCloseJunctionDelegate = (EMCloseJunctionMethodDelegate)asyncResult.AsyncState;
+            emCloseJunctionDelegate.EndInvoke(asyncResult);
+        }
 
         /// <summary>
         /// Try obtain short circuit by ElectroMagnet, by calling EMShortCircuit.
@@ -291,6 +447,123 @@ namespace SBJController
                     return EMTryObtainShortCircuit(shortCircuitDelayTime, shortCircuitVoltage, worker, e);
             }
             return true;
+        }
+
+        /// <summary>
+        /// Try obtain open circuit by ElectroMagnet, by calling EMOpenCircuit.
+        /// If max min voltage was exceeded without getting an open circuit, use the stepper motor and retry by recurcion. 
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private bool EMTryObtainOpenCircuit(int openCircuitDelayTime, double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            double initialValue = Math.Abs(AnalogIn(0));
+            switch (EMOpenCircuit(openCircuitDelayTime, openCircuitVoltage, worker, e))
+            {
+                case 0:
+                    //
+                    // short contact succeeded. 
+                    //
+                    return false;
+
+                case 1:
+                    //
+                    // the proccess was cancelled by the user.
+                    //
+                    return true;
+
+                case 2:
+                    //
+                    // we've reached the min voltage on the EM without getting open circuit position.
+                    // return voltage to zero and get the electrodes closer by the stepper motor, 
+                    // then start over again. 
+                    //
+                    double currentVoltage = Math.Abs(AnalogIn(0));
+                    m_electroMagnet.ReachEMVoltageGradually(m_electroMagnet.MinDelay, c_initialEMVoltage);
+                    if (currentVoltage < initialValue)
+                    {
+                        MoveStepsByStepperMotor(StepperDirection.UP, 50);
+                    }
+                    else
+                    {
+                        MoveStepsByStepperMotor(StepperDirection.UP, 500);
+                    }
+                    return EMTryObtainOpenCircuit(openCircuitDelayTime, openCircuitVoltage, worker, e);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Try and obtain open circut by the ElectroMagnet
+        /// </summary>
+        /// <param name="shortCircuitVoltage">The voltage indicator for open circuit</param>        
+        /// <returns>2 whether min EM voltage was exceeded. 1 whether the operation was cancelled. 0 otherwise</returns>
+        private int EMOpenCircuit(int openCircuitDelayTime, double openCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            double voltageAfterStepping;
+            bool isPermanentOpenCircuit = false;
+            bool isTempOpenCircuit = false;
+
+            //
+            // Get current voltage
+            //
+            double currentVoltage = Math.Abs(AnalogIn(0));
+
+            //
+            // Set EM direction and delay
+            // 
+            m_electroMagnet.Direction = StepperDirection.UP;
+            m_electroMagnet.Delay = openCircuitDelayTime;
+
+            //
+            // Reach to open circuit
+            //
+            while (!isPermanentOpenCircuit)
+            {
+                //
+                // If the backgroundworker requested cancellation - exit
+                //
+                if (worker != null && worker.CancellationPending)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                //
+                // Move up 50 steps and check the voltage afterwords.
+                // if the EM exceeded min voltage return 2.
+                //
+                if (!m_electroMagnet.MoveMultipleSteps(50))
+                {
+                    return 2;
+                }
+                voltageAfterStepping = Math.Abs(AnalogIn(0));
+
+                //
+                // If we reach open circuit both current voltage and voltgae after stepping
+                // should be smaller than the open circuit threshold
+                //
+                isTempOpenCircuit = (currentVoltage < Math.Abs(openCircuitVoltage)) &&
+                                     (voltageAfterStepping < openCircuitVoltage);
+
+                //
+                // If we think we've reached open circuit then wait
+                // for 10msec and than check again to verify this is permanent.
+                //
+                if (isTempOpenCircuit)
+                {
+                    Thread.Sleep(10);
+                    currentVoltage = Math.Abs(AnalogIn(0));
+                    isPermanentOpenCircuit = currentVoltage < Math.Abs(openCircuitVoltage);
+                }
+                else
+                {
+                    currentVoltage = voltageAfterStepping;
+                }
+            }
+            return (e.Cancel ? 1 : 0);
         }
 
         /// <summary>
