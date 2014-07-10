@@ -80,7 +80,7 @@ namespace SBJController
         /// <param name="settings"></param>
         /// <param name="worker"></param>
         /// <param name="e"></param>
-        public void IV_AcquireData(IVSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        public void IV_AcquireData(IVSettings settings,BackgroundWorker worker, DoWorkEventArgs e)
         {
             bool isCancelled = false;
             int finalFileNumber = settings.IVGeneralSettings.CurrentFileNumber;
@@ -148,7 +148,7 @@ namespace SBJController
                 //
                 isCancelled = (settings.IVSteppingMethodSettings.SteppingDevice == SteppingDevice.ElectroMagnet && i > 0) ?
                                EMTryObtainShortCircuit(settings.IVSteppingMethodSettings.EMShortCircuitDelayTime, settings.IVGeneralSettings.ShortCircuitVoltage, worker, e) :
-                               TryObtainShortCircuit(settings.IVGeneralSettings.ShortCircuitVoltage, worker, e);
+                               TryObtainShortCircuit(settings.IVGeneralSettings.ShortCircuitVoltage,settings.IVGeneralSettings.UseShortCircuitDelayTime,settings.IVGeneralSettings.ShortCircuitDelayTime,worker, e);
                 if (isCancelled)
                 {
                     break;
@@ -295,6 +295,181 @@ namespace SBJController
                 {
                     DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
                 }     
+            }
+
+            //
+            // Finish the measurement properly
+            //
+            if (settings.IVSteppingMethodSettings.SteppingDevice == SteppingDevice.ElectroMagnet)
+            {
+                m_electroMagnet.Shutdown();
+            }
+            m_ivInputTask.Dispose();
+            m_ivInputTask = null;
+            m_outputTask.Dispose();
+            m_outputTask = null;
+            m_stepperMotor.Shutdown();
+        }
+
+        /// <summary>
+        /// Perform IV cycles while standing in place
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="worker"></param>
+        /// <param name="e"></param>
+        public void IV_AcquireDataWithoutMoving(IVSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            int finalFileNumber = settings.IVGeneralSettings.CurrentFileNumber;
+            double[,] dataAcquired;
+            List<IDataChannel> physicalChannels = new List<IDataChannel>();
+
+            //
+            // Save this run settings if desired
+            //
+            SaveSettingsIfNeeded(settings, settings.IVGeneralSettings.IsFileSavingRequired, settings.IVGeneralSettings.Path);
+
+            //
+            // apply initial voltage on the EM if needed
+            //
+            ApplyVoltageOnElectroMagnetIfNeeded(settings.IVSteppingMethodSettings.SteppingDevice == SteppingDevice.ElectroMagnet);
+
+
+            //
+            // create the input and output tasks
+            //
+            m_ivInputTask = GetContinuousAITask(settings.IVGeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+            m_ivInputTask.Stream.ReadRelativeTo = ReadRelativeTo.FirstSample;
+            m_outputTask = GetContinuousAOTask(settings);
+
+            //
+            // initiate writer for the output and set initial bias
+            //
+            InitiateOutputWriter(m_outputTask, settings);
+
+            //
+            // Main loop for data aquisition
+            //
+            for (int i = 0; i < settings.IVGeneralSettings.TotalNumberOfCycles; i++)
+            {
+                //
+                // Cancel the operatin if user asked for
+                //
+                if (worker.CancellationPending == true)
+                {
+                    e.Cancel = true;
+                    break;
+                }
+
+                m_quitRealTimeOperation = false;
+
+                //
+                // we set the votlage to triangle wave and then open the junction by the EM
+                //
+                writer.BeginWriteMultiSample(false, m_functionGenerator.TriangleWave, null, null);
+
+                //
+                // Start the input task.
+                //
+                try
+                {
+                    m_ivInputTask.Start();
+                }
+                catch (DaqException ex)
+                {
+                    throw new SBJException("Error occured when tryin to start DAQ input task", ex);
+                }
+
+                //
+                // start reading continuously. 
+                // when the junction is opened, the opening thread will change m_quitJuncctionOpeningOperation to true.
+                // set dataAquired to null otherwise it saves last cycle's data. 
+                //
+                reader = new AnalogMultiChannelReader(m_ivInputTask.Stream);
+                dataAcquired = null;
+                try
+                {
+                    while (!m_quitRealTimeOperation)
+                    {
+                        try
+                        {
+                            dataAcquired = reader.ReadMultiSample(-1);
+                        }
+                        catch (DaqException)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (dataAcquired != null)
+                    {
+                        if (settings.ChannelsSettings.ActiveChannels.Count != dataAcquired.GetLength(0))
+                        {
+                            throw new SBJException("Number of data channels doesn't fit the recieved data.");
+                        }
+                    }
+                }
+                catch (DaqException ex)
+                {
+                    //
+                    // Probably timeout.
+                    // Ignore this cycle and rerun.
+                    //
+                    m_ivInputTask.Stop();
+                    continue;
+                }
+
+                //
+                // At this point the reader has returned with all the data and we can stop the input task.
+                //
+                m_ivInputTask.Stop();
+
+                //
+                // if we didn't acquire any data, there's no need to save anything.
+                //
+                if (dataAcquired == null)
+                {
+                    continue;
+                }
+
+                //
+                // Assign the aquired data for each channel.
+                // First clear all data from previous interation.
+                //                
+                ClearRawData(settings.ChannelsSettings.ActiveChannels);
+                AssignRawDataToChannels(settings.ChannelsSettings.ActiveChannels, dataAcquired);
+
+                //
+                // physical channel will include both simple and complex channels. 
+                // 
+                physicalChannels = GetChannelsForDisplay(settings.ChannelsSettings.ActiveChannels);
+
+                //
+                // calculate the physical data for each channel
+                //
+                GetPhysicalData(physicalChannels);
+
+                //
+                // the IV acquisition is done, we need to return the output to constant voltage for the next cycle
+                //
+                writer.BeginWriteMultiSample(false, m_functionGenerator.ConstWave, null, null);
+
+                // 
+                // Increase file number by one
+                // Save data if needed
+                //
+                finalFileNumber++;
+                if (settings.IVGeneralSettings.IsFileSavingRequired)
+                {
+                    finalFileNumber = SaveData(settings.IVGeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+                }
+
+                //
+                // Signal UI we have the data
+                //
+                if (DataAquired != null)
+                {
+                    DataAquired(this, new DataAquiredEventArgs(physicalChannels, finalFileNumber));
+                }
             }
 
             //

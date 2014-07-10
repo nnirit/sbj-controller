@@ -58,13 +58,16 @@ namespace SBJController
         public RunDirection RunDirection { get; set; }
         public Sample Bottom { get; set; }
         public Sample Top { get; set; }
+        public bool UseShortCircuitDelayTime { get; set; }
+        public int ShortCircuitDelayTime { get; set; }
 
         public GeneralSBJControllerSettings (double bias, double biasError, string gain, double triggerVoltage,
                                      double triggerConductance, int sampleRate,
                                      int totalSamples, int pretriggerSamples,
                                      int stepperWaitTime1, int stepperWaitTime2, bool isFileSavingRequired, 
-                                     bool useKeithley, string path, int currentFileNumber, int totalNUmberOfCycles, 
+                                     bool useKeithley, string path, int currentFileNumber, int totalNUmberOfCycles,
                                      double shourtCircuitVoltage, double openCircuitVoltage, bool useDefaultGain, 
+                                     bool useShortCircuitDelayTime, int shortCircuitDelayTime,
                                      RunDirection runDirection, Sample bottom, Sample top)
         {
             Bias = bias;
@@ -79,6 +82,8 @@ namespace SBJController
             StepperWaitTime2 = stepperWaitTime2;
             IsFileSavingRequired = isFileSavingRequired;
             UseKeithley = useKeithley;
+            UseShortCircuitDelayTime = useShortCircuitDelayTime;
+            ShortCircuitDelayTime = shortCircuitDelayTime;
             Path = path;
             CurrentFileNumber = currentFileNumber;
             TotalNumberOfCycles = totalNUmberOfCycles;
@@ -329,14 +334,17 @@ namespace SBJController
         public double ShortCircuitVoltage { get; set; }
         public Sample Bottom { get; set; }
         public Sample Top { get; set; }
+        public bool UseShortCircuitDelayTime { get; set; }
+        public int ShortCircuitDelayTime { get; set; }
 
         public IVGeneralSettings (double voltageAmplitude, int samplesPerCycle, 
                                      double outputUpdateDelay, int outputUpdateRate, 
                                      double voltageForDisplayedTrace, double timeForOneIVCycle,
                                      string gain, double triggerVoltage,
                                      double triggerConductance, int sampleRate, bool isFileSavingRequired, 
-                                     string path, int currentFileNumber, int totalNUmberOfCycles, 
-                                     double shortCircuitVoltage,Sample bottom, Sample top)
+                                     string path, int currentFileNumber, int totalNUmberOfCycles,
+                                     double shortCircuitVoltage, Sample bottom, Sample top, bool useShortCircuitDelayTime,
+                                     int shortCircuitDelayTime)
         {
             VoltageAmplitude = voltageAmplitude;
             SamplesPerCycle = samplesPerCycle;
@@ -355,6 +363,8 @@ namespace SBJController
             ShortCircuitVoltage = shortCircuitVoltage;
             Bottom = bottom;
             Top = top;
+            UseShortCircuitDelayTime = useShortCircuitDelayTime;
+            ShortCircuitDelayTime = shortCircuitDelayTime;
         }
 
         public override string ToString()
@@ -439,6 +449,9 @@ namespace SBJController
         public bool EnableElectroMagnet { get; set; }
         public bool UseKeithley { get; set; }
         public int DelayTime { get; set; }
+        public bool UseShortCircuitDelayTime { get; set; }
+        public int ShortCircuitDelayTime { get; set; }
+
         public CalibrationMeasurementType MeasurementType { get; set; }
 
         public CalibrationGeneralSettings(double bias, string gain, double triggerVoltage,
@@ -446,6 +459,7 @@ namespace SBJController
                                                  int sampleRate, string path, int currentFileNumber,
                                                  int totalNUmberOfCycles, double shourtCircuitVoltage,
                                                  bool enableElectroMagnet, bool useKeithley, int delayTime,
+                                                 bool useShortCircuitDelayTime, int shortCircuitDelayTime,
                                                  CalibrationMeasurementType measurementType)
         {
             Bias = bias;
@@ -462,6 +476,8 @@ namespace SBJController
             EnableElectroMagnet = enableElectroMagnet;
             UseKeithley = useKeithley;
             MeasurementType = measurementType;
+            UseShortCircuitDelayTime = useShortCircuitDelayTime;
+            ShortCircuitDelayTime = shortCircuitDelayTime;
         }
 
         public override string ToString()

@@ -463,13 +463,28 @@ namespace SBJController
 
             //
             // set AdditionalData to be the IV cycles data
+            // If we are in static mode (no stpper movement) then 
+            // we allow IV to be taken even at over load.
+            // If IVs are taken for each trace we would like to ignore the overload level.
             //
-            base.AdditionalData = ivDataHandle.GetIVCycles();
-
-            //
-            // set the physical data to be a trace at a certain voltage
-            //
-            base.PhysicalData = ivDataHandle.GetCertainVoltageTrace(base.DataConvertionSettings.Bias);
+            bool ignoreOverload = !base.DataConvertionSettings.IsStaticIV;
+            base.AdditionalData = ivDataHandle.GetIVCycles(ignoreOverload);
+           
+            if (!base.DataConvertionSettings.IsStaticIV)
+            {
+                //
+                // set the physical data to be a trace at a certain voltage
+                //
+                base.PhysicalData = ivDataHandle.GetCertainVoltageTrace(base.DataConvertionSettings.Bias);
+            }
+            else
+            {
+                //
+                // If the code got here then we are in static mode IV
+                // and we only set the physical data to be the first set of results from the additional data.
+                //
+                base.PhysicalData = this.AdditionalData.First();
+            }
             
             return PhysicalData;
         }
@@ -744,6 +759,7 @@ namespace SBJController
         private double m_acVoltage;
         private double m_sensitivity;
         private int m_samplesPerIVCycle;
+        private bool m_isStaticIV;
 
         public double Bias
         {
@@ -770,13 +786,23 @@ namespace SBJController
             get { return m_samplesPerIVCycle; }
         }
 
-        public DataConvertorSettings(double bias, int gain, double acVoltage, double sensitivity, int samplesPerIVCycle)
+        /// <summary>
+        /// Specify whether the IV measurement is taken without moving the motor (static)
+        /// Or (when it is set to false) the IV is taken while aquiring traces.
+        /// </summary>
+        public bool IsStaticIV
+        {
+            get { return m_isStaticIV; }
+        }
+
+        public DataConvertorSettings(double bias, int gain, double acVoltage, double sensitivity, int samplesPerIVCycle, bool isStaticIV)
         {
             m_acVoltage = acVoltage;
             m_bias = bias;
             m_gain = gain;
             m_sensitivity = sensitivity;
             m_samplesPerIVCycle = samplesPerIVCycle;
+            m_isStaticIV = isStaticIV;
         }
     }
 

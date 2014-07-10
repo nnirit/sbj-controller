@@ -147,7 +147,7 @@ namespace SBJController
                         // save only the opening process
                         //
                         ObtainOpenJunctionByStepperMotorForCalibration(settings, worker, e);
-                        TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
+                        TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage, settings.CalibirationSettings.UseShortCircuitDelayTime,settings.CalibirationSettings.ShortCircuitDelayTime, worker, e);
                     }
 
                     if (settings.CalibirationSettings.MeasurementType == CalibrationMeasurementType.CloseJunction)
@@ -245,7 +245,7 @@ namespace SBJController
             //
             if (!(settings.ElectromagnetSettings.IsEMEnable && settings.ElectromagnetSettings.IsEMSkipFirstCycleEnable))
             {
-                isCancelled = TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage, worker, e);
+                isCancelled = TryObtainShortCircuit(settings.CalibirationSettings.ShortCircuitVoltage,settings.CalibirationSettings.UseShortCircuitDelayTime,settings.CalibirationSettings.ShortCircuitDelayTime, worker, e);
                 
                 //
                 // if we want to use EM, than we need to open the junction by the stepper motor and only then close it by the EM
