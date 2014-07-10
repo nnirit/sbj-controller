@@ -1859,7 +1859,7 @@ namespace SBJController
                 //
                 if (isTempShortCircuit)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(900);
                     currentVoltage = Math.Abs(AnalogIn(0));
                     isPermanentShortCircuit = currentVoltage > Math.Abs(shortCircuitVoltage);
                 }
