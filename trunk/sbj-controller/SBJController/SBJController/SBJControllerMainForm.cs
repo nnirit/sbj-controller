@@ -171,7 +171,7 @@ namespace SBJController
             //
             m_sbjController.ApplyVoltageIfNeeded(this.useKeithleyCheckBox.Checked, this.biasNumericEdit.Value, this.biasErrorNumericEdit.Value);
 
-            m_sbjController.TryObtainShortCircuit((double)shortCircuitVoltageNumericUpDown.Value, worker, e);
+            m_sbjController.TryObtainShortCircuit((double)shortCircuitVoltageNumericUpDown.Value, shortCircuitDelayCheckBox.Checked,(int)shortCircuitDelayTimeNumericUpDown.Value, worker, e);
         }
 
         /// <summary>
@@ -641,7 +641,7 @@ namespace SBJController
         private void fixBiasBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            m_sbjController.FixBias((double)shortCircuitVoltageNumericUpDown.Value,(double)biasNumericEdit.Value, worker, e);
+            m_sbjController.FixBias((double)shortCircuitVoltageNumericUpDown.Value,(double)biasNumericEdit.Value,shortCircuitDelayCheckBox.Checked,(int)shortCircuitDelayTimeNumericUpDown.Value, worker, e);
         }
 
         private void fixBiasBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -692,6 +692,7 @@ namespace SBJController
                     this.ivGeneralSettingsPanel.Enabled = false;
                     this.ivSteppingMethodPanel.Enabled = false;
                     this.ivChannelsPanel.Enabled = false;
+                    this.takeIVCheckBoxButton.Enabled = false;
                     ivCyclesBackgroundWorker.RunWorkerAsync();
                 }
                 else
@@ -749,7 +750,81 @@ namespace SBJController
             this.ivGeneralSettingsPanel.Enabled = true;
             this.ivSteppingMethodPanel.Enabled = true;
             this.ivChannelsPanel.Enabled = true;
+            this.takeIVCheckBoxButton.Enabled = true;
         }
+
+        private void takeIVCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.takeIVCheckBoxButton.Checked)
+            {
+                //
+                // We were requested to start data acquisition so we must verify
+                // first that the worker is free for doing the job.
+                //
+                if (!ivWithoutMovingBackgroundWorker1.IsBusy)
+                {
+                    //
+                    // Change button text and UI appearance
+                    //
+                    this.takeIVCheckBoxButton.Text = "Stop";
+                    this.ivShortCircuitCheckBox.Enabled = false;
+                    this.ivStepperUpCheckBox.Enabled = false;
+                    this.ivGeneralSettingsPanel.Enabled = false;
+                    this.ivSteppingMethodPanel.Enabled = false;
+                    this.ivChannelsPanel.Enabled = false;
+                    this.ivStartStopCheckBox.Enabled = false;
+                    ivWithoutMovingBackgroundWorker1.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Can not start IV cycles operation." + Environment.NewLine + "Please try again in few seconds.");
+                }
+            }
+            else
+            {
+                //
+                // We were requested to stop data acquisition process
+                //
+                if (ivWithoutMovingBackgroundWorker1.WorkerSupportsCancellation == true)
+                {
+                    ivWithoutMovingBackgroundWorker1.CancelAsync();
+                }
+                if (m_sbjController.IVInputTask != null)
+                {
+                    m_sbjController.IVInputTask.Control(TaskAction.Abort);
+                }
+                if (m_sbjController.OutputTask != null)
+                {
+                    m_sbjController.OutputTask.Control(TaskAction.Abort);
+                }
+                m_sbjController.QuitRealTimeOperation = true;
+                m_sbjController.StepperMotor.Shutdown();
+            }
+        }
+
+
+        private void ivWithoutMovingBackgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            m_sbjController.IV_AcquireDataWithoutMoving(GetIVSettings(), worker, e);
+        }
+
+        private void ivWithoutMovingBackgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //
+            // We've done taking data so we must bring back the UI appearance
+            //
+            this.takeIVCheckBoxButton.Text = "IV";
+            this.ivStartStopCheckBox.Checked = false;
+            this.ivShortCircuitCheckBox.Enabled = true;
+            this.ivStepperUpCheckBox.Enabled = true;
+            this.ivGeneralSettingsPanel.Enabled = true;
+            this.ivSteppingMethodPanel.Enabled = true;
+            this.ivChannelsPanel.Enabled = true;
+            this.ivStartStopCheckBox.Enabled = true;
+
+        }
+        
 
         #endregion
 
@@ -1682,6 +1757,8 @@ namespace SBJController
                                                                                   (double)this.shortCircuitVoltageNumericUpDown.Value,
                                                                                   (double)this.openCircuitVoltageNumericEdit.Value,
                                                                                   this.useDefaultGainCheckBox.Checked,
+                                                                                  this.shortCircuitDelayCheckBox.Checked,
+                                                                                  (int)this.shortCircuitDelayTimeNumericUpDown.Value,
                                                                                   (RunDirection)Enum.Parse(typeof(RunDirection), this.directionComboBox.Text),
                                                                                   (Sample)this.bottomPropertyGrid.SelectedObject,
                                                                                   (Sample)this.bottomPropertyGrid.SelectedObject),
@@ -1922,7 +1999,7 @@ namespace SBJController
 
             DataConvertorSettings dataConvertorSettings =  new DataConvertorSettings(Math.Abs(this.biasNumericEdit.Value), Convert.ToInt32(this.gainComboBox.Text),
                                                                                      this.lockInAcVoltageNumericEdit.Value, Double.Parse(this.sensitivityComboBox.Text), 
-                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value);
+                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value, false);
             if (channel0CheckBox.Checked)
             {
                 activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(channel0ComboBox.SelectedValue as string)), 
@@ -1960,7 +2037,7 @@ namespace SBJController
 
             DataConvertorSettings dataConvertorSettings = new DataConvertorSettings(Math.Abs(this.ivVoltageForTraceNumericEdit.Value), Convert.ToInt32(this.ivGainPoweComboBox.Text),
                                                                                      this.lockInAcVoltageNumericEdit.Value, Double.Parse(this.sensitivityComboBox.Text),
-                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value);
+                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value, this.takeIVCheckBoxButton.Checked);
             if (ivChannel0CheckBox.Checked)
             {
                 activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(ivChannel0ComboBox.SelectedValue as string)),
@@ -1998,7 +2075,7 @@ namespace SBJController
 
             DataConvertorSettings dataConvertorSettings = new DataConvertorSettings(Math.Abs(this.calibrationBiasNumericEdit.Value), Convert.ToInt32(this.calibrationGainPowerComboBox.Text),
                                                                                      this.lockInAcVoltageNumericEdit.Value, Double.Parse(this.sensitivityComboBox.Text),
-                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value);
+                                                                                     (int)this.ivSamplesPerCycleNumericEdit.Value, false);
             if (calibrationChannel1CheckBox.Checked)
             {
                 activeChannels.Add((IDataChannel)Activator.CreateInstance(Type.GetType(GetFullTypeName(calibrationChannel1ComboBox.SelectedValue as string)),
@@ -2257,6 +2334,8 @@ namespace SBJController
                                                                                                     this.calibrationEnableElectroMagnetCheckBox.Checked,
                                                                                                     this.calibrationKeithleyCheckBox.Checked,
                                                                                                     (int)this.calibrationDelayTimeNumericUpDown.Value,
+                                                                                                    this.shortCircuitDelayTimeCalibrationCheckBox.Checked,
+                                                                                                    (int)this.shortCircuitDelayTimeCalibrationNumericUpDown.Value,
                                                                                                     GetCalibrationMeasurementType()),
                                                                new ElectroMagnetSBJControllerSettings(this.calibrationEnableElectroMagnetCheckBox.Checked,
                                                                                                     (int)this.calibrationEMShortCircuitDelayTimeNumericUpDown.Value,
@@ -2583,7 +2662,10 @@ namespace SBJController
                                                             (int)this.ivNumberOfCyclesNumericUpDown.Value, 
                                                             (double)this.ivShortCircuitVoltageNumericUpDown.Value,
                                                             (Sample)this.bottomPropertyGrid.SelectedObject,
-                                                            (Sample)this.bottomPropertyGrid.SelectedObject), 
+                                                            (Sample)this.bottomPropertyGrid.SelectedObject,
+                                                            this.shortCircuitDelayTimeIVCheckBox.Checked,
+                                                            (int)this.shortCircuitDelayTimeIVNumericUpDown.Value),
+
                                 new IVSteppingMethodSettings(GetSteppingDevice(), 
                                                             (int)this.ivStepperDelayTime1NumericUpDown.Value, 
                                                             (int)this.ivStepperDelayTime2NumericUpDown.Value, 
@@ -2612,6 +2694,6 @@ namespace SBJController
         }        
         #endregion    
 
-        
+
     }
 }

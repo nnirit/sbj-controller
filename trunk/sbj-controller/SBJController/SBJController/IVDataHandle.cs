@@ -63,7 +63,7 @@ namespace SBJController
         /// This function receive an array of triangle wave and returns the indices of the peaks.
         /// </summary>
         /// <returns>the indices of the peaks</returns>
-        private IList<int> GetPeaksIndices()
+        private IList<int> GetPeaksIndices(bool ignoreOverload)
         {
             double[] diff = new double[m_voltageRawData.Length - 1];
             IList<int> peakIndices = new List<int>();
@@ -107,8 +107,8 @@ namespace SBJController
                     //
                     // let's check if the peak is in the overload part of the trace. 
                     // if it is, than we might don't want to save it. 
-                    //
-                    if (Math.Abs(m_junctionRawData[peakIndices.Last()]) > 9.9)
+
+                    if (ignoreOverload && Math.Abs(m_junctionRawData[peakIndices.Last()]) > 9.9)
                     {
                         //
                         // if we already have items in the index list - continue (we are in the middle of the trace)
@@ -143,7 +143,7 @@ namespace SBJController
         /// gets a list of all the iv cycles from one full trace
         /// </summary>
         /// <returns></returns>
-        public IList<IList<double[]>> GetIVCycles()
+        public IList<IList<double[]>> GetIVCycles(bool ignoreOverload)
         {
             //
             // all the data will be arranged in this list.
@@ -153,7 +153,7 @@ namespace SBJController
             //
             // get the indices of the peaks
             //
-            m_peakIndices = GetPeaksIndices();
+            m_peakIndices = GetPeaksIndices(ignoreOverload);
 
             //
             // run over all the indices of the peaks in the trace and chop the data

@@ -589,7 +589,7 @@ namespace SBJController
                 }
                 else
                 {
-                    TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                    TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, settings.GeneralSettings.UseShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitDelayTime, worker, e);
                 }
 
                 //
@@ -922,7 +922,7 @@ namespace SBJController
             // Use stepper motor only since we could be far away from reaching contact
             // It is an important step since we can't be sure in what position we are currently standing.
             //
-            TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+            TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, settings.GeneralSettings.UseShortCircuitDelayTime,settings.GeneralSettings.ShortCircuitDelayTime, worker, e);
 
             //
             // Now we can begin our measurements cycles
@@ -960,7 +960,7 @@ namespace SBJController
                 }
                 else
                 {
-                    TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                    TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, settings.GeneralSettings.UseShortCircuitDelayTime,settings.GeneralSettings.ShortCircuitDelayTime, worker, e);
                 }
 
                 //
@@ -1173,7 +1173,7 @@ namespace SBJController
             for (int i = 0; i < settings.GeneralSettings.TotalNumberOfCycles; i++)
             {
                 //
-                // Cancel the operatin if user asked for
+                // Cancel the operation if user asked for
                 //
                 if (worker.CancellationPending == true)
                 {
@@ -1216,7 +1216,7 @@ namespace SBJController
                 //
                 isCancelled = (settings.ElectromagnetSettings.IsEMEnable && i > 0) ?
                                EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitVoltage, worker, e) :
-                               TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                               TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, settings.GeneralSettings.UseShortCircuitDelayTime, settings.GeneralSettings.ShortCircuitDelayTime, worker, e);
                 if (isCancelled)
                 {
                     break;
@@ -1303,14 +1303,24 @@ namespace SBJController
                         throw new SBJException("Number of data channels doesn't fit the recieved data.");
                     }
                 }
-                catch (DaqException)
+                catch (DaqException ex  )
                 {
-                    //
-                    // Probably timeout.
-                    // Ignore this cycle and rerun.
-                    //
-                    m_triggeredTask.Stop();
-                    continue;
+                    if (ex.Error == -88709 || ex.Error == -88710) 
+                    {
+                        //
+                        // User asked to stop so the task was aborted from the UI thread
+                        //
+                        break;
+                    }
+                    else
+                    {
+                        //
+                        // Probably timeout.
+                        // Ignore this cycle and rerun.
+                        //
+                        m_triggeredTask.Stop();
+                        continue;
+                    }
                 }
 
                 //
@@ -1608,7 +1618,7 @@ namespace SBJController
                 }
                 else
                 {
-                    TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                    TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, settings.GeneralSettings.UseShortCircuitDelayTime,settings.GeneralSettings.ShortCircuitDelayTime, worker, e);
                 }
 
                 //
@@ -1791,7 +1801,7 @@ namespace SBJController
         /// </summary>
         /// <param name="shortCircuitVoltage">The voltage indicator for short circuit</param>        
         /// <returns>True whether the operation was cancelled. False otherwise</returns>
-        public bool TryObtainShortCircuit(double shortCircuitVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        public bool TryObtainShortCircuit(double shortCircuitVoltage, bool useShortCircuitDelayTime, int shortCircuitDelayTime, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double voltageAfterStepping;
             bool isPermanentShortCircuit = false;
@@ -1807,7 +1817,14 @@ namespace SBJController
             // 
             m_stepperMotor.SteppingMode = StepperSteppingMode.FULL;
             m_stepperMotor.Direction = StepperDirection.DOWN;
-            m_stepperMotor.Delay = m_stepperMotor.MinDelay;
+            if (!useShortCircuitDelayTime)
+            {
+                m_stepperMotor.Delay = m_stepperMotor.MinDelay;
+            }
+            else
+            {
+                m_stepperMotor.Delay = shortCircuitDelayTime;
+            }
 
             //
             // Reach to contact
@@ -1842,7 +1859,7 @@ namespace SBJController
                 //
                 if (isTempShortCircuit)
                 {
-                    Thread.Sleep(10);
+                    Thread.Sleep(1000);
                     currentVoltage = Math.Abs(AnalogIn(0));
                     isPermanentShortCircuit = currentVoltage > Math.Abs(shortCircuitVoltage);
                 }
@@ -2018,7 +2035,7 @@ namespace SBJController
             isCancelled = (settings.ElectromagnetSettings.IsEMEnable) ?
                            EMTryObtainShortCircuit(settings.ElectromagnetSettings.EMShortCircuitDelayTime, 
                                                    settings.GeneralSettings.ShortCircuitVoltage, worker, e) :
-                           TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, worker, e);
+                           TryObtainShortCircuit(settings.GeneralSettings.ShortCircuitVoltage, settings.GeneralSettings.UseShortCircuitDelayTime,settings.GeneralSettings.ShortCircuitDelayTime, worker, e);
             if (isCancelled)
             {
                 return false;
@@ -2501,7 +2518,7 @@ namespace SBJController
         /// <param name="shortCircuitVoltage"></param>
         /// <param name="worker"></param>
         /// <param name="e"></param>
-        public void FixBias(double shortCircuitVoltage, double bias, BackgroundWorker worker, DoWorkEventArgs e)
+        public void FixBias(double shortCircuitVoltage, double bias, bool useShortCircuitDelayTime, int shortCircuitDelayTime, BackgroundWorker worker, DoWorkEventArgs e)
         {
             int i = 0;
             bool isBiasedFixed = false;
@@ -2511,7 +2528,7 @@ namespace SBJController
             //
             // First, reach to contact
             //
-            TryObtainShortCircuit(shortCircuitVoltage, worker, e);
+            TryObtainShortCircuit(shortCircuitVoltage,useShortCircuitDelayTime,shortCircuitDelayTime, worker, e);
             int shortCircuitVoltageSign = AnalogIn(0) > 0 ? 1 : -1;
 
             //
