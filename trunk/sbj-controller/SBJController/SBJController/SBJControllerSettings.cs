@@ -49,6 +49,7 @@ namespace SBJController
         public int StepperWaitTime2 { get; set; }
         public bool IsFileSavingRequired { get; set; }
         public bool UseKeithley { get; set; }
+        public bool ChangeGain { get; set; }
         public string Path { get; set; }
         public int CurrentFileNumber { get; set; }
         public int TotalNumberOfCycles { get; set; }
@@ -65,7 +66,7 @@ namespace SBJController
                                      double triggerConductance, int sampleRate,
                                      int totalSamples, int pretriggerSamples,
                                      int stepperWaitTime1, int stepperWaitTime2, bool isFileSavingRequired, 
-                                     bool useKeithley, string path, int currentFileNumber, int totalNUmberOfCycles,
+                                     bool useKeithley, bool changeGain, string path, int currentFileNumber, int totalNUmberOfCycles,
                                      double shourtCircuitVoltage, double openCircuitVoltage, bool useDefaultGain, 
                                      bool useShortCircuitDelayTime, int shortCircuitDelayTime,
                                      RunDirection runDirection, Sample bottom, Sample top)
@@ -82,6 +83,7 @@ namespace SBJController
             StepperWaitTime2 = stepperWaitTime2;
             IsFileSavingRequired = isFileSavingRequired;
             UseKeithley = useKeithley;
+            ChangeGain = changeGain;
             UseShortCircuitDelayTime = useShortCircuitDelayTime;
             ShortCircuitDelayTime = shortCircuitDelayTime;
             Path = path;

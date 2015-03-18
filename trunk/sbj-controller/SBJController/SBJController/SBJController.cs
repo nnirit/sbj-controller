@@ -613,6 +613,15 @@ namespace SBJController
                 localTriggerVoltage = isPositiveVoltage ? settings.GeneralSettings.TriggerVoltage * (-1) : settings.GeneralSettings.TriggerVoltage;
 
                 //
+                // Before re-openning the junction set auto range off
+                // so we can stay at high range suitable to E5 gain.
+                //
+                if (settings.GeneralSettings.UseKeithley)
+                {
+                    m_sourceMeter.SetAutoRange(false);
+                }
+
+                //
                 // Open the junction once again as if we didn't do anything.
                 //
                 if (settings.ElectromagnetSettings.IsEMEnable)
@@ -899,6 +908,14 @@ namespace SBJController
             List<IDataChannel> physicalChannels = new List<IDataChannel>();
 
             //
+            // Since we set the gain to E5 when configuring the task
+            // it is time to set it back to the desired one.
+            //
+            int gainPower;
+            Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
+            m_amplifier.ChangeGain(gainPower);
+
+            //
             // Change the gain power to 5 before reaching contact
             // to ensure full contact current
             //
@@ -912,8 +929,6 @@ namespace SBJController
             //
             if (settings.GeneralSettings.UseDefaultGain)
             {
-                int gainPower;
-                Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
                 m_amplifier.ChangeGain(gainPower);
             }
 
@@ -1169,6 +1184,15 @@ namespace SBJController
             bool isCancelled = false;
             int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
             List<IDataChannel> physicalChannels = new List<IDataChannel>();
+            
+            //
+            // Since we set the gain to E5 when configuring the task
+            // it is time to set it back to the desired one.
+            //
+            int gainPower;
+            Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
+            m_amplifier.ChangeGain(gainPower);
+
 
             for (int i = 0; i < settings.GeneralSettings.TotalNumberOfCycles; i++)
             {
@@ -1204,7 +1228,7 @@ namespace SBJController
                 // Change the gain power to 5 before reaching contact
                 // to ensure full contact current
                 //
-                if (settings.GeneralSettings.UseDefaultGain)
+                if (settings.GeneralSettings.UseDefaultGain || settings.GeneralSettings.ChangeGain)
                 {
                     m_amplifier.ChangeGain(5);
                 }
@@ -1229,8 +1253,6 @@ namespace SBJController
                 //
                 if (settings.GeneralSettings.UseDefaultGain)
                 {
-                    int gainPower;
-                    Int32.TryParse(settings.GeneralSettings.Gain, out gainPower);
                     m_amplifier.ChangeGain(gainPower);
                 }
 
@@ -1270,6 +1292,8 @@ namespace SBJController
                     BeginOpenJunction(settings, worker, e);
                 }
 
+
+
                 //
                 // Start the task and wait for the data
                 //
@@ -1282,6 +1306,14 @@ namespace SBJController
                     throw new SBJException("Error occured when tryin to start DAQ task", ex);
                 }
 
+                if (settings.GeneralSettings.ChangeGain && (settings.GeneralSettings.StepperWaitTime2 > settings.GeneralSettings.StepperWaitTime1))
+                {
+                    while (!m_quitJunctionOpenningOperation && (m_stepperMotor.Delay != settings.GeneralSettings.StepperWaitTime2)) { }
+                    if (!m_quitJunctionOpenningOperation)
+                    {
+                        m_amplifier.ChangeGain(gainPower);
+                    }
+                }
                 AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
 
                 try
@@ -1907,6 +1939,11 @@ namespace SBJController
             //
             ApplyVoltageOnElectroMagnetIfNeeded(settings.ElectromagnetSettings.IsEMEnable);
 
+            //
+            // Change to E5 gain to determine current sign (+/-) in order to configure the task correctly
+            // This is also used to disable auto range once reached to contact.
+            //
+            m_amplifier.ChangeGain(5);
             //
             // Create the task
             //

@@ -1751,6 +1751,7 @@ namespace SBJController
                                                                                   Convert.ToInt32(this.stepperWaitTime2NumericUpDown.Value),
                                                                                   this.fileSavingCheckBox.Checked,
                                                                                   this.useKeithleyCheckBox.Checked,
+                                                                                  this.changeGainCheckBox.Checked,
                                                                                   this.pathTextBox.Text,
                                                                                   Convert.ToInt32(this.fileNumberNumericUpDown.Value),
                                                                                   Convert.ToInt32(this.numberOfCyclesnumericUpDown.Value),
