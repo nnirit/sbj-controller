@@ -19,6 +19,7 @@ namespace SBJController
         private const string c_enableDisplay = ":DISPLAY:ENABLE 1";
         private const string c_outputOn = ":OUTP ON;";
         private const string c_outputOff = ":OUTP OFF;";
+        private const string c_autoRange = ":SENSe:CURRent:RANGe:AUTO {0}";
 
         public double Bias
         {
@@ -72,6 +73,12 @@ namespace SBJController
         public void EnableDisplay()
         {
             Write(c_enableDisplay, "Error has occured while trying to set display on.");
+        }
+
+        public void SetAutoRange(bool turnOnAutoRange)
+        {
+            Write(string.Format(c_autoRange, Convert.ToInt32(turnOnAutoRange)), "Error has occured while trying to set autorange.");
+            SetLocalMode();
         } 
 
         public void TurnOn()

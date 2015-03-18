@@ -308,9 +308,9 @@
             this.calibrationCycleNumberNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.controlPanelsTabPage = new System.Windows.Forms.TabPage();
             this.electroMagnetGroupBox = new System.Windows.Forms.GroupBox();
-            this.electroMagnetUserControl1 = new SBJController.ElectroMagnetUserControl();
+            this.electroMagnetUserControl1 = new ElectroMagnetUserControl();
             this.stepperMotorGroupBox = new System.Windows.Forms.GroupBox();
-            this.stepperMotorUserControl2 = new SBJController.StepperMotorUserControl();
+            this.stepperMotorUserControl2 = new StepperMotorUserControl();
             this.aquireDataBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.stepperUpBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.fixBiasBackgroundWorker = new System.ComponentModel.BackgroundWorker();
@@ -320,6 +320,7 @@
             this.continuousSamplingBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.reachPositionBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.ivWithoutMovingBackgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.changeGainCheckBox = new System.Windows.Forms.CheckBox();
             this.controllerTabControl.SuspendLayout();
             this.dataAquisitionTabPage.SuspendLayout();
             this.plotGroupBox.SuspendLayout();
@@ -455,7 +456,7 @@
             this.controllerTabControl.Location = new System.Drawing.Point(0, 0);
             this.controllerTabControl.Name = "controllerTabControl";
             this.controllerTabControl.SelectedIndex = 0;
-            this.controllerTabControl.Size = new System.Drawing.Size(762, 825);
+            this.controllerTabControl.Size = new System.Drawing.Size(762, 851);
             this.controllerTabControl.TabIndex = 2;
             this.controllerTabControl.Tag = "";
             // 
@@ -470,7 +471,7 @@
             this.dataAquisitionTabPage.Location = new System.Drawing.Point(4, 22);
             this.dataAquisitionTabPage.Name = "dataAquisitionTabPage";
             this.dataAquisitionTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.dataAquisitionTabPage.Size = new System.Drawing.Size(754, 799);
+            this.dataAquisitionTabPage.Size = new System.Drawing.Size(754, 825);
             this.dataAquisitionTabPage.TabIndex = 0;
             this.dataAquisitionTabPage.Text = "DAQ";
             this.dataAquisitionTabPage.UseVisualStyleBackColor = true;
@@ -528,10 +529,10 @@
             this.operateGroupBox.Controls.Add(this.fileNumberNumericUpDown);
             this.operateGroupBox.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.operateGroupBox.ForeColor = System.Drawing.Color.Red;
-            this.operateGroupBox.Location = new System.Drawing.Point(3, 608);
+            this.operateGroupBox.Location = new System.Drawing.Point(3, 631);
             this.operateGroupBox.MinimumSize = new System.Drawing.Size(478, 176);
             this.operateGroupBox.Name = "operateGroupBox";
-            this.operateGroupBox.Size = new System.Drawing.Size(731, 191);
+            this.operateGroupBox.Size = new System.Drawing.Size(748, 191);
             this.operateGroupBox.TabIndex = 23;
             this.operateGroupBox.TabStop = false;
             this.operateGroupBox.Text = "Operate";
@@ -565,7 +566,7 @@
             // 
             // openCircuitVoltageNumericEdit
             // 
-            this.openCircuitVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(0, true);
+            this.openCircuitVoltageNumericEdit.FormatMode = NationalInstruments.UI.NumericFormatMode.CreateScientificMode(1, true);
             this.openCircuitVoltageNumericEdit.Location = new System.Drawing.Point(351, 116);
             this.openCircuitVoltageNumericEdit.Name = "openCircuitVoltageNumericEdit";
             this.openCircuitVoltageNumericEdit.Size = new System.Drawing.Size(75, 20);
@@ -905,7 +906,7 @@
             this.samplePropertiesGroupBox.ForeColor = System.Drawing.Color.Red;
             this.samplePropertiesGroupBox.Location = new System.Drawing.Point(553, 364);
             this.samplePropertiesGroupBox.Name = "samplePropertiesGroupBox";
-            this.samplePropertiesGroupBox.Size = new System.Drawing.Size(166, 247);
+            this.samplePropertiesGroupBox.Size = new System.Drawing.Size(183, 261);
             this.samplePropertiesGroupBox.TabIndex = 20;
             this.samplePropertiesGroupBox.TabStop = false;
             this.samplePropertiesGroupBox.Text = "Sample Properties";
@@ -941,7 +942,7 @@
             this.samplePropertiesTabControl.MinimumSize = new System.Drawing.Size(150, 0);
             this.samplePropertiesTabControl.Name = "samplePropertiesTabControl";
             this.samplePropertiesTabControl.SelectedIndex = 0;
-            this.samplePropertiesTabControl.Size = new System.Drawing.Size(160, 183);
+            this.samplePropertiesTabControl.Size = new System.Drawing.Size(177, 183);
             this.samplePropertiesTabControl.TabIndex = 0;
             // 
             // bottomTabPage
@@ -950,7 +951,7 @@
             this.bottomTabPage.Location = new System.Drawing.Point(4, 22);
             this.bottomTabPage.Name = "bottomTabPage";
             this.bottomTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.bottomTabPage.Size = new System.Drawing.Size(152, 157);
+            this.bottomTabPage.Size = new System.Drawing.Size(169, 157);
             this.bottomTabPage.TabIndex = 0;
             this.bottomTabPage.Text = "Bottom";
             this.bottomTabPage.UseVisualStyleBackColor = true;
@@ -963,7 +964,7 @@
             this.bottomPropertyGrid.MinimumSize = new System.Drawing.Size(150, 0);
             this.bottomPropertyGrid.Name = "bottomPropertyGrid";
             this.bottomPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.bottomPropertyGrid.Size = new System.Drawing.Size(150, 151);
+            this.bottomPropertyGrid.Size = new System.Drawing.Size(163, 151);
             this.bottomPropertyGrid.TabIndex = 1;
             // 
             // TopTabPage
@@ -995,7 +996,7 @@
             this.settingsGroupBox.Location = new System.Drawing.Point(13, 364);
             this.settingsGroupBox.MinimumSize = new System.Drawing.Size(521, 200);
             this.settingsGroupBox.Name = "settingsGroupBox";
-            this.settingsGroupBox.Size = new System.Drawing.Size(534, 247);
+            this.settingsGroupBox.Size = new System.Drawing.Size(534, 261);
             this.settingsGroupBox.TabIndex = 22;
             this.settingsGroupBox.TabStop = false;
             this.settingsGroupBox.Text = "Settings";
@@ -1012,7 +1013,7 @@
             this.SettingsTabControl.Location = new System.Drawing.Point(3, 16);
             this.SettingsTabControl.Name = "SettingsTabControl";
             this.SettingsTabControl.SelectedIndex = 0;
-            this.SettingsTabControl.Size = new System.Drawing.Size(528, 228);
+            this.SettingsTabControl.Size = new System.Drawing.Size(528, 242);
             this.SettingsTabControl.TabIndex = 17;
             // 
             // generalSettingsTabPage
@@ -1021,13 +1022,14 @@
             this.generalSettingsTabPage.Location = new System.Drawing.Point(4, 22);
             this.generalSettingsTabPage.Name = "generalSettingsTabPage";
             this.generalSettingsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.generalSettingsTabPage.Size = new System.Drawing.Size(520, 202);
+            this.generalSettingsTabPage.Size = new System.Drawing.Size(520, 216);
             this.generalSettingsTabPage.TabIndex = 0;
             this.generalSettingsTabPage.Text = "General";
             this.generalSettingsTabPage.UseVisualStyleBackColor = true;
             // 
             // generalSettingsPanel
             // 
+            this.generalSettingsPanel.Controls.Add(this.changeGainCheckBox);
             this.generalSettingsPanel.Controls.Add(this.shortCircuitDelayCheckBox);
             this.generalSettingsPanel.Controls.Add(this.shortCircuitDelayTimeNumericUpDown);
             this.generalSettingsPanel.Controls.Add(this.useKeithleyCheckBox);
@@ -1055,7 +1057,7 @@
             this.generalSettingsPanel.Location = new System.Drawing.Point(3, 3);
             this.generalSettingsPanel.MinimumSize = new System.Drawing.Size(0, 151);
             this.generalSettingsPanel.Name = "generalSettingsPanel";
-            this.generalSettingsPanel.Size = new System.Drawing.Size(514, 196);
+            this.generalSettingsPanel.Size = new System.Drawing.Size(514, 210);
             this.generalSettingsPanel.TabIndex = 16;
             // 
             // shortCircuitDelayCheckBox
@@ -4286,12 +4288,23 @@
             this.ivWithoutMovingBackgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.ivWithoutMovingBackgroundWorker1_DoWork);
             this.ivWithoutMovingBackgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.ivWithoutMovingBackgroundWorker1_RunWorkerCompleted);
             // 
+            // changeGainCheckBox
+            // 
+            this.changeGainCheckBox.AutoSize = true;
+            this.changeGainCheckBox.ForeColor = System.Drawing.Color.Black;
+            this.changeGainCheckBox.Location = new System.Drawing.Point(7, 182);
+            this.changeGainCheckBox.Name = "changeGainCheckBox";
+            this.changeGainCheckBox.Size = new System.Drawing.Size(88, 17);
+            this.changeGainCheckBox.TabIndex = 24;
+            this.changeGainCheckBox.Text = "Change Gain";
+            this.changeGainCheckBox.UseVisualStyleBackColor = true;
+            // 
             // SBJControllerMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(762, 825);
+            this.ClientSize = new System.Drawing.Size(762, 851);
             this.Controls.Add(this.controllerTabControl);
             this.Name = "SBJControllerMainForm";
             this.Text = "SBJControllerMainForm";
@@ -4733,6 +4746,7 @@
         private System.Windows.Forms.NumericUpDown shortCircuitDelayTimeIVNumericUpDown;
         private System.Windows.Forms.NumericUpDown shortCircuitDelayTimeCalibrationNumericUpDown;
         private System.Windows.Forms.CheckBox shortCircuitDelayTimeCalibrationCheckBox;
+        private System.Windows.Forms.CheckBox changeGainCheckBox;
                          
     }
 }
