@@ -19,7 +19,9 @@ namespace SBJController
         private const string c_enableDisplay = ":DISPLAY:ENABLE 1";
         private const string c_outputOn = ":OUTP ON;";
         private const string c_outputOff = ":OUTP OFF;";
-        private const string c_autoRange = ":SENSe:CURRent:RANGe:AUTO {0}";
+        private const string c_autoRange = "SENSe:CURRent:RANGe:AUTO {0}";
+        private const string c_setRange = "SENSe:CURRent:RANGe {0}";
+
 
         public double Bias
         {
@@ -64,9 +66,17 @@ namespace SBJController
             Write(string.Format(c_setCurrentMeasurementCompliance, compliance), "Error has occured while trying to set current measurement compliance.");            
         }
 
-        public void SetBias(double bias)
+        public void SetBias(double bias, double range, bool isAutoRangeOn)
         {
             Write(String.Format(c_setBiasCommand, bias), "Error has occured while trying to set the bias.");
+            if (isAutoRangeOn)
+            {
+                SetAutoRange(true);
+            }
+            else
+            {
+                SetRange(range);
+            }
             SetLocalMode();
         }
 
@@ -74,13 +84,6 @@ namespace SBJController
         {
             Write(c_enableDisplay, "Error has occured while trying to set display on.");
         }
-
-        public void SetAutoRange(bool turnOnAutoRange)
-        {
-            Write(string.Format(c_autoRange, Convert.ToInt32(turnOnAutoRange)), "Error has occured while trying to set autorange.");
-            SetLocalMode();
-        } 
-
         public void TurnOn()
         {
             Write(c_outputOn, "Error has occured while trying to turn on the source meter.");
@@ -89,6 +92,18 @@ namespace SBJController
         public void TurnOff()
         {
             Write(c_outputOff, "Error has occured while trying to turn off the source meter.");
+        }
+
+        public void SetAutoRange(bool autoRangeOn)
+        {
+            Write(String.Format(c_autoRange, Convert.ToInt32(autoRangeOn)), "Error has occured while trying to set autoRange.");
+            SetLocalMode();
+        }
+
+        public void SetRange(double range)
+        {
+            Write(String.Format(c_setRange, range), "Error has occured while trying to set the range.");
+            SetLocalMode();
         }
     }
 }

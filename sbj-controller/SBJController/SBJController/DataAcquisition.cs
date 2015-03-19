@@ -89,7 +89,8 @@ namespace SBJController
             //
             // Create anaglog input task with the specified name
             //
-            Task analogInputTask = new Task(c_refTriggeredTask);
+            string name = properties.TaskName != null ? properties.TaskName : c_refTriggeredTask;
+            Task analogInputTask = new Task(name);
 
             //
             // Construct the the physical channel name according to the desired inputs.
@@ -179,6 +180,7 @@ namespace SBJController
             //
             analogInputTask.Timing.ConfigureSampleClock(string.Empty, properties.SampleRate, SampleClockActiveEdge.Rising,
                                                         SampleQuantityMode.ContinuousSamples, (int)properties.SampleRate * 600);
+
             //
             // Verify the task
             //
@@ -330,8 +332,8 @@ namespace SBJController
         #endregion
 
         #region Constructor
-        public TriggeredTaskProperties(IList<IDataChannel> activeChannels, double sampleRate, int samplesPerChannel, double triggerLevel, long preTriggerSamples, AnalogEdgeReferenceTriggerSlope triggerSlope) 
-            : base(sampleRate, samplesPerChannel, activeChannels)
+        public TriggeredTaskProperties(string taskName, IList<IDataChannel> activeChannels, double sampleRate, int samplesPerChannel, double triggerLevel, long preTriggerSamples, AnalogEdgeReferenceTriggerSlope triggerSlope)
+            : base(sampleRate, samplesPerChannel, activeChannels, taskName)
         {
             TriggerLevel = triggerLevel;
             PreTriggerSamples = preTriggerSamples;
@@ -348,6 +350,7 @@ namespace SBJController
         private double m_sampleRate;
         private int m_samplesPerChannel;
         private IList<IDataChannel> m_activeChannels;
+        private string m_taskName;
         #endregion
 
         #region Properties
@@ -370,6 +373,15 @@ namespace SBJController
         }
 
         /// <summary>
+        /// TaskName
+        /// </summary>
+        public string TaskName
+        {
+            get { return m_taskName; }
+            private set { m_taskName = value; }
+        }
+
+        /// <summary>
         /// The active channels
         /// </summary>
         public IList<IDataChannel> ActiveChannels
@@ -380,23 +392,26 @@ namespace SBJController
         #endregion
 
         #region Constructor
-        public TaskProperties(double sampleRate, int samplesPerChannel, IList<IDataChannel> activeChannels)
+        public TaskProperties(double sampleRate, int samplesPerChannel, IList<IDataChannel> activeChannels,string taskName)
         {
             SampleRate = sampleRate;
             SamplesPerChannel = samplesPerChannel;
             ActiveChannels = activeChannels;
+            TaskName = taskName;
         }
 
-        public TaskProperties(double sampleRate, int samplesPerChannel) 
+        public TaskProperties(double sampleRate, int samplesPerChannel, string taskName) 
         {
             SampleRate = sampleRate;
             SamplesPerChannel = samplesPerChannel;
+            TaskName = taskName;
         }
 
-        public TaskProperties(double sampleRate, IList<IDataChannel> activeChannels)
+        public TaskProperties(double sampleRate, IList<IDataChannel> activeChannels, string taskName)
         {
             SampleRate = sampleRate;
             ActiveChannels = activeChannels;
+            TaskName = taskName;
         }
         #endregion
     }
@@ -422,8 +437,8 @@ namespace SBJController
         #endregion
 
         #region Constructor
-        public ContinuousAOTaskProperties(double sampleRate, int samplesPerChannel, double amplitude)
-            : base(sampleRate, samplesPerChannel)
+        public ContinuousAOTaskProperties(string taskName, double sampleRate, int samplesPerChannel, double amplitude)
+            : base(sampleRate, samplesPerChannel, taskName)
         {
             Amplitude = amplitude;
         }

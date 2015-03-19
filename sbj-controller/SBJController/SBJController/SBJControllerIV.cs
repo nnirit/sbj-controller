@@ -56,7 +56,7 @@ namespace SBJController
             //
             // get the properties required for the output task
             //
-            ContinuousAOTaskProperties outputProperties = new ContinuousAOTaskProperties(sampleRate, samplesPerChannel, voltage);
+            ContinuousAOTaskProperties outputProperties = new ContinuousAOTaskProperties(null, sampleRate, samplesPerChannel, voltage);
             
             //
             // create the output task
@@ -101,7 +101,7 @@ namespace SBJController
             //
             // create the input and output tasks
             //
-            m_ivInputTask = GetContinuousAITask(settings.IVGeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+            m_ivInputTask = GetContinuousAITask(settings.IVGeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels, null);
             m_ivInputTask.Stream.ReadRelativeTo = ReadRelativeTo.FirstSample;
             m_outputTask = GetContinuousAOTask(settings);
 
@@ -337,7 +337,7 @@ namespace SBJController
             //
             // create the input and output tasks
             //
-            m_ivInputTask = GetContinuousAITask(settings.IVGeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+            m_ivInputTask = GetContinuousAITask(settings.IVGeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels, null);
             m_ivInputTask.Stream.ReadRelativeTo = ReadRelativeTo.FirstSample;
             m_outputTask = GetContinuousAOTask(settings);
 
@@ -753,12 +753,12 @@ namespace SBJController
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        private Task GetContinuousAITask(int sampleRate, IList<IDataChannel> activeChannels)
+        private Task GetContinuousAITask(int sampleRate, IList<IDataChannel> activeChannels, string taskName)
         {
             //
             // get the properties required for the input task
             //
-            TaskProperties inputTaskProperties = new TaskProperties(sampleRate, activeChannels);
+            TaskProperties inputTaskProperties = new TaskProperties(sampleRate, activeChannels, taskName);
 
             //
             // return the input task
@@ -776,7 +776,7 @@ namespace SBJController
             //
             // get the properties required for the output task
             //
-            ContinuousAOTaskProperties outputProperties = new ContinuousAOTaskProperties(settings.IVGeneralSettings.OutputUpdateRate,
+            ContinuousAOTaskProperties outputProperties = new ContinuousAOTaskProperties(null, settings.IVGeneralSettings.OutputUpdateRate,
                                                                                          settings.IVGeneralSettings.SamplesPerCycle,
                                                                                          settings.IVGeneralSettings.VoltageAmplitude);
             //
