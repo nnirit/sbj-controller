@@ -27,7 +27,9 @@ namespace SBJController
         private LockIn m_LockIn;
         private LambdaZup m_lambdaZup;
         private DataAcquisitionController m_daqController;
-        private Task m_triggeredTask;
+        private Task m_activeTriggeredTask;
+        private Task m_firstTriggeredTask;
+        private Task m_secondaryTriggeredTask;
         private Task m_realTimeTask;
         private AnalogEdgeReferenceTriggerSlope m_triggerSlope;
         private double m_triggerVoltage;
@@ -52,8 +54,8 @@ namespace SBJController
         
         public Task TriggeredTask
         {
-            get { return m_triggeredTask; }
-            set { m_triggeredTask = value; }
+            get { return m_activeTriggeredTask; }
+            set { m_activeTriggeredTask = value; }
         }
 
         public Task RealTimeTask
@@ -563,17 +565,15 @@ namespace SBJController
         /// <param name="worker"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        private Task GetMultipleChannelsTriggeredTask(SBJControllerSettings settings, RunDirection runDirection, AnalogEdgeReferenceTriggerSlope triggerSlope, double triggerVoltage, BackgroundWorker worker, DoWorkEventArgs e)
+        private Task GetMultipleChannelsTriggeredTask(SBJControllerSettings settings, string taskName, RunDirection runDirection, AnalogEdgeReferenceTriggerSlope triggerSlope, double triggerVoltage, BackgroundWorker worker, DoWorkEventArgs e)
         {
             AnalogEdgeReferenceTriggerSlope localTriggerSlope;
             double localTriggerVoltage;
 
             //
             // Determine the trigger slope direction and voltage according to sign of the measured signal.
-            // This is done only once, for the first time this method is called.
-            // Then these value are saved as class members.
             //
-            if (triggerSlope > 0)
+            if (triggerSlope > 0) 
             {
                 localTriggerSlope = triggerSlope;
                 localTriggerVoltage = triggerVoltage;
@@ -637,12 +637,14 @@ namespace SBJController
             //
             // Create the task with its propertites
             //
-            TriggeredTaskProperties taskProperties = new TriggeredTaskProperties(settings.ChannelsSettings.ActiveChannels,                                                                                 
+            TriggeredTaskProperties taskProperties = new TriggeredTaskProperties(taskName,
+                                                                                 settings.ChannelsSettings.ActiveChannels,                                                                                 
                                                                                  settings.GeneralSettings.SampleRate,
                                                                                  settings.GeneralSettings.TotalSamples,
                                                                                  localTriggerVoltage,
                                                                                  settings.GeneralSettings.PretriggerSamples,
-                                                                                 localTriggerSlope);           
+                                                                                 localTriggerSlope);
+
 
             return m_daqController.CreateMultipleChannelsTriggeredTask(taskProperties);
         }
@@ -1018,14 +1020,14 @@ namespace SBJController
                 //
                 try
                 {
-                    m_triggeredTask.Start();
+                    m_activeTriggeredTask.Start();
                 }
                 catch (DaqException ex)
                 {
                     throw new SBJException("Error occured when tryin to start DAQ task", ex);
                 }
 
-                AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
+                AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_activeTriggeredTask.Stream);
 
                 try
                 {
@@ -1037,7 +1039,7 @@ namespace SBJController
                         // If from some reason we weren't able to 
                         // receive all data points, ignore and continue;
                         //
-                        m_triggeredTask.Stop();
+                        m_activeTriggeredTask.Stop();
                         continue;
                     }
 
@@ -1052,7 +1054,7 @@ namespace SBJController
                     // Probably timeout.
                     // Ignore this cycle and rerun.
                     //
-                    m_triggeredTask.Stop();
+                    m_activeTriggeredTask.Stop();
                     continue;
                 }
 
@@ -1061,7 +1063,7 @@ namespace SBJController
                 // so we can stop the openning of the junction.
                 //
                 m_quitJunctionClosingOperation = true;
-                m_triggeredTask.Stop();
+                m_activeTriggeredTask.Stop();
 
                 //
                 // Assign the aquired data for each channel.
@@ -1218,11 +1220,11 @@ namespace SBJController
                 //
                 // Turn off the laser before we reach contact
                 //
-                if (settings.LaserSettings.IsLaserOn)
-                {
-                    m_LaserController.TurnOff();
-                    Thread.Sleep(5000);
-                }
+                //if (settings.LaserSettings.IsLaserOn)
+                //{
+                //    m_LaserController.TurnOff();
+                //    Thread.Sleep(5000);
+                //}
 
                 //
                 // Change the gain power to 5 before reaching contact
@@ -1263,6 +1265,17 @@ namespace SBJController
                 }
 
                 //
+                // Set the bias if AC mode
+                //
+                m_activeTriggeredTask = m_firstTriggeredTask;
+                if (settings.GeneralSettings.ACBias)
+                {
+                    double bias = Math.Pow(-1, finalFileNumber) * settings.GeneralSettings.Bias;
+                    m_sourceMeter.SetBias(bias, settings.GeneralSettings.Range,settings.GeneralSettings.AutoRange);
+                    m_activeTriggeredTask =  (bias == settings.GeneralSettings.Bias) ? m_firstTriggeredTask : m_secondaryTriggeredTask;
+                }
+
+                //
                 // Start openning the junction.
                 // If EM is enabled and we're after the first cycle, use the EM.
                 //
@@ -1299,7 +1312,7 @@ namespace SBJController
                 //
                 try
                 {
-                    m_triggeredTask.Start();
+                    m_activeTriggeredTask.Start();
                 }
                 catch (DaqException ex)
                 {
@@ -1314,10 +1327,11 @@ namespace SBJController
                         m_amplifier.ChangeGain(gainPower);
                     }
                 }
-                AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
+                AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_activeTriggeredTask.Stream);
 
                 try
                 {
+                     
                     dataAquired = reader.ReadMultiSample(-1);
 
                     if (dataAquired.GetLength(1) < settings.GeneralSettings.TotalSamples)
@@ -1326,7 +1340,7 @@ namespace SBJController
                         // If from some reason we weren't able to 
                         // receive all data points, ignore and continue;
                         //
-                        m_triggeredTask.Stop();
+                        m_activeTriggeredTask.Stop();
                         continue;
                     }
 
@@ -1350,7 +1364,7 @@ namespace SBJController
                         // Probably timeout.
                         // Ignore this cycle and rerun.
                         //
-                        m_triggeredTask.Stop();
+                        m_activeTriggeredTask.Stop();
                         continue;
                     }
                 }
@@ -1360,7 +1374,7 @@ namespace SBJController
                 // so we can stop the openning of the junction.
                 //
                 m_quitJunctionOpenningOperation = true;
-                m_triggeredTask.Stop();
+                m_activeTriggeredTask.Stop();
 
                 //
                 // Assign the aquired data for each channel.
@@ -1386,7 +1400,7 @@ namespace SBJController
                 finalFileNumber++;
                 if (settings.GeneralSettings.IsFileSavingRequired)
                 {
-                    finalFileNumber = SaveData(settings.GeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);
+                    finalFileNumber = SaveData(settings.GeneralSettings.Path, settings.ChannelsSettings.ActiveChannels, physicalChannels, finalFileNumber);                    
                 }
 
                 //
@@ -1446,17 +1460,17 @@ namespace SBJController
                 // Configure the triggered task. The is the task that is used just in order to notify us
                 // that we've reached the desired position and it's time to start recording the data.
                 //
-                m_triggeredTask = GetMultipleChannelsTriggeredTask(settings, RunDirection.Make, m_triggerSlope, m_triggerVoltage, worker, e);
-                m_triggeredTask.EveryNSamplesReadEventInterval = settings.GeneralSettings.TotalSamples;
-                m_triggeredTask.Done += new TaskDoneEventHandler(OnTaskDoneClosing);
-                m_triggeredTask.Control(TaskAction.Verify);
-                m_triggerSlope = m_triggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Slope;
-                m_triggerVoltage = m_triggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Level;
+                m_activeTriggeredTask = GetMultipleChannelsTriggeredTask(settings, null, RunDirection.Make, m_triggerSlope, m_triggerVoltage, worker, e);
+                m_activeTriggeredTask.EveryNSamplesReadEventInterval = settings.GeneralSettings.TotalSamples;
+                m_activeTriggeredTask.Done += new TaskDoneEventHandler(OnTaskDoneClosing);
+                m_activeTriggeredTask.Control(TaskAction.Verify);
+                m_triggerSlope = m_activeTriggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Slope;
+                m_triggerVoltage = m_activeTriggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Level;
 
                 //
                 // Create the real time task for recording the data.
                 //
-                m_realTimeTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+                m_realTimeTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels,null);
                 AnalogMultiChannelReader realTimeReader = new AnalogMultiChannelReader(m_realTimeTask.Stream);
 
                 //
@@ -1497,7 +1511,7 @@ namespace SBJController
                 //
                 // Start the triggered task.
                 //
-                m_triggeredTask.Start();
+                m_activeTriggeredTask.Start();
 
                 //
                 // Wait for the corssover of the trigger conductance point.
@@ -1506,7 +1520,7 @@ namespace SBJController
                 //
                 try
                 {
-                    m_triggeredTask.WaitUntilDone();
+                    m_activeTriggeredTask.WaitUntilDone();
                 }
                 catch (DaqException)
                 {
@@ -1580,7 +1594,7 @@ namespace SBJController
                 }
             }
 
-            m_triggeredTask.Dispose();
+            m_activeTriggeredTask.Dispose();
             m_realTimeTask.Dispose();
             m_triggerSlope = 0;
             m_triggerVoltage = 0;
@@ -1616,12 +1630,12 @@ namespace SBJController
                 // This flag is used to signal us when the user asked to stop the real time data acquisition
                 //
                 m_quitRealTimeOperation = false;
-                m_triggeredTask = GetMultipleChannelsTriggeredTask(settings, RunDirection.Break, m_triggerSlope, m_triggerVoltage, worker, e);
-                m_triggeredTask.EveryNSamplesReadEventInterval = settings.GeneralSettings.TotalSamples;
-                m_triggeredTask.Done += new TaskDoneEventHandler(OnTaskDoneOpenning);
-                m_triggeredTask.Control(TaskAction.Verify);
-                m_triggerSlope = m_triggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Slope;
-                m_triggerVoltage = m_triggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Level;
+                m_activeTriggeredTask = GetMultipleChannelsTriggeredTask(settings, null, RunDirection.Break, m_triggerSlope, m_triggerVoltage, worker, e);
+                m_activeTriggeredTask.EveryNSamplesReadEventInterval = settings.GeneralSettings.TotalSamples;
+                m_activeTriggeredTask.Done += new TaskDoneEventHandler(OnTaskDoneOpenning);
+                m_activeTriggeredTask.Control(TaskAction.Verify);
+                m_triggerSlope = m_activeTriggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Slope;
+                m_triggerVoltage = m_activeTriggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Level;
 
                 //
                 // physical channel will include both simple and complex channels. 
@@ -1637,7 +1651,7 @@ namespace SBJController
                 //
                 // Create the tasks: One for triggering us to stop and the other for start monitoring the data
                 //
-                m_realTimeTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+                m_realTimeTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels, null);
                 AnalogMultiChannelReader realTimeReader = new AnalogMultiChannelReader(m_realTimeTask.Stream);
 
                 //
@@ -1678,7 +1692,7 @@ namespace SBJController
                 //
                 // Start the triggered task. 
                 //
-                m_triggeredTask.Start();
+                m_activeTriggeredTask.Start();
 
                 //
                 // If the user asked to stop the operation on the external thread then
@@ -1686,7 +1700,7 @@ namespace SBJController
                 //
                 try
                 {
-                    m_triggeredTask.WaitUntilDone();
+                    m_activeTriggeredTask.WaitUntilDone();
                 }
                 catch (DaqException)
                 {
@@ -1756,7 +1770,7 @@ namespace SBJController
                 }
             }
 
-            m_triggeredTask.Dispose();
+            m_activeTriggeredTask.Dispose();
             m_realTimeTask.Dispose();
             m_triggerSlope = 0;
             m_triggerVoltage = 0;
@@ -1778,7 +1792,7 @@ namespace SBJController
             //
             // We need to dispose the triggered task here in order to start the real time task on te main thread.
             //
-            m_triggeredTask.Dispose();
+            m_activeTriggeredTask.Dispose();
         }
 
         /// <summary>
@@ -1796,7 +1810,7 @@ namespace SBJController
             //
             // We need to dispose the triggered task here in order to start the real time task on te main thread.
             //
-            m_triggeredTask.Dispose();
+            m_activeTriggeredTask.Dispose();
         }
 
         /// <summary>
@@ -1916,7 +1930,9 @@ namespace SBJController
             //
             ApplyVoltageIfNeeded(settings.GeneralSettings.UseKeithley, 
                                  settings.GeneralSettings.Bias, 
-                                 settings.GeneralSettings.BiasError);
+                                 settings.GeneralSettings.BiasError,
+                                 settings.GeneralSettings.Range,
+                                 settings.GeneralSettings.AutoRange);
 
             //
             // Use Lambda Zup to apply constant voltage on external electromagnet if needed
@@ -1953,11 +1969,15 @@ namespace SBJController
                     //TODO: Add implementation for both direction measurement
                     break;
                 case RunDirection.Break:
-                    m_triggeredTask = GetMultipleChannelsTriggeredTask(settings, RunDirection.Break, m_triggerSlope, m_triggerVoltage,  worker, e);                    
+                    m_firstTriggeredTask = GetMultipleChannelsTriggeredTask(settings, "firstTriggeredTask" ,RunDirection.Break, 0, 0, worker, e);
+                    m_firstTriggeredTask.Control(TaskAction.Verify);
+                    double level = m_firstTriggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Level * -1;
+                    AnalogEdgeReferenceTriggerSlope slope = m_firstTriggeredTask.Triggers.ReferenceTrigger.AnalogEdge.Slope == AnalogEdgeReferenceTriggerSlope.Falling ? AnalogEdgeReferenceTriggerSlope.Rising : AnalogEdgeReferenceTriggerSlope.Falling;
+                    m_secondaryTriggeredTask = GetMultipleChannelsTriggeredTask(settings, "secondaryTriggeredTask",  RunDirection.Break, slope, level , worker, e);
                     isCancelled = PerformBreakJunctionCycles(settings, worker, e);
                     break;
                 case RunDirection.Make:
-                    m_triggeredTask = GetMultipleChannelsTriggeredTask(settings, RunDirection.Make, m_triggerSlope, m_triggerVoltage, worker, e);
+                    m_activeTriggeredTask = GetMultipleChannelsTriggeredTask(settings, null,RunDirection.Make, m_triggerSlope, m_triggerVoltage, worker, e);
                     isCancelled = PerformMakeJunctionCycles(settings, worker, e);                    
                     break;
             }     
@@ -1985,7 +2005,9 @@ namespace SBJController
             {
                 m_lambdaZup.TurnOffOutput();
             }
-            m_triggeredTask.Dispose();
+            m_activeTriggeredTask.Dispose();
+            m_firstTriggeredTask.Dispose();
+            m_secondaryTriggeredTask.Dispose();
             m_stepperMotor.Shutdown();
 
             return isCancelled;
@@ -2004,7 +2026,9 @@ namespace SBJController
             //
             ApplyVoltageIfNeeded(settings.GeneralSettings.UseKeithley,
                                  settings.GeneralSettings.Bias,
-                                 settings.GeneralSettings.BiasError);
+                                 settings.GeneralSettings.BiasError,
+                                 settings.GeneralSettings.Range,
+                                 settings.GeneralSettings.AutoRange);
 
             bool isCancelled = false;
             int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
@@ -2034,7 +2058,7 @@ namespace SBJController
             //
             // Create the task
             //
-            m_triggeredTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+            m_activeTriggeredTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels, null);
             
             //
             // If EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
@@ -2114,14 +2138,14 @@ namespace SBJController
             //
             try
             {
-                m_triggeredTask.Start();
+                m_activeTriggeredTask.Start();
             }
             catch (DaqException ex)
             {
                 throw new SBJException("Error occured when tryin to start DAQ task", ex);
             }
 
-            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
+            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_activeTriggeredTask.Stream);
             List<List<double>> averagedData = new List<List<double>>(settings.ChannelsSettings.ActiveChannels.Count);
 
             for (int i = 0; i < averagedData.Capacity; i++)
@@ -2177,8 +2201,8 @@ namespace SBJController
                 //
                 // In case of an error just return
                 //
-                m_triggeredTask.Stop();
-                m_triggeredTask.Dispose();
+                m_activeTriggeredTask.Stop();
+                m_activeTriggeredTask.Dispose();
                 if (m_LaserController != null)
                 {
                 m_LaserController.TurnOff();
@@ -2198,7 +2222,7 @@ namespace SBJController
             // At this point the user had requested to stop the data aquisition.
             // By signaling "stop". We can stop the task.
             //            
-            m_triggeredTask.Stop();
+            m_activeTriggeredTask.Stop();
 
             //
             // Assign the aquired data for each channel after an average process
@@ -2254,7 +2278,7 @@ namespace SBJController
                 m_taborSecondEOMController.TurnOff();
             }
 
-            m_triggeredTask.Dispose();
+            m_activeTriggeredTask.Dispose();
             m_stepperMotor.Shutdown();
 
             return (isCancelled || e.Cancel);
@@ -2273,8 +2297,9 @@ namespace SBJController
             //
             ApplyVoltageIfNeeded(settings.GeneralSettings.UseKeithley,
                                  settings.GeneralSettings.Bias,
-                                 settings.GeneralSettings.BiasError);
-
+                                 settings.GeneralSettings.BiasError,
+                                 settings.GeneralSettings.Range,
+                                 settings.GeneralSettings.AutoRange);
             bool isCancelled = false;
             int finalFileNumber = settings.GeneralSettings.CurrentFileNumber;
 
@@ -2303,7 +2328,7 @@ namespace SBJController
             //
             // Create the task
             //
-            m_triggeredTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels);
+            m_activeTriggeredTask = GetContinuousAITask(settings.GeneralSettings.SampleRate, settings.ChannelsSettings.ActiveChannels, null);
 
             //
             // If EM is enabled, and we are asked to skip the first cycle (that is done by the stepper motor), 
@@ -2326,14 +2351,14 @@ namespace SBJController
             //
             try
             {
-                m_triggeredTask.Start();
+                m_activeTriggeredTask.Start();
             }
             catch (DaqException ex)
             {
                 throw new SBJException("Error occured when tryin to start DAQ task", ex);
             }
 
-            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
+            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_activeTriggeredTask.Stream);
             List<List<double>> fullData = new List<List<double>>(settings.ChannelsSettings.ActiveChannels.Count);
 
             for (int i = 0; i < fullData.Capacity; i++)
@@ -2369,8 +2394,8 @@ namespace SBJController
                 //
                 // In case of an error just return
                 //
-                m_triggeredTask.Stop();
-                m_triggeredTask.Dispose();
+                m_activeTriggeredTask.Stop();
+                m_activeTriggeredTask.Dispose();
                 if (m_LaserController != null)
                 {
                     m_LaserController.TurnOff();
@@ -2390,7 +2415,7 @@ namespace SBJController
             // At this point the user had requested to stop the data aquisition.
             // By signaling "stop". We can stop the task.
             //            
-            m_triggeredTask.Stop();
+            m_activeTriggeredTask.Stop();
 
             //
             // Assign the aquired data for each channel after an average process
@@ -2446,7 +2471,7 @@ namespace SBJController
                 m_taborSecondEOMController.TurnOff();
             }
 
-            m_triggeredTask.Dispose();
+            m_activeTriggeredTask.Dispose();
             m_stepperMotor.Shutdown();
 
             return (isCancelled || e.Cancel);
@@ -2466,7 +2491,8 @@ namespace SBJController
             //
             ApplyVoltageIfNeeded(settings.GeneralSettings.UseKeithley,
                                  settings.GeneralSettings.Bias,
-                                 settings.GeneralSettings.BiasError);
+                                 settings.GeneralSettings.BiasError, settings.GeneralSettings.Range,
+                                 settings.GeneralSettings.AutoRange);
 
             //
             // Use Lambda Zup to apply constant voltage on external electromagnet if needed
@@ -2526,11 +2552,32 @@ namespace SBJController
             {
                 m_lambdaZup.TurnOffOutput();
             }
-            m_triggeredTask.Dispose();
+            m_activeTriggeredTask.Dispose();
             m_stepperMotor.Shutdown();
 
             return isCancelled;            
-        }               
+        }   
+        
+        public void TryAbortTasks()
+        {
+            
+            if (m_realTimeTask != null)
+            {
+                m_realTimeTask.Control(TaskAction.Abort);
+            }
+            if (m_firstTriggeredTask != null)
+            {
+                m_firstTriggeredTask.Control(TaskAction.Abort);
+            }
+            if (m_secondaryTriggeredTask != null)
+            {
+                m_secondaryTriggeredTask.Control(TaskAction.Abort);
+            }
+            if (m_activeTriggeredTask != null)
+            {
+                m_activeTriggeredTask.Control(TaskAction.Abort);
+            }          
+        }
 
         /// <summary>
         /// Move the stepper up
@@ -2555,7 +2602,7 @@ namespace SBJController
         /// <param name="shortCircuitVoltage"></param>
         /// <param name="worker"></param>
         /// <param name="e"></param>
-        public void FixBias(double shortCircuitVoltage, double bias, bool useShortCircuitDelayTime, int shortCircuitDelayTime, BackgroundWorker worker, DoWorkEventArgs e)
+        public void FixBias(double shortCircuitVoltage, double bias, bool useShortCircuitDelayTime, int shortCircuitDelayTime, double range, bool autoRange, BackgroundWorker worker, DoWorkEventArgs e)
         {
             int i = 0;
             bool isBiasedFixed = false;
@@ -2581,7 +2628,7 @@ namespace SBJController
             // If everything is OK then at zero bias the current 
             // should be also zero. If it's not, correction should be made.
             //
-            m_sourceMeter.SetBias(0);
+            m_sourceMeter.SetBias(0, range, autoRange);
             double previousVoltage = AnalogIn(0);
             int previousVoltageSign = previousVoltage > 0 ? 1 : -1;
 
@@ -2612,7 +2659,7 @@ namespace SBJController
                 // Change the bias with accuracy of 0.0005;
                 //
                 biasFixValue = ++i * 0.0005 * biasChangeFactor;
-                m_sourceMeter.SetBias(biasFixValue);
+                m_sourceMeter.SetBias(biasFixValue, range, autoRange);
                 
                 //
                 // Wait before reading the voltage again
@@ -2770,9 +2817,9 @@ namespace SBJController
         /// </summary>
         /// <param name="bias">New bias in volts</param>
         /// <exception cref="SBJException"></exception>
-        public void ChangeBias(double bias)
+        public void ChangeBias(double bias, double range, bool isAutoRangeOn)
         {
-            m_sourceMeter.SetBias(bias);
+            m_sourceMeter.SetBias(bias, range, isAutoRangeOn);
         }
 
         /// <summary>
@@ -2788,7 +2835,7 @@ namespace SBJController
         /// <summary>
         /// if we can't use the keithey we will use the DAQ as a source instead.
         /// </summary>
-        public void ApplyVoltageIfNeeded(bool useKeithley, double bias, double biasError)
+        public void ApplyVoltageIfNeeded(bool useKeithley, double bias, double biasError, double range, bool isAutorangeOn)
         {
             //
             // if we didn't check the keithley as a source for bias,  let's try to connect to it
@@ -2798,7 +2845,7 @@ namespace SBJController
                 try
                 {
                     SourceMeter.Connect();
-                    SourceMeter.SetBias(bias + biasError);
+                    SourceMeter.SetBias(bias + biasError, range, isAutorangeOn);
                 }
                 catch (SBJException)
                 {
@@ -2814,6 +2861,11 @@ namespace SBJController
                         throw new SBJException("Error occured when tryin to start DAQ output task", ex);
                     }
                 }
+            }
+            else
+            {
+                SourceMeter.Connect();
+                SourceMeter.SetBias(bias + biasError, range, isAutorangeOn);
             }
         }
 
@@ -2864,9 +2916,9 @@ namespace SBJController
                 m_LaserController.Disconnect();
             }
             m_LockIn.Shutdown();
-            if (m_triggeredTask != null)
+            if (m_activeTriggeredTask != null)
             {
-                m_triggeredTask.Dispose();
+                m_activeTriggeredTask.Dispose();
             }
         }
         #endregion

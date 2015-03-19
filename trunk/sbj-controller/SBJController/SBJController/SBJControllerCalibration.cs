@@ -29,7 +29,7 @@ namespace SBJController
             // Apply voltage with desired tool: Task or Keithley
             //
             ApplyVoltageIfNeeded(settings.CalibirationSettings.UseKeithley,
-                                 settings.CalibirationSettings.Bias, 0.0);
+                                 settings.CalibirationSettings.Bias, 0.0, 0.0001, true);
 
             //
             // Save this run settings if desired
@@ -62,7 +62,7 @@ namespace SBJController
             //
             // Create the task
             //
-            m_triggeredTask = GetCalibrationTask(settings, worker, e);
+            m_activeTriggeredTask = GetCalibrationTask( settings, null, worker, e);
 
             //
             // physical channel will include both simple and complex channels. 
@@ -88,7 +88,7 @@ namespace SBJController
                 //
                 try
                 {
-                    m_triggeredTask.Start();
+                    m_activeTriggeredTask.Start();
                 }
                 catch (DaqException ex)
                 {
@@ -181,7 +181,7 @@ namespace SBJController
                 //
                 // data acquisition is done for this trace, stop the task
                 //
-                m_triggeredTask.Stop();
+                m_activeTriggeredTask.Stop();
 
                 //
                 // if operation was cancelled by user during the closing/opening, quit without saving this trace.
@@ -218,7 +218,7 @@ namespace SBJController
             //
             // Finish the measurement properly
             //
-            m_triggeredTask.Dispose();
+            m_activeTriggeredTask.Dispose();
             m_stepperMotor.Shutdown();
             if (settings.ElectromagnetSettings.IsEMEnable)
             {
@@ -282,7 +282,7 @@ namespace SBJController
         private double GetDataAfterEachStep(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
         {
             double[,] dataAquired=null;
-            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_triggeredTask.Stream);
+            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(m_activeTriggeredTask.Stream);
 
             dataAquired = reader.ReadMultiSample(-1);
 
@@ -301,13 +301,13 @@ namespace SBJController
         /// <param name="worker"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        private Task GetCalibrationTask(CalibrationSettings settings, BackgroundWorker worker, DoWorkEventArgs e)
+        private Task GetCalibrationTask(CalibrationSettings settings, string taskName,BackgroundWorker worker, DoWorkEventArgs e)
         { 
             //
             // Create the task with its propertites
             //
             TaskProperties taskProperties = new TaskProperties(settings.CalibirationSettings.SampleRate, 
-                                                               settings.ChannelsSettings.ActiveChannels);
+                                                               settings.ChannelsSettings.ActiveChannels, taskName);
 
             return m_daqController.CreateContinuousAITask(taskProperties);
         }

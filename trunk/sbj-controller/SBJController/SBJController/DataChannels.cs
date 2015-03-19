@@ -32,8 +32,19 @@ namespace SBJController
         /// <param name="rawVoltageValue"></param>
         /// <returns></returns>
         internal override double ConvertVoltageToPhysicalValue(double rawVoltageValue)
-        {           
-            return Math.Abs(rawVoltageValue) / Math.Pow(10, DataConvertionSettings.Gain) / DataConvertionSettings.Bias / c_1G0;
+        {
+            if (DataConvertionSettings.Bias > 0)
+            {
+                return Math.Abs(rawVoltageValue) / Math.Pow(10, DataConvertionSettings.Gain) / DataConvertionSettings.Bias / c_1G0;
+            }
+            else
+            {
+                //
+                // We will never get here since DataConvertionSettings.Bias always takes the abs value.
+                // See 'GetActiveChannels()' Method.
+                //
+                return rawVoltageValue;
+            }
         }       
     }
 

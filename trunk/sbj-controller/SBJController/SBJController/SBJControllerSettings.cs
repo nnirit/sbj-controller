@@ -38,6 +38,9 @@ namespace SBJController
     public class GeneralSBJControllerSettings 
     {
         public double Bias { get; set; }
+        public bool ACBias { get; set; }
+        public double Range { get; set; }
+        public bool AutoRange { get; set; }
         public double BiasError { get; set; }
         public string Gain { get; set; }
         public double TriggerVoltage { get; set; }
@@ -62,7 +65,7 @@ namespace SBJController
         public bool UseShortCircuitDelayTime { get; set; }
         public int ShortCircuitDelayTime { get; set; }
 
-        public GeneralSBJControllerSettings (double bias, double biasError, string gain, double triggerVoltage,
+        public GeneralSBJControllerSettings (double bias, bool acBias, double range, bool isAutoRangeOn,double biasError, string gain, double triggerVoltage,
                                      double triggerConductance, int sampleRate,
                                      int totalSamples, int pretriggerSamples,
                                      int stepperWaitTime1, int stepperWaitTime2, bool isFileSavingRequired, 
@@ -72,6 +75,9 @@ namespace SBJController
                                      RunDirection runDirection, Sample bottom, Sample top)
         {
             Bias = bias;
+            ACBias = acBias;
+            Range = range;
+            AutoRange = isAutoRangeOn;
             BiasError = biasError;
             Gain = gain;
             TriggerConductance = triggerConductance;
@@ -439,6 +445,8 @@ namespace SBJController
     public class CalibrationGeneralSettings
     {
         public double Bias { get; set; }
+        public double Range { get; set; }
+        public bool AutoRange { get; set; }
         public string Gain { get; set; }
         public double TriggerVoltage { get; set; }
         public double TriggerConductance { get; set; }
@@ -456,7 +464,7 @@ namespace SBJController
 
         public CalibrationMeasurementType MeasurementType { get; set; }
 
-        public CalibrationGeneralSettings(double bias, string gain, double triggerVoltage,
+        public CalibrationGeneralSettings(double bias, double range, bool isAutoRange,string gain, double triggerVoltage,
                                                  double triggerConductance, bool isFileSavingRequired,
                                                  int sampleRate, string path, int currentFileNumber,
                                                  int totalNUmberOfCycles, double shourtCircuitVoltage,
@@ -465,6 +473,8 @@ namespace SBJController
                                                  CalibrationMeasurementType measurementType)
         {
             Bias = bias;
+            Range = range;
+            AutoRange = isAutoRange;
             Gain = gain;
             TriggerConductance = triggerConductance;
             TriggerVoltage = triggerVoltage;

@@ -38,7 +38,8 @@ namespace SBJController
             this.topPropertyGrid.SelectedObject = new Sample();
             this.directionComboBox.DataSource = Enum.GetNames(typeof(RunDirection));
             PopulateChannelsLists();
-            TryConnectToKeithly();
+            TryConnectToKeithly(this.biasNumericEdit.Value, this.rangeNumericEdit.Value, this.autoRangeCheckBox.Checked);
+            
         }
 
         void OnDoneReadingData(object sender, DataAquiredEventArgs e)
@@ -169,7 +170,7 @@ namespace SBJController
             //
             // if we don't use the keithley for bias,  we need to apply it through the DAQ device
             //
-            m_sbjController.ApplyVoltageIfNeeded(this.useKeithleyCheckBox.Checked, this.biasNumericEdit.Value, this.biasErrorNumericEdit.Value);
+            m_sbjController.ApplyVoltageIfNeeded(this.useKeithleyCheckBox.Checked, this.biasNumericEdit.Value, this.biasErrorNumericEdit.Value, this.rangeNumericEdit.Value, this.autoRangeCheckBox.Checked);
 
             m_sbjController.TryObtainShortCircuit((double)shortCircuitVoltageNumericUpDown.Value, shortCircuitDelayCheckBox.Checked,(int)shortCircuitDelayTimeNumericUpDown.Value, worker, e);
         }
@@ -264,7 +265,8 @@ namespace SBJController
                 {
                     try
                     {
-                        m_sbjController.TriggeredTask.Control(TaskAction.Abort);
+                        m_sbjController.TryAbortTasks();
+                        
                     }
                     catch(Exception)
                     {
@@ -605,7 +607,7 @@ namespace SBJController
                     try
                     {
                         m_sbjController.SourceMeter.Connect();
-                        m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
+                        m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value, this.rangeNumericEdit.Value, this.autoRangeCheckBox.Checked);
                     }
                     catch (SBJException ex)
                     {
@@ -641,7 +643,7 @@ namespace SBJController
         private void fixBiasBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-            m_sbjController.FixBias((double)shortCircuitVoltageNumericUpDown.Value,(double)biasNumericEdit.Value,shortCircuitDelayCheckBox.Checked,(int)shortCircuitDelayTimeNumericUpDown.Value, worker, e);
+            m_sbjController.FixBias((double)shortCircuitVoltageNumericUpDown.Value,(double)biasNumericEdit.Value,shortCircuitDelayCheckBox.Checked,(int)shortCircuitDelayTimeNumericUpDown.Value, this.rangeNumericEdit.Value, this.autoRangeCheckBox.Checked,worker, e);
         }
 
         private void fixBiasBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -662,7 +664,7 @@ namespace SBJController
                 this.biasErrorLabel.ForeColor = Color.Black;
 
             }
-            m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
+            m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value, this.rangeNumericEdit.Value, this.autoRangeCheckBox.Checked);
         }
         #endregion
 
@@ -907,7 +909,7 @@ namespace SBJController
         /// <param name="e"></param>
         private void biasNumericEdit_AfterChangeValue(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
         {
-            BiasUpdate(this.biasNumericEdit.Value, int.Parse(this.gainComboBox.Text), this.useKeithleyCheckBox.Checked, 
+            BiasUpdate(this.biasNumericEdit.Value, this.rangeNumericEdit.Value, this.autoRangeCheckBox.Checked,int.Parse(this.gainComboBox.Text), this.useKeithleyCheckBox.Checked, 
                         this.triggerConductanceNumericEdit, this.triggerVoltageNumericEdit);
 
             this.emHoldOnMaxVoltageNumericEdit.Value = GetVoltageFromConductnace(this.emHoldOnMaxConductanceNumericEdit.Value); 
@@ -1368,7 +1370,7 @@ namespace SBJController
                 // Connect to the keithley and set bias.
                 //
                 m_sbjController.SourceMeter.Connect();
-                m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value);
+                m_sbjController.SourceMeter.SetBias(this.biasNumericEdit.Value + this.biasErrorNumericEdit.Value, this.rangeNumericEdit.Value, this.autoRangeCheckBox.Checked);
             }
         }
 
@@ -1740,6 +1742,9 @@ namespace SBJController
                 // what we were planning on doing.
                 //
                 return new SBJControllerSettings(new GeneralSBJControllerSettings(this.biasNumericEdit.Value,
+                                                                                  this.acBiasCheckBox.Checked,
+                                                                                  this.rangeNumericEdit.Value,
+                                                                                  this.autoRangeCheckBox.Checked,
                                                                                   this.biasErrorNumericEdit.Value,
                                                                                   this.gainComboBox.Text,
                                                                                   this.triggerVoltageNumericEdit.Value,
@@ -2168,7 +2173,7 @@ namespace SBJController
         /// <param name="isKeithleyUsed"></param>
         /// <param name="triggerConductance"></param>
         /// <param name="triggerVoltage"></param>
-        private void BiasUpdate(double bias, int gainPower, bool isKeithleyUsed, NumericEdit triggerConductance, NumericEdit triggerVoltage)
+        private void BiasUpdate(double bias, double range, bool isAutoRange, int gainPower, bool isKeithleyUsed, NumericEdit triggerConductance, NumericEdit triggerVoltage)
         {
             //
             // This event is also fired when the UI loads on start.
@@ -2176,7 +2181,7 @@ namespace SBJController
             //
             if (m_sbjController != null && isKeithleyUsed)
             {
-                m_sbjController.SourceMeter.SetBias(bias);
+                m_sbjController.SourceMeter.SetBias(bias, range, isAutoRange);
             }
 
             //
@@ -2209,11 +2214,20 @@ namespace SBJController
         /// <summary>
         /// Tries to connect to the keithley. If failed, uncheck the "use keithly" checkBox. 
         /// </summary>
-        private void TryConnectToKeithly()
+        private void TryConnectToKeithly(double bias, double range, bool isAutoRangeOn)
         {
             try
             {
                 m_sbjController.SourceMeter.Connect();
+                m_sbjController.SourceMeter.SetBias(bias, range, isAutoRangeOn);
+                if (isAutoRangeOn)
+                {
+                    m_sbjController.SourceMeter.SetAutoRange(true);
+                }
+                else
+                {
+                    m_sbjController.SourceMeter.SetRange(range);
+                }
             }
             catch (SBJException)
             {
@@ -2322,7 +2336,7 @@ namespace SBJController
                 // Apparently this function was called from a safe thread so just carry on with
                 // what we were planning on doing.
                 //
-                return new CalibrationSettings(new CalibrationGeneralSettings(this.calibrationBiasNumericEdit.Value,
+                return new CalibrationSettings(new CalibrationGeneralSettings(this.calibrationBiasNumericEdit.Value, 0.001, true,
                                                                                                     this.calibrationGainPowerComboBox.Text,
                                                                                                     this.calibrationTriggerVoltageNumericEdit.Value,
                                                                                                     this.calibrationTriggerConductanceNumericEdit.Value,
@@ -2366,7 +2380,7 @@ namespace SBJController
         /// <param name="e"></param>
         private void calibrationbiasNumericEdit_AfterChangeValue(object sender, NationalInstruments.UI.AfterChangeNumericValueEventArgs e)
         {
-            BiasUpdate(this.calibrationBiasNumericEdit.Value, int.Parse(this.calibrationGainPowerComboBox.Text), this.calibrationKeithleyCheckBox.Checked,
+            BiasUpdate(this.calibrationBiasNumericEdit.Value, 0.001, true,int.Parse(this.calibrationGainPowerComboBox.Text), this.calibrationKeithleyCheckBox.Checked,
                         this.calibrationTriggerConductanceNumericEdit, this.calibrationTriggerVoltageNumericEdit);
         }
        
@@ -2488,7 +2502,7 @@ namespace SBJController
             if (this.calibrationKeithleyCheckBox.Checked)
             {
                 m_sbjController.SourceMeter.Connect();
-                m_sbjController.SourceMeter.SetBias(this.calibrationBiasNumericEdit.Value);
+                m_sbjController.SourceMeter.SetBias(this.calibrationBiasNumericEdit.Value, 0.001, true);
             }
         }
 
@@ -2695,6 +2709,26 @@ namespace SBJController
         }        
         #endregion    
 
+        private void autoRangeCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            rangeNumericEdit.Enabled = !autoRangeCheckBox.Checked;
+            if (autoRangeCheckBox.Checked)
+            {
+                m_sbjController.SourceMeter.SetAutoRange(true);
+            }
+            else
+            {
+                m_sbjController.SourceMeter.SetRange(this.rangeNumericEdit.Value);
+            }
+        }
+
+        private void rangeNumericEdit_ValueChanged(object sender, EventArgs e)
+        {
+            if (m_sbjController != null)
+            {
+                m_sbjController.SourceMeter.SetRange(this.rangeNumericEdit.Value);
+            }
+        }
 
     }
 }
